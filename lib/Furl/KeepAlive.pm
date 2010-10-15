@@ -1,6 +1,7 @@
 package Furl::KeepAlive;
 use strict;
 use warnings;
+use Furl;
 use LWP::UserAgent;
 
 sub new {
@@ -15,7 +16,7 @@ sub new {
 }
 
 sub request {
-    my ($self) = @_;
+    my $self = shift;
     my %args = @_==1 ? %{$_[0]} : @_;
 
     my $path = $args{path} || '/';
