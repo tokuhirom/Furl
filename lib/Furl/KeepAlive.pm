@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Furl;
 use LWP::UserAgent;
+use WWW::Curl::Easy;
 
 sub new {
     my $class = shift;
@@ -11,6 +12,8 @@ sub new {
     bless {
         agent => __PACKAGE__ . '/' . $Furl::VERSION,
         port  => 80,
+        timeout => 10,
+        keepalive_timeout => 300,
         %args,
     }, $class;
 }
@@ -24,19 +27,40 @@ sub request {
 
     my $method = $args{method} || 'GET';
 
-    $self->{ua} ||=
-      LWP::UserAgent->new( agent => $self->{agent}, keep_alive => 1 );
-    my $response = $self->{ua}->request(
-        HTTP::Request->new(
-            $method, $url, $args{headers}, $args{content} || ''
-        )
+    my $curl = ($self->{ua} ||= WWW::Curl::Easy->new());
+    $curl->setopt(CURLOPT_URL, $url);
+    open my $fh, '>', \my $content;
+    $curl->setopt(CURLOPT_WRITEDATA, $fh);
+    $curl->setopt(CURLOPT_USERAGENT, $self->{agent});
+    $curl->setopt(CURLOPT_TIMEOUT, $self->{timeout});
+    $curl->setopt( CURLOPT_HTTPHEADER,
+        [
+            (
+                map { +"$_ : $self->{headers}->{$_}\015\012" }
+                  @{ $self->{headers} }
+            ),
+            "Connection: Keep-Alive",
+            "Keep-Alive: $self->{keepalive_timeout}",
+            "\015\012",
+        ]
     );
-    my @headers =
-      map {
-        my $k = $_;
-        map { ( $k => $_ ) } $response->headers->header($_);
-      } $response->headers->header_field_names;
-    return ($response->code, \@headers, $response->content);
+    $curl->setopt(CURLOPT_CUSTOMREQUEST, $method);
+    $curl->setopt(CURLOPT_POSTFIELDS, $args{content} || '');
+    $curl->setopt(CURLOPT_HEADER, 0);
+    my @headers;
+    $curl->setopt(CURLOPT_HEADERFUNCTION, sub {
+        if (my ($k, $v) = ($_[0] =~ /^(.+)\s*:\s*(.+)\015\012$/)) {
+            push @headers, $k, $v;
+        }
+        return length($_[0]);
+    });
+    my $retcode = $curl->perform();
+    if ($retcode == 0) {
+        my $code = $curl->getinfo(CURLINFO_HTTP_CODE);
+        return ($code, \@headers, $content);
+    } else {
+        return (500, [], $curl->strerror($retcode));
+    }
 }
 
 1;

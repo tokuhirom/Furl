@@ -5,6 +5,8 @@ all_from 'lib/Furl.pm';
 requires 'Exporter' => 5.63; # use Exporter 'import';
 requires 'Plack' =>  0.9949;
 
+use_xshelper;
+
 test_requires 'Test::TCP';
 
 readme_markdown_from 'lib/Furl.pm';
