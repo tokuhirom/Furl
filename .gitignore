@@ -11,3 +11,5 @@ xshelper.h
 META.yml
 blib/
 pm_to_blib
+Furl.bs
+xs-src/Furl.o
