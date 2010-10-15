@@ -1,0 +1,6 @@
+[TestingAndDebugging::ProhibitNoStrict]
+allow=refs
+[-Subroutines::ProhibitSubroutinePrototypes]
+[-Subroutines::ProhibitExplicitReturnUndef]
+[TestingAndDebugging::RequireUseStrict]
+equivalent_modules = perl5i::2
