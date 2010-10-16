@@ -7,17 +7,14 @@
  */
 
 #line 1 "xs-src/Furl.xs"
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
 #include "xshelper.h"
-#include "ppport.h"
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <string.h>
 
 STATIC_INLINE
 size_t furl_content_write(char *ptr, size_t size, size_t nmemb, void*stream) {
+    dTHX;
     SV*buf = (SV*)stream;
     sv_catpvn(buf, ptr, size*nmemb);
     return size*nmemb;
@@ -25,12 +22,13 @@ size_t furl_content_write(char *ptr, size_t size, size_t nmemb, void*stream) {
 
 STATIC_INLINE
 size_t furl_header_write(char *ptr, size_t size, size_t nmemb, void*stream) {
+    dTHX;
     AV*buf = (AV*)stream;
     av_push(buf, newSVpv(ptr, size*nmemb));
     return size*nmemb;
 }
 
-#line 34 "xs-src/Furl.c"
+#line 32 "xs-src/Furl.c"
 #ifndef PERL_UNUSED_VAR
 #  define PERL_UNUSED_VAR(var) if (0) var = var
 #endif
@@ -82,7 +80,7 @@ S_croak_xs_usage(pTHX_ const CV *const cv, const char *const params)
 #define newXSproto_portable(name, c_impl, file, proto) (PL_Sv=(SV*)newXS(name, c_impl, file), sv_setpv(PL_Sv, proto), (CV*)PL_Sv)
 #endif /* !defined(newXS_flags) */
 
-#line 86 "xs-src/Furl.c"
+#line 84 "xs-src/Furl.c"
 
 XS(XS_Furl__new_curl); /* prototype to pass -Wmissing-prototypes */
 XS(XS_Furl__new_curl)
@@ -99,7 +97,7 @@ XS(XS_Furl__new_curl)
     {
 	const char *	agent = (const char *)SvPV_nolen(ST(0));
 	int	timeout = (int)SvIV(ST(1));
-#line 32 "xs-src/Furl.xs"
+#line 30 "xs-src/Furl.xs"
     CURL * curl = curl_easy_init();
     curl_easy_setopt( curl, CURLOPT_USERAGENT,      agent );
     curl_easy_setopt( curl, CURLOPT_TIMEOUT,        timeout );
@@ -109,7 +107,7 @@ XS(XS_Furl__new_curl)
     curl_easy_setopt( curl, CURLOPT_HEADERFUNCTION, furl_header_write );
     XPUSHs(sv_2mortal(newSViv((int)curl)));
     XSRETURN(1);
-#line 113 "xs-src/Furl.c"
+#line 111 "xs-src/Furl.c"
 	PUTBACK;
 	return;
     }
@@ -135,7 +133,7 @@ XS(XS_Furl__request)
 	const char *	method = (const char *)SvPV_nolen(ST(3));
 	const char *	content = (const char *)SvPV_nolen(ST(4));
 	SV*	tmpfile = ST(5);
-#line 45 "xs-src/Furl.xs"
+#line 43 "xs-src/Furl.xs"
     CURL * curl = (CURL*)SvIV(curl_sv);
     curl_easy_setopt( curl, CURLOPT_URL,        url );
     curl_easy_setopt( curl, CURLOPT_POSTFIELDS, content );
@@ -173,17 +171,17 @@ XS(XS_Furl__request)
         if (CURLE_OK != curl_easy_getinfo(curl, CURLINFO_HTTP_CODE, &status)) {
             croak("FATAL");
         }
-        PUSHs(sv_2mortal(newSViv(status)));
-        PUSHs(sv_2mortal(newRV((SV*)res_headers)));
+        mPUSHs(newSViv(status));
+        mPUSHs(newRV_inc((SV*)res_headers));
         PUSHs(res_content);
     } else {
-        PUSHs(sv_2mortal(newSViv(500)));
-        PUSHs(sv_2mortal(newRV((SV*)res_headers)));
+        mPUSHi(500);
+        mPUSHs(newRV_inc((SV*)res_headers));
         const char * errstr = curl_easy_strerror(retcode);
-        PUSHs(sv_2mortal(newSVpvn(errstr, strlen(errstr))));
+        mPUSHs(newSVpvn(errstr, strlen(errstr)));
     }
     XSRETURN(3);
-#line 187 "xs-src/Furl.c"
+#line 185 "xs-src/Furl.c"
 	PUTBACK;
 	return;
     }
@@ -215,10 +213,10 @@ XS(boot_Furl)
 
     /* Initialisation Section */
 
-#line 27 "xs-src/Furl.xs"
+#line 25 "xs-src/Furl.xs"
     curl_global_init(0);
 
-#line 222 "xs-src/Furl.c"
+#line 220 "xs-src/Furl.c"
 
     /* End of Initialisation Section */
 
