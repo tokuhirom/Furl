@@ -14,8 +14,11 @@ test_tcp(
             host    => '127.0.0.1',
             port    => $port,
         );
-        my ( $code, $headers, $content ) =
-          $furl->request( path => '/', headers => [ "X-Foo: ppp", "Connection: Keep-Alive", "Keep-Alive: 300" ] );
+        my ( $code, $headers, $content ) = $furl->request(
+            path => '/',
+            headers =>
+              [ "X-Foo: ppp", "Connection: Keep-Alive", "Keep-Alive: 300" ]
+        );
         is $code, 200;
         is Plack::Util::header_get($headers, 'Content-Length'), 2;
         is $content, 'OK';
