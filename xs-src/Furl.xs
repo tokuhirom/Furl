@@ -1,14 +1,11 @@
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
 #include "xshelper.h"
-#include "ppport.h"
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <string.h>
 
 STATIC_INLINE
 size_t furl_content_write(char *ptr, size_t size, size_t nmemb, void*stream) {
+    dTHX;
     SV*buf = (SV*)stream;
     sv_catpvn(buf, ptr, size*nmemb);
     return size*nmemb;
@@ -16,6 +13,7 @@ size_t furl_content_write(char *ptr, size_t size, size_t nmemb, void*stream) {
 
 STATIC_INLINE
 size_t furl_header_write(char *ptr, size_t size, size_t nmemb, void*stream) {
+    dTHX;
     AV*buf = (AV*)stream;
     av_push(buf, newSVpv(ptr, size*nmemb));
     return size*nmemb;
@@ -79,14 +77,14 @@ PPCODE:
         if (CURLE_OK != curl_easy_getinfo(curl, CURLINFO_HTTP_CODE, &status)) {
             croak("FATAL");
         }
-        PUSHs(sv_2mortal(newSViv(status)));
-        PUSHs(sv_2mortal(newRV((SV*)res_headers)));
+        mPUSHs(newSViv(status));
+        mPUSHs(newRV_inc((SV*)res_headers));
         PUSHs(res_content);
     } else {
-        PUSHs(sv_2mortal(newSViv(500)));
-        PUSHs(sv_2mortal(newRV((SV*)res_headers)));
+        mPUSHi(500);
+        mPUSHs(newRV_inc((SV*)res_headers));
         const char * errstr = curl_easy_strerror(retcode);
-        PUSHs(sv_2mortal(newSVpvn(errstr, strlen(errstr))));
+        mPUSHs(newSVpvn(errstr, strlen(errstr)));
     }
     XSRETURN(3);
 
