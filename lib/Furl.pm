@@ -10,9 +10,11 @@ XSLoader::load('Furl', $VERSION);
 sub new {
     my $class = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
+    my $agent = __PACKAGE__ . '/' . $VERSION;
+    my $timeout = $args{timeout} || 10;
     bless {
-        agent => __PACKAGE__ . '/' . $VERSION,
-        timeout => 10,
+        parse_header => 1,
+        curl         => Furl::_new_curl($agent, $timeout),
         %args
     }, $class;
 }
@@ -21,44 +23,31 @@ sub request {
     my $self = shift;
     my %args = @_;
 
-    my $port = $args{port} || 80;
-    my $path = $args{path} || '/';
-    my $url = "http://$args{host}:$port$path";
+    my $url = do {
+        if ($args{url}) {
+            $args{url};
+        } else {
+            my $port = $args{port} || 80;
+            my $path = $args{path} || '/';
+            "http://$args{host}:$port$path";
+        }
+    };
+    my $content = $args{content} || '';
+    my @headers = @{$args{headers} || []};
 
     my $method = $args{method} || 'GET';
 
-    my $curl = WWW::Curl::Easy->new();
-    $curl->setopt(CURLOPT_USERAGENT, $self->{agent});
-    $curl->setopt(CURLOPT_URL, $url);
-    open my $fh, '>', \my $content;
-    $curl->setopt(CURLOPT_WRITEDATA, $fh);
-    $curl->setopt(CURLOPT_TIMEOUT, $self->{timeout});
-    $curl->setopt( CURLOPT_HTTPHEADER,
-        [
-            (
-                map { +"$_ : $args{headers}->{$_}\015\012" }
-                  @{ $args{headers} }
-            ),
-            "\015\012",
-        ]
-    );
-    $curl->setopt(CURLOPT_CUSTOMREQUEST, $method);
-    $curl->setopt(CURLOPT_POSTFIELDS, $args{content} || '');
-    $curl->setopt(CURLOPT_HEADER, 0);
-    my @headers;
-    $curl->setopt(CURLOPT_HEADERFUNCTION, sub {
-        if (my ($k, $v) = ($_[0] =~ /^(.+)\s*:\s*(.+)\015\012$/)) {
-            push @headers, $k, $v;
-        }
-        return length($_[0]);
-    });
-    my $retcode = $curl->perform();
-    if ($retcode == 0) {
-        my $code = $curl->getinfo(CURLINFO_HTTP_CODE);
-        return ($code, \@headers, $content);
-    } else {
-        return (500, [], $curl->strerror($retcode));
+    my ( $res_code, $res_headers, $res_content ) =
+      Furl::_request( $self->{curl}, $url, \@headers, $method, $content,
+        undef );
+
+    pop @$res_headers;
+    shift @$res_headers;
+    if ($self->{parse_header}) {
+        @$res_headers = map { s/\015?\012$//; split /\s*:\s*/, $_, 2 } @$res_headers;
     }
+
+    return ($res_code, $res_headers, $res_content);
 }
 
 1;

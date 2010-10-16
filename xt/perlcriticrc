@@ -4,3 +4,4 @@ allow=refs
 [-Subroutines::ProhibitExplicitReturnUndef]
 [TestingAndDebugging::RequireUseStrict]
 equivalent_modules = perl5i::2
+[-ControlStructures::ProhibitMutatingListFunctions]
