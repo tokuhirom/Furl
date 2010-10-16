@@ -34,7 +34,7 @@ PPCODE:
     curl_easy_setopt( curl, CURLOPT_NOPROGRESS,     1 );
     curl_easy_setopt( curl, CURLOPT_WRITEFUNCTION,  furl_content_write );
     curl_easy_setopt( curl, CURLOPT_HEADERFUNCTION, furl_header_write );
-    XPUSHs(sv_2mortal(newSViv((int)curl)));
+    mXPUSHi(curl);
     XSRETURN(1);
 
 void
