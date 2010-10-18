@@ -22,7 +22,7 @@ size_t furl_header_write(char *ptr, size_t size, size_t nmemb, void*stream) {
 MODULE=Furl PACKAGE=Furl
 
 BOOT:
-    curl_global_init(0);
+    curl_global_init(CURL_GLOBAL_ALL);
 
 void
 _new_curl(const char *agent, int timeout)

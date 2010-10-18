@@ -20,8 +20,14 @@ tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 test_requires 'Test::More' => 0.96; # done_testing, subtest
 author_tests('xt');
 
-makemaker_args(
-    CCFLAGS => `curl-config --cflags`,
-    LIBS    => `curl-config --libs`,
-);
+if ($^O eq 'MSWin32') {
+    makemaker_args(
+        LIBS => '-lcurldll'
+    );
+} else {
+    makemaker_args(
+        CCFLAGS => `curl-config --cflags`,
+        LIBS    => `curl-config --libs`,
+    );
+}
 WriteAll;
