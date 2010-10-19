@@ -4,8 +4,13 @@ use warnings;
 use 5.00800;
 our $VERSION = '0.01';
 
+use Carp ();
+use IO::Socket::INET;
+use POSIX qw(:errno_h);
 use XSLoader;
-XSLoader::load('Furl', $VERSION);
+use URI;
+
+XSLoader::load __PACKAGE__, $VERSION;
 
 sub new {
     my $class = shift;
@@ -14,7 +19,8 @@ sub new {
     my $timeout = $args{timeout} || 10;
     bless {
         parse_header => 1,
-        curl         => Furl::_new_curl($agent, $timeout),
+        timeout => $timeout,
+        bufsize => 1024*1024,
         %args
     }, $class;
 }
@@ -23,31 +29,91 @@ sub request {
     my $self = shift;
     my %args = @_;
 
-    my $url = do {
+    my ($host, $port, $path_query) = do {
         if ($args{url}) {
-            $args{url};
+            # TODO: parse by regexp if it's not object.
+            my $url = $args{url};
+               $url = URI->new($url) unless ref $url;
+            ($url->host, $url->port, $url->path_query);
         } else {
-            my $port = $args{port} || 80;
-            my $path = $args{path} || '/';
-            "http://$args{host}:$port$path";
+            ($args{host}, $args{port} || 80, $args{path_query} || '/');
         }
     };
-    my $content = $args{content} || '';
+    my $content = $args{content};
     my @headers = @{$args{headers} || []};
 
     my $method = $args{method} || 'GET';
 
-    my ( $res_code, $res_headers, $res_content ) =
-      Furl::_request( $self->{curl}, $url, \@headers, $method, $content,
-        undef );
-
-    pop @$res_headers;
-    shift @$res_headers;
-    if ($self->{parse_header}) {
-        @$res_headers = map { s/\015?\012$//; split /\s*:\s*/, $_, 2 } @$res_headers;
+    local $SIG{PIPE} = 'IGNORE';
+    my $sock = IO::Socket::INET->new(
+        PeerHost => $host,
+        PeerPort => $port,
+        Timeout  => $self->{timeout},
+    ) or Carp::croak("cannot connect to $host:$port, $!");
+    {
+        my $p = "$method $path_query HTTP/1.0\015\012";
+        $p .= join("\015\012", @headers);
+        $p .= "\015\012\015\012";
+        defined(syswrite($sock, $p, length($p))) or die $!;
+        if ($content) {
+            defined(syswrite($sock, $content, length($content))) or die $!;
+        }
     }
-
-    return ($res_code, $res_headers, $res_content);
+    my $buf = '';
+    my $last_len = 0;
+    my $status;
+    my $res_headers;
+    my $res_content;
+  LOOP: while (1) {
+        my $read = read($sock, $buf, $self->{bufsize}, length($buf) );
+        if (not defined $read || $read < 0) {
+            die "error while reading from socket: $!";
+        } elsif ( $read == 0 ) {    # eof
+            die "eof";
+        }
+        else {
+            ( $status, $res_headers, my $ret ) =
+              parse_http_response( $buf, $last_len );
+            if ( $ret == -1 ) {
+                die "invalid HTTP response";
+            }
+            elsif ( $ret == -2 ) {
+                # partial response
+                $last_len = length($buf);
+                next LOOP;
+            }
+            else {
+                # succeeded
+                $res_content = substr( $buf, $ret );
+                last LOOP;
+            }
+        }
+    }
+    my $content_length = sub {
+        for (my $i=0; $i<@$res_headers; $i+=2) {
+            return $res_headers->[$i+1] if lc($res_headers->[$i]) eq 'content-length';
+        }
+        return -1;
+    }->();
+    my $sent_length = 0;
+    READ_LOOP: while ($content_length == -1 || $content_length != $sent_length) {
+        my $bufsize = $self->{bufsize};
+        if ($content_length != -1 && $content_length - $sent_length < $bufsize) {
+            $bufsize = $content_length - $sent_length;
+        }
+        # TODO: save to fh
+        my $readed = read($sock, my $buf, $bufsize);
+        if (not defined $readed || $readed < 0 ) {
+            next READ_LOOP if $? == EAGAIN;
+        }
+        if ($readed == 0) {
+            # eof
+            last READ_LOOP;
+        }
+        $res_content .= substr($buf, 0, $readed);
+        $sent_length += $readed;
+    }
+    return ($status, $res_headers, $res_content);
 }
 
 1;

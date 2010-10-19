@@ -1,89 +1,35 @@
 #include "xshelper.h"
-#include <curl/curl.h>
-#include <curl/easy.h>
 #include <string.h>
-
-STATIC_INLINE
-size_t furl_content_write(char *ptr, size_t size, size_t nmemb, void*stream) {
-    dTHX;
-    SV*buf = (SV*)stream;
-    sv_catpvn(buf, ptr, size*nmemb);
-    return size*nmemb;
-}
-
-STATIC_INLINE
-size_t furl_header_write(char *ptr, size_t size, size_t nmemb, void*stream) {
-    dTHX;
-    AV*buf = (AV*)stream;
-    av_push(buf, newSVpv(ptr, size*nmemb));
-    return size*nmemb;
-}
+#include "picohttpparser/picohttpparser.h"
 
 MODULE=Furl PACKAGE=Furl
 
-BOOT:
-    curl_global_init(CURL_GLOBAL_ALL);
-
 void
-_new_curl(const char *agent, int timeout)
+parse_http_response(SV *buffer_sv, int last_len)
 PPCODE:
-    CURL * curl = curl_easy_init();
-    curl_easy_setopt( curl, CURLOPT_USERAGENT,      agent );
-    curl_easy_setopt( curl, CURLOPT_TIMEOUT,        timeout );
-    curl_easy_setopt( curl, CURLOPT_HEADER,         0 );
-    curl_easy_setopt( curl, CURLOPT_NOPROGRESS,     1 );
-    curl_easy_setopt( curl, CURLOPT_WRITEFUNCTION,  furl_content_write );
-    curl_easy_setopt( curl, CURLOPT_HEADERFUNCTION, furl_header_write );
-    mXPUSHi(curl);
-    XSRETURN(1);
+    STRLEN len;
+    char * buf = SvPV(buffer_sv, len);
 
-void
-_request(SV *curl_sv, const char * url, AV* headers, const char *method, const char *content, SV*tmpfile)
-PPCODE:
-    CURL* const curl = (CURL*)SvIV(curl_sv);
-    struct curl_slist *header_slist = NULL;
-
-    curl_easy_setopt(curl, CURLOPT_URL,           url );
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS,    content );
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method );
-
-    {
-        int const last = av_len(headers);
-        int i;
-
-        for (i=0;i<=last;i++) {
-            SV **svp = av_fetch(headers,i,0);
-            if(!svp) break;
-            STRLEN len;
-            const char *string = SvPV(*svp, len);
-            if (len == 0) break;
-            header_slist = curl_slist_append(header_slist, string);
-        }
-        header_slist = curl_slist_append(header_slist, "\015\012");
-
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_slist);
+    int minor_version;
+    int status;
+    const char *msg;
+    size_t msg_len = 0;
+    struct phr_header headers_st[1024];
+    size_t num_headers = sizeof(headers_st) / sizeof(headers_st[0]);
+    int ret = phr_parse_response(buf, len, &minor_version, &status, &msg, &msg_len,  headers_st, &num_headers, last_len);
+    AV * headers = newAV();
+    size_t i;
+    for (i=0; i<num_headers; i++) {
+        av_push(headers, newSVpv(headers_st[i].name, headers_st[i].name_len));
+        av_push(headers, newSVpv(headers_st[i].value, headers_st[i].value_len));
     }
-    SV* const res_content = sv_2mortal(newSV(512));
-    sv_setpvs(res_content, "");
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA,  res_content);
-    AV* const res_headers = newAV_mortal();
-    curl_easy_setopt(curl, CURLOPT_HEADERDATA, res_headers);
 
-    CURLcode retcode = curl_easy_perform(curl);
-
-    curl_slist_free_all(header_slist);
     EXTEND(SP, 3);
-    if (retcode == 0) {
-        long status;
-        if (CURLE_OK != curl_easy_getinfo(curl, CURLINFO_HTTP_CODE, &status)) {
-            croak("FATAL");
-        }
-        mPUSHi(status);
-        mPUSHs(newRV_inc((SV*)res_headers));
-        PUSHs(res_content);
-    } else {
-        mPUSHi(500);
-        mPUSHs(newRV_inc((SV*)res_headers));
-        mPUSHs(newSVpvn(curl_easy_strerror(retcode), 0));
-    }
+    mPUSHi(status);
+    mPUSHs(newRV_inc((SV*)headers));
+    mPUSHi(ret);
+    /* returns number of bytes cosumed if successful, -2 if request is partial,
+     * -1 if failed */
+    XSRETURN(3);
 
+#include "picohttpparser/picohttpparser.c"

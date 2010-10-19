@@ -1,0 +1,3 @@
+[submodule "picohttpparser"]
+	path = picohttpparser
+	url = git://github.com/kazuho/picohttpparser.git
