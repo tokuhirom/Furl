@@ -22,9 +22,10 @@ test_tcp(
             );
             is $code, 200;
             is $headers->content_length(), 2;
+            is $headers->connection(), "close";
             is scalar($headers->header('X-Poo')), "P1";
             is join(",", $headers->header('X-Poo')), "P1,P2";
-            is join(",", sort $headers->keys), "Content-Length,Date,Server,X-Poo";
+            is join(",", sort $headers->keys), "Connection,Content-Length,Date,Server,X-Poo";
             is $content, 'OK';
         }
         done_testing;
@@ -35,7 +36,7 @@ test_tcp(
             my $env = shift;
             my $req = Plack::Request->new($env);
             is $req->header('X-Foo'), "ppp";
-            return [ 200, [ 'Content-Length' => 2, 'X-Poo' => "P1", "X-Poo" => 'P2' ], ['OK'] ];
+            return [ 200, [ 'Content-Length' => 2, 'X-Poo' => "P1", "X-Poo" => 'P2', 'Connection' => 'close' ], ['OK'] ];
         });
     }
 );
