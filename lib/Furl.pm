@@ -174,6 +174,14 @@ Furl -
 
 Furl is yet another http client library.
 
+=head1 INTEGRATE WITH HTTP::Response
+
+Some useful libraries require the instance of HTTP::Response for argument.
+You can easy to create the instance of it.
+
+    my ($code, $headers, $content) = $furl->get($url);
+    my $res = HTTP::Response->new($code, $headers, $content);
+
 =head1 TODO
 
     - follow redirect
