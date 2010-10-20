@@ -27,7 +27,7 @@ sub new {
 
 sub get {
     my ($self, $url) = @_;
-    return $self->request(method => $url);
+    return $self->request(method => 'GET', url => $url);
 }
 
 sub request {
@@ -47,6 +47,7 @@ sub request {
             ($args{host}, $args{port} || 80, $args{path_query} || '/');
         }
     };
+    die "missing host name in arguments" unless defined $host;
 
     local $SIG{PIPE} = 'IGNORE';
     my $err = sub { delete $self->{sock_cache}; return @_ };
@@ -89,6 +90,7 @@ sub request {
     my $res_connection;
     my $res_minor_version;
     my $res_content_length;
+    my $res_transfer_encoding;
     my $res_location;
   LOOP: while (1) {
         my $read = sysread($sock, $buf, $self->{bufsize}, length($buf) );
@@ -98,7 +100,7 @@ sub request {
             return $err->(500, [], "Unexpected EOF: $!");
         }
         else {
-            ( $res_minor_version, $res_status, $res_content_length, $res_connection, $res_location, $res_headers, my $ret ) =
+            ( $res_minor_version, $res_status, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_headers, my $ret ) =
               parse_http_response( $buf, $last_len );
             if ( $ret == -1 ) {
                 return $err->(500, [], ["invalid HTTP response"]);
@@ -198,8 +200,6 @@ You can easy to create the instance of it.
 
 =head1 TODO
 
-    - LWP like interface: ->get, ->post
-        ->get($url)
     - form serializer
         seraizlie_x_www_url_encoded(foo => bar, baz => 1);
     - timeout
@@ -209,6 +209,7 @@ You can easy to create the instance of it.
     - cookie_jar support
     - timeout support
     - ssl support
+    - chunked support(see RFC2616 sec 19.4.6)
 
 =head1 AUTHOR
 
