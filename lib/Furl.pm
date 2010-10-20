@@ -175,7 +175,15 @@ Furl is yet another http client library.
 
     - follow redirect
     - LWP compat interface: ->get, ->post
+        ->get($url)
+    - form serializer
+        seraizlie_x_www_url_encoded(foo => bar, baz => 1);
     - timeout
+    - idn support(with Net-IDN-Encode?)
+    - proxy support
+    - env_proxy support
+    - cookie_jar support
+    - timeout support
 
 =head1 AUTHOR
 
