@@ -20,7 +20,7 @@ sub new {
     bless {
         parse_header => 1,
         timeout => $timeout,
-        bufsize => 1024*1024,
+        bufsize => 10*1024, # no mmap
         %args
     }, $class;
 }
