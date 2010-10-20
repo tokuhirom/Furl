@@ -8,6 +8,7 @@ use Carp ();
 use POSIX qw(:errno_h);
 use XSLoader;
 use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in/;
+use Furl::Headers;
 
 XSLoader::load __PACKAGE__, $VERSION;
 

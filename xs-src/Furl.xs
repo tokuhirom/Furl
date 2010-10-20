@@ -89,4 +89,15 @@ PPCODE:
     }
     XSRETURN(c);
 
+void
+_keys(SV*self)
+PPCODE:
+    struct furl_headers * headers = (struct furl_headers*)SvIV(SvRV(self));
+    size_t i;
+    for (i=0; i < headers->num_headers; i++) {
+        struct phr_header * h = &(headers->headers[i]);
+        mXPUSHp(h->name, h->name_len);
+    }
+    XSRETURN(headers->num_headers);
+
 #include "picohttpparser/picohttpparser.c"
