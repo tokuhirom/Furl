@@ -5,9 +5,9 @@ use 5.00800;
 our $VERSION = '0.01';
 
 use Carp ();
-use IO::Socket::INET;
 use POSIX qw(:errno_h);
 use XSLoader;
+use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in/;
 
 XSLoader::load __PACKAGE__, $VERSION;
 
@@ -30,7 +30,6 @@ sub request {
 
     my ($host, $port, $path_query) = do {
         if ($args{url}) {
-            # TODO: parse by regexp if it's not object.
             my $url = $args{url};
             if (ref $url) {
                 ($url->host, $url->port, $url->path_query);
@@ -55,11 +54,16 @@ sub request {
     if ($self->{sock_cache} && $self->{sock_cache}->{host} eq $host && $self->{sock_cache}->{port}  eq $port) {
         $sock = $self->{sock_cache}->{sock};
     } else {
-        $sock = IO::Socket::INET->new(
-            PeerHost => $host,
-            PeerPort => $port,
-            Timeout  => $self->{timeout},
-        ) or Carp::croak("cannot connect to $host:$port, $!");
+        my $iaddr = inet_aton($host) or die "cannot detect host name: $host, $!";
+        my $sock_addr = pack_sockaddr_in($port, $iaddr);
+        socket($sock, PF_INET, SOCK_STREAM, 0) or die "Cannot create socket: $!";
+        connect($sock, $sock_addr) or die "cannot connect to $host, $port: $!";
+        {
+            # no buffering
+            my $orig = select();
+            select($sock); $|=1; 
+            select($orig);
+        }
     }
     {
         my $p = "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012Connection: Keep-Alive\015\012";
@@ -166,6 +170,12 @@ Furl -
 =head1 DESCRIPTION
 
 Furl is yet another http client library.
+
+=head1 TODO
+
+    - follow redirect
+    - LWP compat interface: ->get, ->post
+    - timeout
 
 =head1 AUTHOR
 
