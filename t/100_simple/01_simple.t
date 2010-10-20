@@ -17,8 +17,7 @@ test_tcp(
                 port => $port,
                 path => '/',
                 host => '127.0.0.1',
-                headers =>
-                [ "X-Foo: ppp", "Connection: Keep-Alive", "Keep-Alive: 300" ]
+                headers => [ "X-Foo" => "ppp" ]
             );
             is $code, 200;
             is Plack::Util::header_get($headers, 'Content-Length'), 2;

@@ -46,10 +46,6 @@ sub request {
             ($args{host}, $args{port} || 80, $args{path_query} || '/');
         }
     };
-    my $content = $args{content};
-    my @headers = @{$args{headers} || []};
-
-    my $method = $args{method} || 'GET';
 
     local $SIG{PIPE} = 'IGNORE';
     my $err = sub { delete $self->{sock_cache}; return @_ };
@@ -69,13 +65,16 @@ sub request {
         }
     }
     {
-        my $p = "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012Connection: Keep-Alive\015\012";
-        for my $h (@headers) {
-            $p .= $h . "\015\012";
+        my $method = $args{method} || 'GET';
+        my $p = "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012";
+        if ($args{headers}) {
+            for (my $i=0; $i<@{$args{headers}}; $i+=2) {
+                $p .= $args{headers}->[$i] . ': ' . $args{headers}->[$i+1] . "\015\012";
+            }
         }
         $p .= "\015\012";
         defined(syswrite($sock, $p, length($p))) or return $err->(500, [], ['Broken Pipe']);
-        if ($content) {
+        if (my $content = $args{content}) {
             defined(syswrite($sock, $content, length($content))) or die $!;
         }
     }
@@ -196,6 +195,7 @@ You can easy to create the instance of it.
     - env_proxy support
     - cookie_jar support
     - timeout support
+    - ssl support
 
 =head1 AUTHOR
 

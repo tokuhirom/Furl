@@ -18,7 +18,7 @@ test_tcp(
                 port    => $port,
                 path    => '/',
                 host    => '127.0.0.1',
-                headers => [ "X-Foo: ppp", "Connection: Keep-Alive" ]
+                headers => [ "X-Foo" => "ppp", "Connection" => "Keep-Alive" ]
             )
         );
         my $res = HTTP::Response->new($code, $code, $headers, $content);
