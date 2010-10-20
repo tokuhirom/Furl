@@ -19,6 +19,7 @@ sub new {
     bless {
         parse_header => 1,
         timeout => $timeout,
+        max_redirects => 7,
         bufsize => 10*1024, # no mmap
         %args
     }, $class;
@@ -78,9 +79,11 @@ sub request {
             defined(syswrite($sock, $content, length($content))) or die $!;
         }
     }
+
+    # read response
     my $buf = '';
     my $last_len = 0;
-    my $status;
+    my $res_status;
     my $res_headers;
     my $res_content;
     my $res_connection;
@@ -95,7 +98,7 @@ sub request {
             return $err->(500, [], "Unexpected EOF: $!");
         }
         else {
-            ( $res_minor_version, $status, $res_content_length, $res_connection, $res_location, $res_headers, my $ret ) =
+            ( $res_minor_version, $res_status, $res_content_length, $res_connection, $res_location, $res_headers, my $ret ) =
               parse_http_response( $buf, $last_len );
             if ( $ret == -1 ) {
                 return $err->(500, [], ["invalid HTTP response"]);
@@ -130,6 +133,17 @@ sub request {
         $res_content .= substr($buf, 0, $readed);
         $sent_length += $readed;
     }
+
+    my $max_redirects = $args{max_redirects} || $self->{max_redirects};
+    if ($res_status =~ /^30[123]$/ && $res_location && $max_redirects) {
+        return $self->request(
+            @_,
+            url           => $res_location,
+            max_redirects => $max_redirects - 1,
+        );
+    }
+
+    # manage cache
     if ($res_content_length == -1 || $res_minor_version == 0 || ($res_connection && lc($res_connection) eq 'close')) {
         delete $self->{sock_cache};
         undef $sock;
@@ -138,7 +152,7 @@ sub request {
         $self->{sock_cache}->{host} = $host;
         $self->{sock_cache}->{port} = $port;
     }
-    return ($status, $res_headers, $res_content);
+    return ($res_status, $res_headers, $res_content);
 }
 
 1;
@@ -184,7 +198,6 @@ You can easy to create the instance of it.
 
 =head1 TODO
 
-    - follow redirect
     - LWP like interface: ->get, ->post
         ->get($url)
     - form serializer
