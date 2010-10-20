@@ -31,7 +31,7 @@ cmpthese(
             my $ret = $curl->perform();
             $ret == 0 or die "$ret : " . $curl->strerror($ret);
             my $code = $curl->getinfo(CURLINFO_HTTP_CODE);
-            $curl->getinfo(CURLINFO_HTTP_CODE) == 200 or die;
+            $code == 200 or die "oops: $code";
         },
         furl => sub {
             my ($code, $headers, $content) = $furl->request(method => 'GET', url => $url, headers => ['Connection: Keep-Alive', 'Keep-Alive: 300']);
