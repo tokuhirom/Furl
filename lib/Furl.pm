@@ -130,7 +130,7 @@ sub request {
         $res_content .= substr($buf, 0, $readed);
         $sent_length += $readed;
     }
-    if ($res_content_length == -1 || $res_minor_version == 0 || lc($res_connection) eq 'close') {
+    if ($res_content_length == -1 || $res_minor_version == 0 || ($res_connection && lc($res_connection) eq 'close')) {
         delete $self->{sock_cache};
         undef $sock;
     } else {
