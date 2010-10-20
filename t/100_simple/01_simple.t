@@ -21,7 +21,9 @@ test_tcp(
                 [ "X-Foo: ppp", "Connection: Keep-Alive", "Keep-Alive: 300" ]
             );
             is $code, 200;
-            is Plack::Util::header_get($headers, 'Content-Length'), 2;
+            is $headers->content_length(), 2;
+            is scalar($headers->header('X-Poo')), "P1";
+            is join(",", $headers->header('X-Poo')), "P1,P2";
             is $content, 'OK';
         }
         done_testing;
@@ -32,7 +34,7 @@ test_tcp(
             my $env = shift;
             my $req = Plack::Request->new($env);
             is $req->header('X-Foo'), "ppp";
-            return [ 200, [ 'Content-Length' => 2 ], ['OK'] ];
+            return [ 200, [ 'Content-Length' => 2, 'X-Poo' => "P1", "X-Poo" => 'P2' ], ['OK'] ];
         });
     }
 );
