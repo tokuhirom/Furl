@@ -8,7 +8,6 @@ use Carp ();
 use IO::Socket::INET;
 use POSIX qw(:errno_h);
 use XSLoader;
-use URI;
 
 XSLoader::load __PACKAGE__, $VERSION;
 
@@ -33,8 +32,14 @@ sub request {
         if ($args{url}) {
             # TODO: parse by regexp if it's not object.
             my $url = $args{url};
-               $url = URI->new($url) unless ref $url;
-            ($url->host, $url->port, $url->path_query);
+            if (ref $url) {
+                ($url->host, $url->port, $url->path_query);
+            } else {
+                $url =~ s!^http://!!;
+                my ($hostport, $path) = split m{/}, $url, 2;
+                my ($host, $port) = split /:/, $hostport;
+                ($host, $port || 80, $path || '/');
+            }
         } else {
             ($args{host}, $args{port} || 80, $args{path_query} || '/');
         }
@@ -45,16 +50,24 @@ sub request {
     my $method = $args{method} || 'GET';
 
     local $SIG{PIPE} = 'IGNORE';
-    my $sock = IO::Socket::INET->new(
-        PeerHost => $host,
-        PeerPort => $port,
-        Timeout  => $self->{timeout},
-    ) or Carp::croak("cannot connect to $host:$port, $!");
+    my $err = sub { delete $self->{sock_cache}; return @_ };
+    my $sock;
+    if ($self->{sock_cache} && $self->{sock_cache}->{host} eq $host && $self->{sock_cache}->{port}  eq $port) {
+        $sock = $self->{sock_cache}->{sock};
+    } else {
+        $sock = IO::Socket::INET->new(
+            PeerHost => $host,
+            PeerPort => $port,
+            Timeout  => $self->{timeout},
+        ) or Carp::croak("cannot connect to $host:$port, $!");
+    }
     {
-        my $p = "$method $path_query HTTP/1.0\015\012";
-        $p .= join("\015\012", @headers);
-        $p .= "\015\012\015\012";
-        defined(syswrite($sock, $p, length($p))) or die $!;
+        my $p = "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012Connection: Keep-Alive\015\012";
+        for my $h (@headers) {
+            $p .= $h . "\015\012";
+        }
+        $p .= "\015\012";
+        defined(syswrite($sock, $p, length($p))) or return $err->(500, [], ['Broken Pipe']);
         if ($content) {
             defined(syswrite($sock, $content, length($content))) or die $!;
         }
@@ -64,18 +77,21 @@ sub request {
     my $status;
     my $res_headers;
     my $res_content;
+    my $res_connection;
+    my $res_minor_version;
+    my $res_content_length;
   LOOP: while (1) {
-        my $read = read($sock, $buf, $self->{bufsize}, length($buf) );
+        my $read = sysread($sock, $buf, $self->{bufsize}, length($buf) );
         if (not defined $read || $read < 0) {
             die "error while reading from socket: $!";
         } elsif ( $read == 0 ) {    # eof
-            die "eof";
+            return $err->(500, [], "Unexpected EOF: $!");
         }
         else {
-            ( $status, $res_headers, my $ret ) =
+            ( $res_minor_version, $status, $res_content_length, $res_connection, $res_headers, my $ret ) =
               parse_http_response( $buf, $last_len );
             if ( $ret == -1 ) {
-                die "invalid HTTP response";
+                return $err->(500, [], ["invalid HTTP response"]);
             }
             elsif ( $ret == -2 ) {
                 # partial response
@@ -89,20 +105,14 @@ sub request {
             }
         }
     }
-    my $content_length = sub {
-        for (my $i=0; $i<@$res_headers; $i+=2) {
-            return $res_headers->[$i+1] if lc($res_headers->[$i]) eq 'content-length';
-        }
-        return -1;
-    }->();
-    my $sent_length = 0;
-    READ_LOOP: while ($content_length == -1 || $content_length != $sent_length) {
+    my $sent_length = length($res_content);
+    READ_LOOP: while ($res_content_length == -1 || $res_content_length != $sent_length) {
         my $bufsize = $self->{bufsize};
-        if ($content_length != -1 && $content_length - $sent_length < $bufsize) {
-            $bufsize = $content_length - $sent_length;
+        if ($res_content_length != -1 && $res_content_length - $sent_length < $bufsize) {
+            $bufsize = $res_content_length - $sent_length;
         }
         # TODO: save to fh
-        my $readed = read($sock, my $buf, $bufsize);
+        my $readed = sysread($sock, my $buf, $bufsize);
         if (not defined $readed || $readed < 0 ) {
             next READ_LOOP if $? == EAGAIN;
         }
@@ -112,6 +122,14 @@ sub request {
         }
         $res_content .= substr($buf, 0, $readed);
         $sent_length += $readed;
+    }
+    if ($res_content_length == -1 || $res_minor_version == 0 || lc($res_connection) eq 'close') {
+        delete $self->{sock_cache};
+        undef $sock;
+    } else {
+        $self->{sock_cache}->{sock} = $sock;
+        $self->{sock_cache}->{host} = $host;
+        $self->{sock_cache}->{port} = $port;
     }
     return ($status, $res_headers, $res_content);
 }

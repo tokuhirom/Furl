@@ -19,17 +19,36 @@ PPCODE:
     int ret = phr_parse_response(buf, len, &minor_version, &status, &msg, &msg_len,  headers_st, &num_headers, last_len);
     AV * headers = newAV();
     size_t i;
+    ssize_t content_length = -1;
+    SV * connection = &PL_sv_undef;
     for (i=0; i<num_headers; i++) {
+        /* TODO:strncasecmp is not portable */
+        if (strncasecmp(headers_st[i].name, "Content-Length", headers_st[i].name_len) == 0) {
+            char * buf;
+            Newxz(buf, headers_st[i].value_len+1, char);
+            memcpy(buf, headers_st[i].value, headers_st[i].value_len);
+            content_length = strtol(buf, NULL, 10);
+            Safefree(buf);
+            if ((content_length == LONG_MIN || content_length == LONG_MAX) && errno==ERANGE) {
+                croak("overflow or undeflow is found in Content-Length");
+            }
+        }
+        if (strncasecmp(headers_st[i].name, "Connection", headers_st[i].name_len) == 0) {
+            connection = sv_2mortal(newSVpv(headers_st[i].value, headers_st[i].value_len));
+        }
         av_push(headers, newSVpv(headers_st[i].name, headers_st[i].name_len));
         av_push(headers, newSVpv(headers_st[i].value, headers_st[i].value_len));
     }
 
-    EXTEND(SP, 3);
+    EXTEND(SP, 6);
+    mPUSHi(minor_version);
     mPUSHi(status);
+    mPUSHi(content_length);
+    PUSHs(connection);
     mPUSHs(newRV_inc((SV*)headers));
     mPUSHi(ret);
     /* returns number of bytes cosumed if successful, -2 if request is partial,
      * -1 if failed */
-    XSRETURN(3);
+    XSRETURN(6);
 
 #include "picohttpparser/picohttpparser.c"

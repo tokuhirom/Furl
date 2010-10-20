@@ -11,17 +11,19 @@ test_tcp(
     client => sub {
         my $port = shift;
         my $furl = Furl->new();
-        my ( $code, $headers, $content ) =
-        $furl->request(
-            port => $port,
-            path => '/',
-            host => '127.0.0.1',
-            headers =>
-              [ "X-Foo: ppp", "Connection: Keep-Alive", "Keep-Alive: 300" ]
-        );
-        is $code, 200;
-        is Plack::Util::header_get($headers, 'Content-Length'), 2;
-        is $content, 'OK';
+        for (1..3) {
+            my ( $code, $headers, $content ) =
+            $furl->request(
+                port => $port,
+                path => '/',
+                host => '127.0.0.1',
+                headers =>
+                [ "X-Foo: ppp", "Connection: Keep-Alive", "Keep-Alive: 300" ]
+            );
+            is $code, 200;
+            is Plack::Util::header_get($headers, 'Content-Length'), 2;
+            is $content, 'OK';
+        }
         done_testing;
     },
     server => sub {

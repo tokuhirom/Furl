@@ -1,10 +1,15 @@
 use strict;
 use warnings;
-use autodie;
 use Furl;
+
+my $url = shift @ARGV || 'http://127.0.0.1:80/';
 
 my $furl = Furl->new(parse_header => 0);
 for (1..1000) {
-    $furl->request(method => 'GET', host => '127.0.0.1', port => 80);
+    my ($code, $headers, $content) = $furl->request(
+        method  => 'GET',
+        url     => $url,
+    );
+    $code == 200 or die "oops : $code, $content";
 }
 
