@@ -87,6 +87,7 @@ sub request {
     my $res_connection;
     my $res_minor_version;
     my $res_content_length;
+    my $res_location;
   LOOP: while (1) {
         my $read = sysread($sock, $buf, $self->{bufsize}, length($buf) );
         if (not defined $read || $read < 0) {
@@ -95,7 +96,7 @@ sub request {
             return $err->(500, [], "Unexpected EOF: $!");
         }
         else {
-            ( $res_minor_version, $status, $res_content_length, $res_connection, $res_headers, my $ret ) =
+            ( $res_minor_version, $status, $res_content_length, $res_connection, $res_location, $res_headers, my $ret ) =
               parse_http_response( $buf, $last_len );
             if ( $ret == -1 ) {
                 return $err->(500, [], ["invalid HTTP response"]);
