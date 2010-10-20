@@ -27,12 +27,12 @@ PPCODE:
     int ret = phr_parse_response(buf, len, &minor_version, &status, &msg, &msg_len,  headers_st->headers, &(headers_st->num_headers), last_len);
     size_t i;
     headers_st->content_length = -1;
-    headers_st->connection = &PL_sv_undef;
+    SV * connection = &PL_sv_undef;
     for (i=0; i<headers_st->num_headers; i++) {
         /* TODO:strncasecmp is not portable */
         struct phr_header * h = &(headers_st->headers[i]);
-        if (h->name_len > 5 && ((h->name)[0] == 'C' || (h->name)[0] == 'c')) {
-            if (strncasecmp(h->name+1, "ontent-Length", h->name_len-1) == 0) {
+        if (h->name_len > 5 && (h->name)[0] == 'C') {
+            if (strncasecmp(h->name, "Content-Length", h->name_len) == 0) {
                 char * buf;
                 Newxz(buf, h->value_len+1, char);
                 memcpy(buf, h->value, h->value_len);
@@ -41,8 +41,9 @@ PPCODE:
                 if ((headers_st->content_length == LONG_MIN || headers_st->content_length == LONG_MAX) && errno==ERANGE) {
                     croak("overflow or undeflow is found in Content-Length");
                 }
-            } else if (strncasecmp(h->name+1, "onnection", h->name_len-1) == 0) {
-                headers_st->connection = newSVpv(h->value, h->value_len);
+            }
+            if (strncasecmp(h->name, "Connection", h->name_len) == 0) {
+                connection = sv_2mortal(newSVpv(h->value, h->value_len));
             }
         }
     }
@@ -54,7 +55,7 @@ PPCODE:
     mPUSHi(minor_version);
     mPUSHi(status);
     mPUSHi(headers_st->content_length);
-    PUSHs(headers_st->connection);
+    PUSHs(connection);
     PUSHs(headers_obj);
     mPUSHi(ret);
     /* returns number of bytes cosumed if successful, -2 if request is partial,
@@ -68,13 +69,6 @@ content_length(SV *self)
 PPCODE:
     struct furl_headers * headers = (struct furl_headers*)SvIV(SvRV(self));
     ST(0) = newSViv(headers->content_length);
-    XSRETURN(1);
-
-void
-connection(SV *self)
-PPCODE:
-    struct furl_headers * headers = (struct furl_headers*)SvIV(SvRV(self));
-    XPUSHs(sv_2mortal(newSVsv(headers->connection)));
     XSRETURN(1);
 
 void
