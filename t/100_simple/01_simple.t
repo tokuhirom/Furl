@@ -24,7 +24,6 @@ test_tcp(
             is $headers->content_length(), 2;
             is scalar($headers->header('X-Poo')), "P1";
             is join(",", $headers->header('X-Poo')), "P1,P2";
-            is join(",", sort $headers->keys), "Content-Length,Date,Server,X-Poo";
             is $content, 'OK';
         }
         done_testing;
