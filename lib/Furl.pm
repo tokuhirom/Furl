@@ -24,6 +24,11 @@ sub new {
     }, $class;
 }
 
+sub get {
+    my ($self, $url) = @_;
+    return $self->request(method => $url);
+}
+
 sub request {
     my $self = shift;
     my %args = @_;
@@ -34,10 +39,8 @@ sub request {
             if (ref $url) {
                 ($url->host, $url->port, $url->path_query);
             } else {
-                $url =~ s!^http://!!;
-                my ($hostport, $path) = split m{/}, $url, 2;
-                my ($host, $port) = split /:/, $hostport;
-                ($host, $port || 80, $path || '/');
+                $url =~ m{^http://([^/:]+)(?::(\d+))?(.*)$};
+                ($1, $2 || 80, $3 || '/');
             }
         } else {
             ($args{host}, $args{port} || 80, $args{path_query} || '/');
@@ -174,7 +177,7 @@ Furl is yet another http client library.
 =head1 TODO
 
     - follow redirect
-    - LWP compat interface: ->get, ->post
+    - LWP like interface: ->get, ->post
         ->get($url)
     - form serializer
         seraizlie_x_www_url_encoded(foo => bar, baz => 1);
