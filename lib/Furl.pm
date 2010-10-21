@@ -83,7 +83,9 @@ sub request {
 
     local $SIG{PIPE} = 'IGNORE';
     my $sock;
-    if ($self->{sock_cache} && $self->{sock_cache}->{host} eq $host && $self->{sock_cache}->{port}  eq $port) {
+    if ($self->{sock_cache}
+            && $self->{sock_cache}->{host} eq $host
+            && $self->{sock_cache}->{port} eq $port) {
         $sock = $self->{sock_cache}->{sock};
     } else {
         my ($_host, $_port);
