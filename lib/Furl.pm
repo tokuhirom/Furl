@@ -7,7 +7,7 @@ our $VERSION = '0.01';
 use Carp ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use XSLoader;
-use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in/;
+use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in IPPROTO_TCP TCP_NODELAY/;
 
 XSLoader::load __PACKAGE__, $VERSION;
 
@@ -67,6 +67,8 @@ sub request {
             or Carp::croak("Cannot create socket: $!");
         connect($sock, $sock_addr)
             or Carp::croak("cannot connect to $host, $port: $!");
+        setsockopt($sock, IPPROTO_TCP, TCP_NODELAY, 1)
+            or Carp::croak("setsockopt(TCP_NODELAY) failed:$!");
         {
             # no buffering
             my $orig = select();
