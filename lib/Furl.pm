@@ -5,14 +5,20 @@ use 5.00800;
 our $VERSION = '0.01';
 
 use Carp ();
-use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use XSLoader;
-use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in IPPROTO_TCP TCP_NODELAY/;
+use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
+use Socket qw(
+    PF_INET SOCK_STREAM
+    IPPROTO_TCP
+    TCP_NODELAY
+    inet_aton
+    pack_sockaddr_in
+);
 
 XSLoader::load __PACKAGE__, $VERSION;
 
-my $HTTP_TOKEN = '[^\x00-\x31\x7F]+';
+my $HTTP_TOKEN         = '[^\x00-\x31\x7F]+';
 my $HTTP_QUOTED_STRING = q{"([^"]+|\\.)*"};
 
 sub new {
