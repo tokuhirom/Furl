@@ -50,7 +50,7 @@ sub request {
             ($args{host}, $args{port} || 80, $args{path_query} || '/');
         }
     };
-    die "missing host name in arguments" unless defined $host;
+    Carp::croak("missing host name in arguments") unless defined $host;
 
     local $SIG{PIPE} = 'IGNORE';
     my $err = sub { delete $self->{sock_cache}; return @_ };
@@ -58,10 +58,13 @@ sub request {
     if ($self->{sock_cache} && $self->{sock_cache}->{host} eq $host && $self->{sock_cache}->{port}  eq $port) {
         $sock = $self->{sock_cache}->{sock};
     } else {
-        my $iaddr = inet_aton($host) or die "cannot detect host name: $host, $!";
+        my $iaddr = inet_aton($host)
+            or Carp::croak("cannot detect host name: $host, $!");
         my $sock_addr = pack_sockaddr_in($port, $iaddr);
-        socket($sock, PF_INET, SOCK_STREAM, 0) or die "Cannot create socket: $!";
-        connect($sock, $sock_addr) or die "cannot connect to $host, $port: $!";
+        socket($sock, PF_INET, SOCK_STREAM, 0)
+            or Carp::croak("Cannot create socket: $!");
+        connect($sock, $sock_addr)
+            or Carp::croak("cannot connect to $host, $port: $!");
         {
             # no buffering
             my $orig = select();
@@ -78,9 +81,11 @@ sub request {
             }
         }
         $p .= "\015\012";
-        defined(syswrite($sock, $p, length($p))) or return $err->(500, [], ['Broken Pipe']);
+        defined(syswrite($sock, $p, length($p)))
+            or return $err->(500, [], [$!]);
         if (my $content = $args{content}) {
-            defined(syswrite($sock, $content, length($content))) or die $!;
+            defined(syswrite($sock, $content, length($content)))
+                or return $err->(500, [], [$!]);
         }
     }
 
@@ -99,7 +104,7 @@ sub request {
   LOOP: while (1) {
         my $read = sysread($sock, $buf, $self->{bufsize}, length($buf) );
         if (not defined $read || $read < 0) {
-            die "error while reading from socket: $!";
+            Carp::croak("error while reading from socket: $!");
         } elsif ( $read == 0 ) {    # eof
             return $err->(500, [], "Unexpected EOF: $!");
         }
@@ -161,7 +166,7 @@ sub _read_body_chunked {
             if ( !defined $readed ) {
                 next READ_LOOP if $? == EAGAIN;
             } elsif ($readed == 0) {
-                die "unexpected eof while reading packets";
+                Carp::croak("unexpected eof while reading packets");
             }
         }
 
@@ -194,7 +199,7 @@ sub _read_body_chunked {
                         next READ_CHUNK;
                     }
                     else {
-                        die "cannot read chunk: $!";
+                        Carp::croak("cannot read chunk: $!");
                     }
                 }
             }
