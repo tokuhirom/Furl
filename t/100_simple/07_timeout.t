@@ -2,16 +2,36 @@ use strict;
 use warnings;
 use Furl;
 use Test::TCP;
-use Plack::Loader;
 use Test::More;
 use Plack::Util;
 use Plack::Request;
+use Errno ();
 my $n = shift(@ARGV) || 3;
+
+my $sleep = 5;
+{
+    package Errorneous::Socket;
+    use parent qw(IO::Socket::INET);
+    sub close {
+        my($sock) = @_;
+        sleep $sleep;
+        $sock->SUPER::close();
+    }
+    package Errorneous::Server;
+    use parent qw(HTTP::Server::PSGI);
+    sub setup_listener {
+        my $self = shift;
+        $self->SUPER::setup_listener(@_);
+        bless $self->{listen_sock}, 'Errorneous::Socket';
+        ::note 'Errorneous::Server listening';
+    }
+}
+
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new();
-        for (1 .. $n) {
+        my $furl = Furl->new(timeout => 1);
+        for (1..$n) {
             my ( $code, $msg, $headers, $content ) =
                 $furl->request(
                     port       => $port,
@@ -19,27 +39,16 @@ test_tcp(
                     host       => '127.0.0.1',
                     headers    => [ "X-Foo" => "ppp" ]
                 );
-            is $code, 200, "request()/$_";
-            is $msg, "OK";
-            is Plack::Util::header_get($headers, 'Content-Length'), 4;
-            is $content, '/foo'
-                or do{ require Devel::Peek; Devel::Peek::Dump($content) };
-        }
-        for (1..3) {
-            my $path_query = '/bar?a=b;c=d&e=f';
-            my ( $code, $msg, $headers, $content ) =
-                $furl->get("http://127.0.0.1:$port$path_query");
-            is $code, 200, "get()/$_";
-            is $msg, "OK";
-            is Plack::Util::header_get($headers, 'Content-Length'),
-                length($path_query);
-            is $content, $path_query;
+            is $code, 500, "request()/$_";
+            is $msg, "Internal Server Error";
+            is ref($headers), "ARRAY";
+            ok $content, 'content: ' . $content;
         }
         done_testing;
     },
     server => sub {
         my $port = shift;
-        Plack::Loader->auto(port => $port)->run(sub {
+        Errorneous::Server->new(port => $port)->run(sub {
             my $env = shift;
             #note explain $env;
             my $req = Plack::Request->new($env);

@@ -5,7 +5,7 @@ use 5.00800;
 our $VERSION = '0.01';
 
 use Carp ();
-use Errno qw(EAGAIN);
+use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use XSLoader;
 use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in/;
 
@@ -18,12 +18,12 @@ sub new {
     my $class = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
     my $agent = __PACKAGE__ . '/' . $VERSION;
-    my $timeout = $args{timeout} || 10;
     bless {
-        parse_header => 1,
-        timeout => $timeout,
+        parse_header  => 1,
+        timeout       => 10,
         max_redirects => 7,
-        bufsize => 10*1024, # no mmap
+        bufsize       => 10*1024, # no mmap
+        user_agent    => $agent,
         %args
     }, $class;
 }
@@ -36,6 +36,9 @@ sub get {
 sub request {
     my $self = shift;
     my %args = @_;
+
+    my $timeout = $args{timeout};
+    $timeout = $self->{timeout} if not defined $timeout;
 
     my ($host, $port, $path_query) = do {
         if ($args{url}) {
@@ -83,10 +86,10 @@ sub request {
             }
         }
         $p .= "\015\012";
-        defined(syswrite($sock, $p, length($p)))
+        $self->write_all($sock, $p, $timeout)
             or return $self->_r500("Failed to send HTTP request: $!");
         if (my $content = $args{content}) {
-            defined(syswrite($sock, $content, length($content)))
+            $self->write_all($sock, $content, $timeout)
                 or return $self->_r500("Failed to send content: $!");
         }
     }
@@ -104,9 +107,10 @@ sub request {
     my $res_transfer_encoding;
     my $res_location;
   LOOP: while (1) {
-        my $read = sysread($sock, $buf, $self->{bufsize}, length($buf) );
-        if (not defined $read || $read < 0) {
-            Carp::croak("error while reading from socket: $!");
+        my $read = $self->read_timeout($sock,
+            \$buf, $self->{bufsize}, length($buf), $timeout );
+        if (not defined $read) {
+            return $self->_r500("error while reading from socket: $!");
         } elsif ( $read == 0 ) {    # eof
             return $self->_r500("Unexpected EOF");
         }
@@ -128,11 +132,14 @@ sub request {
             }
         }
     }
+
     # TODO: deflate support
     if ($res_transfer_encoding && $res_transfer_encoding eq 'chunked') {
-        $res_content = $self->_read_body_chunked($sock, $res_content);
+        $res_content = $self->_read_body_chunked($sock,
+            $res_content, $timeout);
     } else {
-        $res_content = $self->_read_body_normal($sock, $res_content, $res_content_length);
+        $res_content = $self->_read_body_normal($sock,
+            $res_content, $res_content_length, $timeout);
     }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
@@ -157,7 +164,7 @@ sub request {
 }
 
 sub _read_body_chunked {
-    my ($self, $sock, $res_content) = @_;
+    my ($self, $sock, $res_content, $timeout) = @_;
 
     my $buf = $res_content;
     my $ret;
@@ -184,8 +191,8 @@ sub _read_body_chunked {
             $buf = substr($buf, length($header)); # remove header from buf.
             # +2 means trailing CRLF
           READ_CHUNK: while ( $next_len+2 > length($buf) ) {
-                my $readed =
-                  sysread( $sock, $buf, $self->{bufsize}, length($buf) );
+                my $readed = $self->read_timeout( $sock,
+                    \$buf, $self->{bufsize}, length($buf), $timeout );
                 if ( not defined $readed ) {
                     if ( $? == EAGAIN ) {
                         next READ_CHUNK;
@@ -202,19 +209,20 @@ sub _read_body_chunked {
             }
         }
 
-        my $readed = sysread( $sock, $buf, $self->{bufsize}, length($buf) );
-        if ( !defined $readed ) {
+        my $readed = $self->read_timeout( $sock,
+            \$buf, $self->{bufsize}, length($buf), $timeout );
+        if ( not defined $readed ) {
             next READ_LOOP if $? == EAGAIN;
         } elsif ($readed == 0) {
             Carp::croak("unexpected eof while reading packets");
         }
     }
-    $self->_read_body_normal($sock, $buf, 2); # read last crlf
+    $self->_read_body_normal($sock, $buf, 2, $timeout); # read last crlf
     return $ret;
 }
 
 sub _read_body_normal {
-    my ($self, $sock, $res_content, $res_content_length) = @_;
+    my ($self, $sock, $res_content, $res_content_length, $timeout) = @_;
 
     my $sent_length = length($res_content);
     READ_LOOP: while ($res_content_length == -1 || $res_content_length != $sent_length) {
@@ -223,19 +231,87 @@ sub _read_body_normal {
             $bufsize = $res_content_length - $sent_length;
         }
         # TODO: save to fh
-        my $readed = sysread($sock, my $buf, $bufsize);
-        if (not defined $readed || $readed < 0 ) {
+        my $readed = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
+        if (not defined $readed) {
             next READ_LOOP if $? == EAGAIN;
         }
         if ($readed == 0) {
             # eof
             last READ_LOOP;
         }
-        $res_content .= substr($buf, 0, $readed);
+        $res_content .= $buf;
         $sent_length += $readed;
     }
     return $res_content;
 }
+
+
+# I/O with tmeout (stolen from Starlet/kazuho++)
+
+# returns value returned by I/O syscalls, or undef on timeout or network error
+sub do_io {
+    my ($self, $is_write, $sock, $buf, $len, $off, $timeout) = @_;
+    my $ret;
+    unless ($is_write || delete $self->{_is_deferred_accept}) {
+        goto DO_SELECT;
+    }
+ DO_READWRITE:
+    # try to do the IO
+    if ($is_write) {
+        $ret = syswrite $sock, $buf, $len, $off
+            and return $ret;
+    } else {
+        $ret = sysread $sock, $$buf, $len, $off
+            and return $ret;
+    }
+    unless ((! defined($ret)
+                 && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK))) {
+        return undef;
+    }
+    # wait for data
+ DO_SELECT:
+    while (1) {
+        my ($rfd, $wfd);
+        my $efd = '';
+        vec($efd, fileno($sock), 1) = 1;
+        if ($is_write) {
+            ($rfd, $wfd) = ('', $efd);
+        } else {
+            ($rfd, $wfd) = ($efd, '');
+        }
+        my $start_at = time;
+        my $nfound = select($rfd, $wfd, $efd, $timeout);
+        $timeout -= (time - $start_at);
+        last if $nfound;
+        return undef if $timeout <= 0;
+    }
+    goto DO_READWRITE;
+}
+
+# returns (positive) number of bytes read, or undef if the socket is to be closed
+sub read_timeout {
+    my ($self, $sock, $buf, $len, $off, $timeout) = @_;
+    $self->do_io(0, $sock, $buf, $len, $off, $timeout);
+}
+
+# returns (positive) number of bytes written, or undef if the socket is to be closed
+sub write_timeout {
+    my ($self, $sock, $buf, $len, $off, $timeout) = @_;
+    $self->do_io(1, $sock, $buf, $len, $off, $timeout);
+}
+
+# writes all data in buf and returns number of bytes written or undef if failed
+sub write_all {
+    my ($self, $sock, $buf, $timeout) = @_;
+    my $off = 0;
+    while (my $len = length($buf) - $off) {
+        my $ret = $self->write_timeout($sock, $buf, $len, $off, $timeout)
+            or return undef;
+        $off += $ret;
+    }
+    return $off;
+}
+
 
 sub _r500 {
     my($self, $message) = @_;
