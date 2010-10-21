@@ -15,6 +15,8 @@ my $fail_on_syswrite = 1;
     sub syswrite {
         my($sock, $buff, $len, $off) = @_;
         if($fail_on_syswrite) {
+            $sock->SUPER::syswrite($buff, $len - 1, $off);
+            close $sock;
             $! = Errno::EPIPE;
             return undef;
         }
@@ -45,6 +47,7 @@ test_tcp(
             is $code, 500, "request()/$_";
             is $msg, "Internal Server Error";
             is ref($headers), "ARRAY";
+            ok $content, 'content: ' . $content;
         }
         done_testing;
     },

@@ -53,7 +53,6 @@ sub request {
     Carp::croak("missing host name in arguments") unless defined $host;
 
     local $SIG{PIPE} = 'IGNORE';
-    my $err = sub { delete $self->{sock_cache}; return @_ };
     my $sock;
     if ($self->{sock_cache} && $self->{sock_cache}->{host} eq $host && $self->{sock_cache}->{port}  eq $port) {
         $sock = $self->{sock_cache}->{sock};
@@ -68,7 +67,7 @@ sub request {
         {
             # no buffering
             my $orig = select();
-            select($sock); $|=1; 
+            select($sock); $|=1;
             select($orig);
         }
     }
@@ -83,12 +82,10 @@ sub request {
         $p .= "\015\012";
         # XXX: is it safe to return $! ?
         defined(syswrite($sock, $p, length($p)))
-            or return $err->(500, 'Internal Server Error',
-                [], 'Internal Server Error');
+            or return $self->_r500("Failed to send HTTP request: $!");
         if (my $content = $args{content}) {
             defined(syswrite($sock, $content, length($content)))
-                or return $err->(500, 'Internal Serer Error',
-                    [], 'Internal Server Error');
+                or return $self->_r500("Failed to send content: $!");
         }
     }
 
@@ -109,15 +106,13 @@ sub request {
         if (not defined $read || $read < 0) {
             Carp::croak("error while reading from socket: $!");
         } elsif ( $read == 0 ) {    # eof
-            return $err->(500, 'Internal Server Error',
-                [], "Unexpected EOF: $!");
+            return $self->_r500("Unexpected EOF");
         }
         else {
             ( $res_minor_version, $res_status, $res_msg, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_headers, my $ret ) =
               parse_http_response( $buf, $last_len );
             if ( $ret == -1 ) {
-                return $err->(500, 'Internal Server Error',
-                    [], "Invalid HTTP response");
+                return $self->_r500("Invalid HTTP response");
             }
             elsif ( $ret == -2 ) {
                 # partial response
@@ -238,6 +233,14 @@ sub _read_body_normal {
         $sent_length += $readed;
     }
     return $res_content;
+}
+
+sub _r500 {
+    my($self, $message) = @_;
+    delete $self->{sock_cache};
+    $message ||= 'Internal Server Error';
+    return(500, 'Internal Server Error',
+        ['Content-Length' => length($message)], $message);
 }
 
 1;
