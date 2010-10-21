@@ -468,6 +468,23 @@ You can easy to create the instance of it.
     - few dependencies are allowed.
     - faster than WWW::Curl::Easy
 
+=over 4
+
+=item Why Crypt::SSLeay?
+
+Perl5 has two major SSL library: Crypt::SSLeay and Net::SSLeay.
+I don't want to support both modules, since it makes hard to maintain.
+
+Kazeburo san says Crypt::SSLeay is bit major than Net::SSLeay.
+Then, I choosed Crypt::SSLeay.
+
+=item Why env_proxy is optional?
+
+Environment variable is highly depended to user's environment.
+It makes confusing users.
+
+=back
+
 =head1 TODO
 
     - form serializer
