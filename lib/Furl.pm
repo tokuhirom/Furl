@@ -285,39 +285,60 @@ sub do_select {
 }
 
 # returns value returned by I/O syscalls, or undef on timeout or network error
-sub do_io {
-    my ($self, $is_write, $sock, $buf, $len, $off, $timeout) = @_;
-    my $ret;
-    unless ($is_write) {
-        $self->do_select($is_write, $sock, $timeout) or return undef;
-    }
-    while(1) {
-        # try to do the IO
-        if ($is_write) {
-            $ret = syswrite $sock, $buf, $len, $off
-                and return $ret;
-        } else {
-            $ret = sysread $sock, $$buf, $len, $off
-                and return $ret;
-        }
-        unless (!defined($ret)
-                     && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
-            return undef;
-        }
-        $self->do_select($is_write, $sock, $timeout) or return undef;
-    }
-}
+#   sub do_io {
+#       my ($self, $is_write, $sock, $buf, $len, $off, $timeout) = @_;
+#       my $ret;
+#       unless ($is_write) {
+#           $self->do_select($is_write, $sock, $timeout) or return undef;
+#       }
+#       while(1) {
+#           # try to do the IO
+#           if ($is_write) {
+#               $ret = syswrite $sock, $buf, $len, $off
+#                   and return $ret;
+#           } else {
+#               $ret = sysread $sock, $$buf, $len, $off
+#                   and return $ret;
+#           }
+#           unless (!defined($ret)
+#                       && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
+#               return undef;
+#           }
+#           $self->do_select($is_write, $sock, $timeout) or return undef;
+#       }
+#   }
 
 # returns (positive) number of bytes read, or undef if the socket is to be closed
 sub read_timeout {
     my ($self, $sock, $buf, $len, $off, $timeout) = @_;
-    $self->do_io(0, $sock, $buf, $len, $off, $timeout);
+    my $ret;
+    $self->do_select(0, $sock, $timeout) or return undef;
+    while(1) {
+        # try to do the IO
+        $ret = sysread $sock, $$buf, $len, $off
+            and return $ret;
+        unless (!defined($ret)
+                     && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
+            return undef;
+        }
+        $self->do_select(0, $sock, $timeout) or return undef;
+    }
 }
 
 # returns (positive) number of bytes written, or undef if the socket is to be closed
 sub write_timeout {
     my ($self, $sock, $buf, $len, $off, $timeout) = @_;
-    $self->do_io(1, $sock, $buf, $len, $off, $timeout);
+    my $ret;
+    while(1) {
+        # try to do the IO
+        $ret = syswrite $sock, $buf, $len, $off
+            and return $ret;
+        unless (!defined($ret)
+                     && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
+            return undef;
+        }
+        $self->do_select(1, $sock, $timeout) or return undef;
+    }
 }
 
 # writes all data in buf and returns number of bytes written or undef if failed
