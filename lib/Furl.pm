@@ -365,12 +365,10 @@ You can easy to create the instance of it.
 
     - form serializer
         seraizlie_x_www_url_encoded(foo => bar, baz => 1);
-    - timeout
     - idn support(with Net-IDN-Encode?)
     - proxy support
     - env_proxy support
     - cookie_jar support
-    - timeout support
     - ssl support
 
 =head1 AUTHOR
