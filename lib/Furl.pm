@@ -513,6 +513,12 @@ Then, I have chosen Crypt::SSLeay.
 Environment variables are highly dependent on users' environments.
 It makes confusing users.
 
+=item Supported Operating Systems.
+
+Linux 2.6 or higher, OSX Tiger or higher, Windows XP or higher.
+
+And we can support other operating systems if you send a patch.
+
 =back
 
 =head1 TODO
