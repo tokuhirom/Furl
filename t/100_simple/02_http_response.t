@@ -15,10 +15,10 @@ test_tcp(
 
         my $res = HTTP::Response->new(
             $furl->request(
-                port    => $port,
-                path    => '/',
-                host    => '127.0.0.1',
-                headers => [ "X-Foo" => "ppp", "Connection" => "Keep-Alive" ]
+                port       => $port,
+                path_query => '/',
+                host       => '127.0.0.1',
+                headers    => [ "X-Foo" => "ppp", "Connection" => "Keep-Alive" ]
             )
         );
 
