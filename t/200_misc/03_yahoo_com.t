@@ -5,6 +5,8 @@ use t::Util;
 use Test::More;
 use Furl;
 
+plan skip_all => "alarm() does not work on $^O" if $^O eq 'MSWin32';
+
 # skip_if_offline();
 
 my $url = 'http://www.yahoo.com/';

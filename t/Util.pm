@@ -7,6 +7,18 @@ use Furl;
 
 our @EXPORT = qw/online skip_if_offline/;
 
+my $orig = \&Furl::new;
+sub wrapped_env_proxy {
+    my ($class, %args) = @_;
+    $args{proxy} = $ENV{HTTP_PROXY} if ($args{url}||'') !~ /^https?:\/\/\d+/;
+    return $orig->($class, %args);
+};
+{
+    no strict 'refs';
+    no warnings 'redefine';
+    *Furl::new = \&wrapped_env_proxy if $ENV{TEST_ENV_PROXY};
+}
+
 # taken from LWP::Online
 my @RELIABLE_HTTP = (
     # These are some initial trivial checks.
