@@ -16,6 +16,9 @@ requires 'IO::Socket::INET';
 
 test_requires 'Test::TCP';
 
+recommends 'Net::IDN::Encode';    # TODO: idn support
+recommends 'Crypt::SSLeay';       # for SSL support
+
 readme_markdown_from 'lib/Furl.pm';
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 test_requires 'Test::More' => 0.96; # done_testing, subtest
