@@ -5,7 +5,7 @@ use t::Util;
 use Test::More;
 use Furl;
 
-# skip_if_offline();
+skip_if_offline();
 
 my $url = 'http://www.google.co.jp/';
 
