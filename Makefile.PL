@@ -9,16 +9,16 @@ use_xshelper;
 cc_src_paths qw(xs-src);
 cc_warnings;
 
-requires 'Exporter' => 5.63; # use Exporter 'import';
-requires 'Plack' =>  0.9949;
+requires 'Socket';
+requires 'Errno';
 
-requires 'IO::Socket::INET';
-
+test_requires 'Test::More' => 0.96; # done_testing, subtest
 test_requires 'Test::TCP';
+test_requires 'Plack' =>  0.9949;
+test_requires 'IO::Socket::INET';
 
 readme_markdown_from 'lib/Furl.pm';
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
-test_requires 'Test::More' => 0.96; # done_testing, subtest
 author_tests('xt');
 
 WriteAll;
