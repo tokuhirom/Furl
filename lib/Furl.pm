@@ -31,6 +31,7 @@ sub new {
         max_redirects => 7,
         bufsize       => 10*1024, # no mmap
         headers       => ['User-Agent' => $agent],
+        proxy         => '',
         %args
     }, $class;
 }
@@ -50,6 +51,12 @@ sub _parse_url {
             or Carp::croak("malformed URL: $url");
         return( $1, $2, $3, $4 );
     }
+}
+
+sub env_proxy {
+    my $self = shift;
+    $self->{proxy} = $ENV{HTTP_PROXY} || '';
+    $self;
 }
 
 sub request {
@@ -89,9 +96,9 @@ sub request {
         $sock = $self->{sock_cache}->{sock};
     } else {
         my ($_host, $_port);
-        if (my $proxy = $ENV{HTTP_PROXY}) {
+        if ($self->{proxy}) {
             (undef, $_host, $_port, undef)
-                = $self->_parse_url($proxy);
+                = $self->_parse_url($self->{proxy});
         }
         else {
             $_host = $host;
@@ -99,7 +106,7 @@ sub request {
         }
         my $iaddr = inet_aton($_host)
             or Carp::croak("cannot detect host name: $_host, $!");
-        my $sock_addr = pack_sockaddr_in($port, $iaddr);
+        my $sock_addr = pack_sockaddr_in($_port, $iaddr);
 
         socket($sock, PF_INET, SOCK_STREAM, 0)
             or Carp::croak("Cannot create socket: $!");
@@ -129,7 +136,9 @@ sub request {
     # write request
     {
         my $method = $args{method} || 'GET';
-        my $p = "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012";
+        my $p = $self->{proxy} ?
+            "$method $scheme://$host:$port$path_query HTTP/1.1\015\012Host: $host:$port\015\012" :
+            "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012";
         my @headers = @{$self->{headers}};
         if ($args{headers}) {
             push @headers, @{$args{headers}};
