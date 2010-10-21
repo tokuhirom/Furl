@@ -371,7 +371,7 @@ __END__
 
 =head1 NAME
 
-Furl -
+Furl - Lightning-fast URL fetcher
 
 =head1 SYNOPSIS
 
