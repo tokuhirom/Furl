@@ -15,7 +15,7 @@ PPCODE:
     int status;
     const char *msg;
     size_t msg_len;
-    struct phr_header headers_st[1024];
+    struct phr_header headers_st[512];
     size_t num_headers = sizeof(headers_st) / sizeof(headers_st[0]);
     int const ret = phr_parse_response(buf, len,
         &minor_version,
@@ -28,7 +28,8 @@ PPCODE:
     SV * connection        = &PL_sv_no; // as an empty string
     SV * location          = &PL_sv_no;
     SV * transfer_encoding = &PL_sv_no;
-    for (i=0; i<num_headers; i++) {
+    av_extend(headers, (num_headers - 1) * 2);
+    for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
         size_t const      name_len = headers_st[i].name_len;
         SV* const         namesv   = newSVpvn_flags(name, name_len, SVs_TEMP);
