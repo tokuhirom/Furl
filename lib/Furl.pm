@@ -401,7 +401,7 @@ sub write_all {
 
 sub _r500 {
     my($self, $message) = @_;
-    delete $self->{sock_cache};
+    $self->remove_conn_cache();
     $message ||= 'Internal Server Error';
     return(500, 'Internal Server Error',
         ['Content-Length' => length($message)], $message);
