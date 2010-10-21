@@ -158,7 +158,7 @@ sub request {
     }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
-    if ($res_status =~ /^30[123]$/ && $res_location && $max_redirects) {
+    if ($res_location && $max_redirects && $res_status =~ /^30[123]$/) {
         return $self->request(
             @_,
             url           => $res_location,
@@ -167,7 +167,9 @@ sub request {
     }
 
     # manage cache
-    if ($res_content_length == -1 || $res_minor_version == 0 || ($res_connection && lc($res_connection) eq 'close')) {
+    if ($res_content_length == -1
+            || $res_minor_version == 0
+            || lc($res_connection) eq 'close') {
         delete $self->{sock_cache};
         undef $sock;
     } else {
