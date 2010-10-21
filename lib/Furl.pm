@@ -40,20 +40,26 @@ sub request {
     my $timeout = $args{timeout};
     $timeout = $self->{timeout} if not defined $timeout;
 
-    my ($host, $port, $path_query) = do {
-        if ($args{url}) {
-            my $url = $args{url};
+    my ($scheme, $host, $port, $path_query) = do {
+        if (defined(my $url = $args{url})) {
             if (ref $url) {
-                ($url->host, $url->port, $url->path_query);
+                ($url->scheme, $url->host, $url->port, $url->path_query);
             } else {
-                $url =~ m{^http://([^/:]+)(?::(\d+))?(.*)$};
-                ($1, $2 || 80, $3 || '/');
+                $url =~ m{\A ([a-z]+) :// ([^/:]+) (?::(\d+))? (.*) }xms
+                    or Carp::croak("malformed URL: $url");
+                ($1, $2, $3 || 80, $4 || '/');
             }
         } else {
-            ($args{host}, $args{port} || 80, $args{path_query} || '/');
+            ('http', $args{host}, $args{port} || 80, $args{path_query} || '/');
         }
     };
-    Carp::croak("missing host name in arguments") unless defined $host;
+
+    if($scheme ne 'http') {
+        Carp::croak("unsupported scheme: $scheme");
+    }
+    if(not defined $host) {
+        Carp::croak("missing host name in arguments");
+    }
 
     local $SIG{PIPE} = 'IGNORE';
     my $sock;
