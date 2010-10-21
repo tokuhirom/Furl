@@ -445,13 +445,13 @@ I<%args> might be:
 
 =over
 
-=item scheme :Str
+=item scheme :Str = "http"
 
 =item host :Str
 
-=item port :Int
+=item port :Int = 80
 
-=item path_query :Str
+=item path_query :Str = "/"
 
 =item url :Str
 
@@ -465,8 +465,8 @@ Equivalent to C<< $furl->request(url => $url) >>.
 
 =head1 INTEGRATE WITH HTTP::Response
 
-Some useful libraries require the instance of HTTP::Response for argument.
-You can easy to create the instance of it.
+Some useful libraries require HTTP::Response instances for their arguments.
+You can easily create its instance from the result of C<request()> and C<get()>.
 
     my $res = HTTP::Response->new($furl->get($url));
 
@@ -481,15 +481,15 @@ You can easy to create the instance of it.
 
 =item Why Crypt::SSLeay?
 
-Perl5 has two major SSL library: Crypt::SSLeay and Net::SSLeay.
-I don't want to support both modules, since it makes hard to maintain.
+Perl5 has two major SSL libraries: Crypt::SSLeay and Net::SSLeay.
+I don't want to support both modules, since it is hard to maintain.
 
-Kazeburo san says Crypt::SSLeay is bit major than Net::SSLeay.
-Then, I choosed Crypt::SSLeay.
+Kazeburo san says Crypt::SSLeay is more major than Net::SSLeay.
+Then, I have chosen Crypt::SSLeay.
 
 =item Why env_proxy is optional?
 
-Environment variable is highly depended to user's environment.
+Environment variables are highly dependent on users' environments.
 It makes confusing users.
 
 =back
@@ -509,6 +509,8 @@ It makes confusing users.
 Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>
 
 =head1 SEE ALSO
+
+L<LWP>
 
 =head1 LICENSE
 

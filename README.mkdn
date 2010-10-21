@@ -46,13 +46,13 @@ _%args_ might be:
 
 _%args_ might be:
 
-- scheme :Str
+- scheme :Str = "http"
 
 - host :Str
 
-- port :Int
+- port :Int = 80
 
-- path_query :Str
+- path_query :Str = "/"
 
 - url :Str
 
@@ -64,8 +64,8 @@ Equivalent to `$furl->request(url => $url)`.
 
 # INTEGRATE WITH HTTP::Response
 
-Some useful libraries require the instance of HTTP::Response for argument.
-You can easy to create the instance of it.
+Some useful libraries require HTTP::Response instances for their arguments.
+You can easily create its instance from the result of `request()` and `get()`.
 
     my $res = HTTP::Response->new($furl->get($url));
 
@@ -75,6 +75,19 @@ You can easy to create the instance of it.
       (I want to use Furl without compilers)
     - few dependencies are allowed.
     - faster than WWW::Curl::Easy
+
+- Why Crypt::SSLeay?
+
+Perl5 has two major SSL libraries: Crypt::SSLeay and Net::SSLeay.
+I don't want to support both modules, since it is hard to maintain.
+
+Kazeburo san says Crypt::SSLeay is more major than Net::SSLeay.
+Then, I have chosen Crypt::SSLeay.
+
+- Why env_proxy is optional?
+
+Environment variables are highly dependent on users' environments.
+It makes confusing users.
 
 # TODO
 
@@ -91,6 +104,8 @@ You can easy to create the instance of it.
 Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>
 
 # SEE ALSO
+
+[LWP](http://search.cpan.org/perldoc?LWP)
 
 # LICENSE
 
