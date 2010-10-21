@@ -9,6 +9,7 @@ use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use XSLoader;
 use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in IPPROTO_TCP TCP_NODELAY/;
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
+use URI;
 
 XSLoader::load __PACKAGE__, $VERSION;
 
@@ -67,19 +68,33 @@ sub request {
     if ($self->{sock_cache} && $self->{sock_cache}->{host} eq $host && $self->{sock_cache}->{port}  eq $port) {
         $sock = $self->{sock_cache}->{sock};
     } else {
-        my $iaddr = inet_aton($host)
-            or Carp::croak("cannot detect host name: $host, $!");
-        my $sock_addr = pack_sockaddr_in($port, $iaddr);
+        my ($iaddr, $sock_addr);
+        if (my $proxy = $ENV{HTTP_PROXY}) {
+            my $uri = URI->new($proxy);
+            $iaddr = inet_aton($uri->host)
+                or Carp::croak("cannot detect host name: $uri->host, $!");
+            $sock_addr = pack_sockaddr_in($uri->port, $iaddr);
+        } else {
+            $iaddr = inet_aton($host)
+                or Carp::croak("cannot detect host name: $host, $!");
+            $sock_addr = pack_sockaddr_in($port, $iaddr);
+        }
         socket($sock, PF_INET, SOCK_STREAM, 0)
             or Carp::croak("Cannot create socket: $!");
         connect($sock, $sock_addr)
             or Carp::croak("cannot connect to $host, $port: $!");
         setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
           or Carp::croak("setsockopt(TCP_NODELAY) failed:$!");
-        my $flags = fcntl( $sock, F_GETFL, 0 )
-          or Carp::croak("Can't get flags for the socket: $!");
-        $flags = fcntl( $sock, F_SETFL, $flags | O_NONBLOCK )
-          or Carp::croak("Can't set flags for the socket: $!");
+        if ($^O eq 'MSWin32') {
+            my $tmp = 1;
+            ioctl( $sock, 0x8004667E, \$tmp )
+              or Carp::croak("Can't set flags for the socket: $!");
+        } else {
+            my $flags = fcntl( $sock, F_GETFL, 0 )
+              or Carp::croak("Can't get flags for the socket: $!");
+            $flags = fcntl( $sock, F_SETFL, $flags | O_NONBLOCK )
+              or Carp::croak("Can't set flags for the socket: $!");
+        }
 
         {
             # no buffering
