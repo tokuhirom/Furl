@@ -13,6 +13,7 @@ use Socket qw(
     PF_INET SOCK_STREAM
     IPPROTO_TCP
     TCP_NODELAY
+    CRLF
     inet_aton
     pack_sockaddr_in
 );
@@ -152,17 +153,20 @@ sub request {
     # write request
     {
         my $method = $args{method} || 'GET';
-        my $p = $self->{proxy} ?
-            "$method $scheme://$host:$port$path_query HTTP/1.1\015\012Host: $host:$port\015\012" :
-            "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012";
+        my $req    = $self->{proxy}
+            ? "$scheme://$host:$port$path_query"
+            : $path_query;
+        my $p =  "$method $req HTTP/1.1" . CRLF
+               . "Host: $host:$port"     . CRLF;
+
         my @headers = @{$self->{headers}};
         if ($args{headers}) {
             push @headers, @{$args{headers}};
         }
         for (my $i = 0; $i < @headers; $i += 2) {
-            $p .= $headers[$i] . ': ' . $headers[$i+1] . "\015\012";
+            $p .= $headers[$i] . ': ' . $headers[$i+1] . CRLF;
         }
-        $p .= "\015\012";
+        $p .= CRLF;
         ### $p
         $self->write_all($sock, $p, $timeout)
             or return $self->_r500("Failed to send HTTP request: $!");
@@ -282,7 +286,7 @@ sub _read_body_chunked {
                         [ ]*                        # www.yahoo.com adds spaces here. is this valid?
                         \015\012                    # crlf
                     )
-                /x
+                /xmso
             )
           )
         {
