@@ -8,6 +8,7 @@ use Carp ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use XSLoader;
 use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in IPPROTO_TCP TCP_NODELAY/;
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 
 XSLoader::load __PACKAGE__, $VERSION;
 
@@ -67,8 +68,13 @@ sub request {
             or Carp::croak("Cannot create socket: $!");
         connect($sock, $sock_addr)
             or Carp::croak("cannot connect to $host, $port: $!");
-        setsockopt($sock, IPPROTO_TCP, TCP_NODELAY, 1)
-            or Carp::croak("setsockopt(TCP_NODELAY) failed:$!");
+        setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
+          or Carp::croak("setsockopt(TCP_NODELAY) failed:$!");
+        my $flags = fcntl( $sock, F_GETFL, 0 )
+          or Carp::croak("Can't get flags for the socket: $!");
+        $flags = fcntl( $sock, F_SETFL, $flags | O_NONBLOCK )
+          or Carp::croak("Can't set flags for the socket: $!");
+
         {
             # no buffering
             my $orig = select();
