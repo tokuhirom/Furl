@@ -159,17 +159,7 @@ sub _read_body_chunked {
 
     my $buf = $res_content;
     my $ret;
-    my $need_read;
   READ_LOOP: while (1) {
-        if ($need_read) {
-            my $readed = sysread( $sock, $buf, $self->{bufsize}, length($buf) );
-            if ( !defined $readed ) {
-                next READ_LOOP if $? == EAGAIN;
-            } elsif ($readed == 0) {
-                Carp::croak("unexpected eof while reading packets");
-            }
-        }
-
         if (
             my ( $header, $next_len ) = (
                 $buf =~
@@ -206,10 +196,15 @@ sub _read_body_chunked {
             $ret .= substr($buf, 0, $next_len);
             $buf = substr($buf, $next_len+2);
             if (length($buf) > 0) {
-                $need_read = 0;
+                next; # re-parse header
             }
-        } else {
-            $need_read++;
+        }
+
+        my $readed = sysread( $sock, $buf, $self->{bufsize}, length($buf) );
+        if ( !defined $readed ) {
+            next READ_LOOP if $? == EAGAIN;
+        } elsif ($readed == 0) {
+            Carp::croak("unexpected eof while reading packets");
         }
     }
     $self->_read_body_normal($sock, $buf, 2); # read last crlf
