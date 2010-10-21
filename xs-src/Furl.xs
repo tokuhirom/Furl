@@ -17,7 +17,7 @@ PPCODE:
     struct phr_header headers_st[1024];
     size_t num_headers = sizeof(headers_st) / sizeof(headers_st[0]);
     int ret = phr_parse_response(buf, len, &minor_version, &status, &msg, &msg_len,  headers_st, &num_headers, last_len);
-    AV * headers = newAV();
+    AV* const headers = newAV_mortal();
     size_t i;
     ssize_t content_length = -1;
     SV * connection = &PL_sv_undef;
