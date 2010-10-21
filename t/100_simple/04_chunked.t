@@ -29,8 +29,11 @@ test_tcp(
     },
     server => sub {
         my $port = shift;
-        Plack::Loader->load( 'Starman', port => $port, 'max-workers' => 1 )
-          ->run(
+        Plack::Loader->load( 'Starman',
+            host          => '127.0.0.1',
+            port          => $port,
+            'max-workers' => 1,
+        )->run(
             sub {
                 my $env = shift;
                 my $req = Plack::Request->new($env);
