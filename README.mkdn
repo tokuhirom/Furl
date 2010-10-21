@@ -26,6 +26,42 @@ Furl - Lightning-fast URL fetcher
 
 Furl is yet another http client library.
 
+# INTERFACE
+
+## Class Methods
+
+### C<< Furl->new(%args | \%args) :Furl >>
+
+_%args_ might be:
+
+- agent :Str = "Furl/$VERSION"
+
+- timeout :Int = 10
+
+- max_redirects :Int = 7
+
+## Instance Methods
+
+### C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
+
+_%args_ might be:
+
+- scheme :Str
+
+- host :Str
+
+- port :Int
+
+- path_query :Str
+
+- url :Str
+
+- headers :ArrayRef
+
+### C<< $furl->get($url :Str) :($code, $msg, \@headers, $body) >>
+
+Equivalent to `$furl->request(url => $url)`.
+
 # INTEGRATE WITH HTTP::Response
 
 Some useful libraries require the instance of HTTP::Response for argument.
