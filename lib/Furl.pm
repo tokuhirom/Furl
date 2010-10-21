@@ -4,6 +4,7 @@ use warnings;
 use 5.00800;
 our $VERSION = '0.01';
 
+#use Smart::Comments;
 use Carp ();
 use XSLoader;
 use Errno qw(EAGAIN EINTR EWOULDBLOCK);
@@ -90,7 +91,7 @@ sub request {
             $port = 443;
         }
     }
-    if(not defined $path_query) {
+    if(not defined $path_query or not length $path_query) {
         $path_query = '/';
     }
 
@@ -162,6 +163,7 @@ sub request {
             $p .= $headers[$i] . ': ' . $headers[$i+1] . "\015\012";
         }
         $p .= "\015\012";
+        ### $p
         $self->write_all($sock, $p, $timeout)
             or return $self->_r500("Failed to send HTTP request: $!");
         if (my $content = $args{content}) {
