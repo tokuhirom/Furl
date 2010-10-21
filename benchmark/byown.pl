@@ -8,6 +8,9 @@ use Furl;
 use Child;
 use Test::TCP qw/empty_port/;
 use Plack::Loader;
+use Config;
+printf "Perl/%vd on %s\n", $^V, $Config{archname};
+printf "Furl/$Furl::VERSION, LWP/$LWP::VERSION, WWW::Curl/$WWW::Curl::VERSION\n";
 
 my $port = empty_port();
 
