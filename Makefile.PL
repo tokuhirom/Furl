@@ -20,7 +20,7 @@ test_requires 'HTTP::Response';
 test_requires 'URI';
 
 recommends 'Net::IDN::Encode';    # TODO: idn support
-recommends 'Crypt::SSLeay';       # for SSL support
+recommends 'IO::Socket::SSL';       # for SSL support
 
 readme_markdown_from 'lib/Furl.pm';
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';

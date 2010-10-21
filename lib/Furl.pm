@@ -15,6 +15,7 @@ use Socket qw(
     inet_aton
     pack_sockaddr_in
 );
+our $SSL_AVAILABLE = eval "use IO::Socket::SSL; 1;";
 
 XSLoader::load __PACKAGE__, $VERSION;
 
@@ -71,18 +72,24 @@ sub request {
             $self->_parse_url($url);
         }
         else {
-            ('http', $args{host}, $args{port}, $args{path_query});
+            ($args{scheme}, $args{host}, $args{port}, $args{path_query});
         }
     };
 
-    if($scheme ne 'http') {
+    if (not defined $scheme) {
+        $scheme = 'http';
+    } elsif($scheme ne 'http' && $scheme ne 'https') {
         Carp::croak("unsupported scheme: $scheme");
     }
     if(not defined $host) {
         Carp::croak("missing host name in arguments");
     }
     if(not defined $port) {
-        $port = 80;
+        if ($scheme eq 'http') {
+            $port = 80;
+        } else {
+            $port = 443;
+        }
     }
     if(not defined $path_query) {
         $path_query = '/';
@@ -102,14 +109,24 @@ sub request {
             $_host = $host;
             $_port = $port;
         }
-        my $iaddr = inet_aton($_host)
-            or Carp::croak("cannot detect host name: $_host, $!");
-        my $sock_addr = pack_sockaddr_in($_port, $iaddr);
 
-        socket($sock, PF_INET, SOCK_STREAM, 0)
-            or Carp::croak("Cannot create socket: $!");
-        connect($sock, $sock_addr)
-            or Carp::croak("cannot connect to ${host}:${port}: $!");
+        if ($scheme eq 'http') {
+            my $iaddr = inet_aton($_host)
+                or Carp::croak("cannot detect host name: $_host, $!");
+            my $sock_addr = pack_sockaddr_in($_port, $iaddr);
+
+            socket($sock, PF_INET, SOCK_STREAM, 0)
+                or Carp::croak("Cannot create socket: $!");
+            connect($sock, $sock_addr)
+                or Carp::croak("cannot connect to ${host}:${port}: $!");
+        } else {
+            Carp::croak("SSL support needs IO::Socket::SSL, but you don't have it. Please install IO::Socket::SSL first.") unless $SSL_AVAILABLE;
+            warn $scheme;
+
+            $sock =
+              IO::Socket::SSL->new( PeerHost => $_host, PeerPort => $_port )
+              or Carp::croak("cannot create new connection: IO::Socket::SSL");
+        }
         setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
           or Carp::croak("setsockopt(TCP_NODELAY) failed: $!");
         if ($^O eq 'MSWin32') {
@@ -500,13 +517,9 @@ You can easily create its instance from the result of C<request()> and C<get()>.
 
 =over 4
 
-=item Why Crypt::SSLeay?
+=item Why IO::Socket::SSL?
 
-Perl5 has two major SSL libraries: Crypt::SSLeay and Net::SSLeay.
-I don't want to support both modules, since it is hard to maintain.
-
-Kazeburo san says Crypt::SSLeay is more major than Net::SSLeay.
-Then, I have chosen Crypt::SSLeay.
+Net::SSL is not well documented.
 
 =item Why env_proxy is optional?
 
@@ -527,7 +540,6 @@ And we can support other operating systems if you send a patch.
         seraizlie_x_www_url_encoded(foo => bar, baz => 1);
     - idn support(with Net-IDN-Encode?)
     - cookie_jar support
-    - ssl support
     - test case for proxy support
     - AnyEvent::Furl?
 
