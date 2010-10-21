@@ -9,6 +9,7 @@ Build
 _build/
 xshelper.h
 META.yml
+MYMETA.yml
 blib/
 pm_to_blib
 Furl.bs

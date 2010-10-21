@@ -14,6 +14,7 @@
 ^t/perlcritic
 ^tools/
 \.svn/
+\.git/
 ^[^/]+\.yaml$
 ^[^/]+\.pl$
 ^\.shipit$
@@ -21,3 +22,7 @@
 ^Build$
 ^ppport.h$
 ^xshelper.h$
+\.bs$
+\.o$
+MYMETA\.yml$
+xs-src/Furl\.c$
