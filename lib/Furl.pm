@@ -90,10 +90,8 @@ sub request {
 
     local $SIG{PIPE} = 'IGNORE';
     my $sock;
-    if ($self->{sock_cache}
-            && $self->{sock_cache}->{host} eq $host
-            && $self->{sock_cache}->{port} eq $port) {
-        $sock = $self->{sock_cache}->{sock};
+    if ($sock = $self->get_conn_cache($host, $port)) {
+        # nop
     } else {
         my ($_host, $_port);
         if ($self->{proxy}) {
@@ -216,14 +214,37 @@ sub request {
     if ($res_content_length == -1
             || $res_minor_version == 0
             || lc($res_connection) eq 'close') {
-        delete $self->{sock_cache};
+        $self->remove_conn_cache($host, $port);
         undef $sock;
     } else {
-        $self->{sock_cache}->{sock} = $sock;
-        $self->{sock_cache}->{host} = $host;
-        $self->{sock_cache}->{port} = $port;
+        $self->add_conn_cache($host, $port, $sock);
     }
     return ($res_status, $res_msg, $res_headers, $res_content);
+}
+
+# following three connections are related to connection cache for keep-alive.
+# If you want to change the cache strategy, you can override in child classs.
+sub get_conn_cache {
+    my ( $self, $host, $port ) = @_;
+
+    my $cache = $self->{sock_cache};
+    if ($cache && $cache->[0] eq $host && $cache->[1] eq $port) {
+        return $cache->[2];
+    } else {
+        return undef;
+    }
+}
+
+sub remove_conn_cache {
+    my ($self, $host, $port) = @_;
+
+    delete $self->{sock_cache};
+}
+
+sub add_conn_cache {
+    my ($self, $host, $port, $sock) = @_;
+
+    $self->{sock_cache} = [$host, $port, $sock];
 }
 
 sub _read_body_chunked {
