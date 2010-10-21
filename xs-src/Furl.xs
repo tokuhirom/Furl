@@ -25,9 +25,9 @@ PPCODE:
     AV* const headers = newAV_mortal();
     size_t i;
     IV content_length      = -1;
-    SV * connection        = &PL_sv_undef;
-    SV * location          = &PL_sv_undef;
-    SV * transfer_encoding = &PL_sv_undef;
+    SV * connection        = &PL_sv_no; // as an empty string
+    SV * location          = &PL_sv_no;
+    SV * transfer_encoding = &PL_sv_no;
     for (i=0; i<num_headers; i++) {
         const char* const name     = headers_st[i].name;
         size_t const      name_len = headers_st[i].name_len;

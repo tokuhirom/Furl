@@ -137,7 +137,7 @@ sub request {
     }
 
     # TODO: deflate support
-    if ($res_transfer_encoding && $res_transfer_encoding eq 'chunked') {
+    if ($res_transfer_encoding eq 'chunked') {
         $res_content = $self->_read_body_chunked($sock,
             $res_content, $timeout);
     } else {
