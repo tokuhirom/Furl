@@ -71,16 +71,18 @@ sub request {
             select($orig);
         }
     }
+
+    # write request
     {
         my $method = $args{method} || 'GET';
         my $p = "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012";
         if ($args{headers}) {
-            for (my $i=0; $i<@{$args{headers}}; $i+=2) {
-                $p .= $args{headers}->[$i] . ': ' . $args{headers}->[$i+1] . "\015\012";
+            my $h = $args{headers};
+            for (my $i=0; $i<@{$h}; $i+=2) {
+                $p .= $h->[$i] . ': ' . $h->[$i+1] . "\015\012";
             }
         }
         $p .= "\015\012";
-        # XXX: is it safe to return $! ?
         defined(syswrite($sock, $p, length($p)))
             or return $self->_r500("Failed to send HTTP request: $!");
         if (my $content = $args{content}) {
