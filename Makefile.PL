@@ -17,6 +17,9 @@ test_requires 'Test::TCP';
 test_requires 'Plack' =>  0.9949;
 test_requires 'IO::Socket::INET';
 
+recommends 'Net::IDN::Encode';    # TODO: idn support
+recommends 'Crypt::SSLeay';       # for SSL support
+
 readme_markdown_from 'lib/Furl.pm';
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 author_tests('xt');
