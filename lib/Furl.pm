@@ -321,30 +321,6 @@ sub do_select {
     die 'not reached';
 }
 
-# returns value returned by I/O syscalls, or undef on timeout or network error
-#   sub do_io {
-#       my ($self, $is_write, $sock, $buf, $len, $off, $timeout) = @_;
-#       my $ret;
-#       unless ($is_write) {
-#           $self->do_select($is_write, $sock, $timeout) or return undef;
-#       }
-#       while(1) {
-#           # try to do the IO
-#           if ($is_write) {
-#               $ret = syswrite $sock, $buf, $len, $off
-#                   and return $ret;
-#           } else {
-#               $ret = sysread $sock, $$buf, $len, $off
-#                   and return $ret;
-#           }
-#           unless (!defined($ret)
-#                       && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
-#               return undef;
-#           }
-#           $self->do_select($is_write, $sock, $timeout) or return undef;
-#       }
-#   }
-
 # returns (positive) number of bytes read, or undef if the socket is to be closed
 sub read_timeout {
     my ($self, $sock, $buf, $len, $off, $timeout) = @_;
