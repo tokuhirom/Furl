@@ -16,6 +16,7 @@ test_requires 'Test::More' => 0.96; # done_testing, subtest
 test_requires 'Test::TCP';
 test_requires 'Plack' =>  0.9949;
 test_requires 'IO::Socket::INET';
+test_requires 'HTTP::Response';
 
 recommends 'Net::IDN::Encode';    # TODO: idn support
 recommends 'Crypt::SSLeay';       # for SSL support
