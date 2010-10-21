@@ -7,14 +7,14 @@ Furl -
     use Furl;
 
     my $furl = Furl->new(agent => ...);
-    my ($code, $headers, $body) = $furl->request(
+    my ($code, $msg, $headers, $body) = $furl->request(
         method => 'GET',
         host   => 'example.com',
         port   => 80,
         path   => '/'
     );
     # or
-    my ($code, $headers, $body) = $furl->request(
+    my ($code, $msg, $headers, $body) = $furl->request(
         method => 'GET',
         host   => 'example.com',
         port   => 80,
@@ -26,11 +26,15 @@ Furl -
 
 Furl is yet another http client library.
 
+# INTEGRATE WITH HTTP::Response
+
+Some useful libraries require the instance of HTTP::Response for argument.
+You can easy to create the instance of it.
+
+    my $res = HTTP::Response->new($furl->get($url));
+
 # TODO
 
-    - follow redirect
-    - LWP like interface: ->get, ->post
-        ->get($url)
     - form serializer
         seraizlie_x_www_url_encoded(foo => bar, baz => 1);
     - timeout
@@ -39,6 +43,7 @@ Furl is yet another http client library.
     - env_proxy support
     - cookie_jar support
     - timeout support
+    - ssl support
 
 # AUTHOR
 

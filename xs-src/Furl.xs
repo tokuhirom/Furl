@@ -1,48 +1,58 @@
 #include "xshelper.h"
 #include <string.h>
 #include "picohttpparser/picohttpparser.h"
+#include "picohttpparser/picohttpparser.c"
 
 MODULE=Furl PACKAGE=Furl
 
 void
 parse_http_response(SV *buffer_sv, int last_len)
 PPCODE:
+{
     STRLEN len;
-    char * buf = SvPV(buffer_sv, len);
-
+    const char * const buf = SvPV_const(buffer_sv, len);
     int minor_version;
     int status;
     const char *msg;
     size_t msg_len;
     struct phr_header headers_st[1024];
     size_t num_headers = sizeof(headers_st) / sizeof(headers_st[0]);
-    int ret = phr_parse_response(buf, len, &minor_version, &status, &msg, &msg_len,  headers_st, &num_headers, last_len);
+    int const ret = phr_parse_response(buf, len,
+        &minor_version,
+        &status,
+        &msg, &msg_len,
+        headers_st, &num_headers, last_len);
     AV* const headers = newAV_mortal();
     size_t i;
-    ssize_t content_length = -1;
-    SV * connection = &PL_sv_undef;
-    SV * location = &PL_sv_undef;
+    IV content_length      = -1;
+    SV * connection        = &PL_sv_undef;
+    SV * location          = &PL_sv_undef;
     SV * transfer_encoding = &PL_sv_undef;
     for (i=0; i<num_headers; i++) {
+        const char* const name     = headers_st[i].name;
+        size_t const      name_len = headers_st[i].name_len;
+        SV* const         namesv   = newSVpvn_flags(name, name_len, SVs_TEMP);
+        SV* const         valuesv  = newSVpvn_flags(
+            headers_st[i].value,
+            headers_st[i].value_len,
+            SVs_TEMP );
         /* TODO:strncasecmp is not portable */
-        if (strncasecmp(headers_st[i].name, "Content-Length", headers_st[i].name_len) == 0) {
-            char * buf;
-            Newxz(buf, headers_st[i].value_len+1, char);
-            memcpy(buf, headers_st[i].value, headers_st[i].value_len);
-            content_length = strtol(buf, NULL, 10);
-            Safefree(buf);
-            if ((content_length == LONG_MIN || content_length == LONG_MAX) && errno==ERANGE) {
-                croak("overflow or undeflow is found in Content-Length");
+        if (strncasecmp(name, "Content-Length", name_len) == 0) {
+            content_length = SvIV(valuesv);
+            /* TODO: more strict check using grok_number() */
+            if (content_length == IV_MIN || content_length == IV_MAX) {
+                croak("overflow or undeflow is found in Content-Length"
+                    "(%"SVf")", valuesv);
             }
-        } else if (strncasecmp(headers_st[i].name, "Connection", headers_st[i].name_len) == 0) {
-            connection = sv_2mortal(newSVpv(headers_st[i].value, headers_st[i].value_len));
-        } else if (strncasecmp(headers_st[i].name, "Location", headers_st[i].name_len) == 0) {
-            location = sv_2mortal(newSVpv(headers_st[i].value, headers_st[i].value_len));
-        } else if (strncasecmp(headers_st[i].name, "Transfer-Encoding", headers_st[i].name_len) == 0) {
-            transfer_encoding = sv_2mortal(newSVpv(headers_st[i].value, headers_st[i].value_len));
+        } else if (strncasecmp(name, "Connection", name_len) == 0) {
+            connection = valuesv;
+        } else if (strncasecmp(name, "Location", name_len) == 0) {
+            location = valuesv;
+        } else if (strncasecmp(name, "Transfer-Encoding", name_len) == 0) {
+            transfer_encoding = valuesv;
         }
-        av_push(headers, newSVpv(headers_st[i].name, headers_st[i].name_len));
-        av_push(headers, newSVpv(headers_st[i].value, headers_st[i].value_len));
+        av_push(headers, SvREFCNT_inc_simple_NN(namesv));
+        av_push(headers, SvREFCNT_inc_simple_NN(valuesv));
     }
 
     EXTEND(SP, 9);
@@ -57,6 +67,4 @@ PPCODE:
     mPUSHi(ret);
     /* returns number of bytes cosumed if successful, -2 if request is partial,
      * -1 if failed */
-    XSRETURN(9);
-
-#include "picohttpparser/picohttpparser.c"
+}
