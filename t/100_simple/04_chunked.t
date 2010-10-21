@@ -23,7 +23,7 @@ test_tcp(
                 headers => [ "X-Foo" => "ppp" ]
             );
             is $code, 200;
-            is $content, 'OK' x 100;
+            is $content, 'OK' x 140;
         }
         done_testing;
     },
@@ -38,7 +38,7 @@ test_tcp(
                 return [
                     200,
                     [ 'Transfer-Encoding' => 'chunked' ],
-                    [ 'OK' x 100 ]
+                    [ 'OK'x100, 'OK'x40 ]
                 ];
             }
           );
