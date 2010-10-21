@@ -13,7 +13,7 @@ test_tcp(
         my $port = shift;
         my $furl = Furl->new();
 
-        my ($code, $headers, $content) = (
+        my $res = HTTP::Response->new(
             $furl->request(
                 port    => $port,
                 path    => '/',
@@ -21,7 +21,6 @@ test_tcp(
                 headers => [ "X-Foo" => "ppp", "Connection" => "Keep-Alive" ]
             )
         );
-        my $res = HTTP::Response->new($code, $code, $headers, $content);
 
         is $res->code, 200;
         is $res->content_length, 2;

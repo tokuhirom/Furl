@@ -11,7 +11,7 @@ my $url = 'http://www.google.co.jp/';
 
 my $furl = Furl->new();
 note "getting";
-my ($code, $headers, $content) = $furl->get($url);
+my ($code, $msg, $headers, $content) = $furl->get($url);
 note "done";
 is($code, 200);
 

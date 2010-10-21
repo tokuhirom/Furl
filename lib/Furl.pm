@@ -88,6 +88,7 @@ sub request {
     my $buf = '';
     my $last_len = 0;
     my $res_status;
+    my $res_msg;
     my $res_headers;
     my $res_content;
     my $res_connection;
@@ -103,7 +104,7 @@ sub request {
             return $err->(500, [], "Unexpected EOF: $!");
         }
         else {
-            ( $res_minor_version, $res_status, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_headers, my $ret ) =
+            ( $res_minor_version, $res_status, $res_msg, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_headers, my $ret ) =
               parse_http_response( $buf, $last_len );
             if ( $ret == -1 ) {
                 return $err->(500, [], ["invalid HTTP response"]);
@@ -145,7 +146,7 @@ sub request {
         $self->{sock_cache}->{host} = $host;
         $self->{sock_cache}->{port} = $port;
     }
-    return ($res_status, $res_headers, $res_content);
+    return ($res_status, $res_msg, $res_headers, $res_content);
 }
 
 sub _read_body_chunked {
@@ -248,14 +249,14 @@ Furl -
     use Furl;
 
     my $furl = Furl->new(agent => ...);
-    my ($code, $headers, $body) = $furl->request(
+    my ($code, $msg, $headers, $body) = $furl->request(
         method => 'GET',
         host   => 'example.com',
         port   => 80,
         path   => '/'
     );
     # or
-    my ($code, $headers, $body) = $furl->request(
+    my ($code, $msg, $headers, $body) = $furl->request(
         method => 'GET',
         host   => 'example.com',
         port   => 80,
@@ -272,8 +273,7 @@ Furl is yet another http client library.
 Some useful libraries require the instance of HTTP::Response for argument.
 You can easy to create the instance of it.
 
-    my ($code, $headers, $content) = $furl->get($url);
-    my $res = HTTP::Response->new($code, $headers, $content);
+    my $res = HTTP::Response->new($furl->get($url));
 
 =head1 TODO
 

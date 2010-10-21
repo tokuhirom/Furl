@@ -12,7 +12,7 @@ skip_if_offline();
 my $url = 'http://例え.テスト/';
 
 my $furl = Furl->new();
-warn "connecting";
-my ($code, $headers, $content) = $furl->get($url);
+my ($code, $msg, $headers, $content) = $furl->get($url);
+is $code, 200;
 
 done_testing;

@@ -13,7 +13,7 @@ PPCODE:
     int minor_version;
     int status;
     const char *msg;
-    size_t msg_len = 0;
+    size_t msg_len;
     struct phr_header headers_st[1024];
     size_t num_headers = sizeof(headers_st) / sizeof(headers_st[0]);
     int ret = phr_parse_response(buf, len, &minor_version, &status, &msg, &msg_len,  headers_st, &num_headers, last_len);
@@ -45,9 +45,10 @@ PPCODE:
         av_push(headers, newSVpv(headers_st[i].value, headers_st[i].value_len));
     }
 
-    EXTEND(SP, 8);
+    EXTEND(SP, 9);
     mPUSHi(minor_version);
     mPUSHi(status);
+    mPUSHp(msg, msg_len);
     mPUSHi(content_length);
     PUSHs(connection);
     PUSHs(location);
@@ -56,6 +57,6 @@ PPCODE:
     mPUSHi(ret);
     /* returns number of bytes cosumed if successful, -2 if request is partial,
      * -1 if failed */
-    XSRETURN(8);
+    XSRETURN(9);
 
 #include "picohttpparser/picohttpparser.c"

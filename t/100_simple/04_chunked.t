@@ -15,7 +15,7 @@ test_tcp(
         my $furl = Furl->new(bufsize => 80);
         for (1..3) {
             note "-- TEST $_";
-            my ( $code, $headers, $content ) =
+            my ( $code, $msg, $headers, $content ) =
             $furl->request(
                 port => $port,
                 path => '/',

@@ -12,7 +12,7 @@ test_tcp(
         my $port = shift;
         my $furl = Furl->new();
         for (1..3) {
-            my ( $code, $headers, $content ) =
+            my ( $code, $msg, $headers, $content ) =
             $furl->request(
                 port => $port,
                 path => '/',
@@ -20,6 +20,7 @@ test_tcp(
                 headers => [ "X-Foo" => "ppp" ]
             );
             is $code, 200;
+            is $msg, "OK";
             is Plack::Util::header_get($headers, 'Content-Length'), 2;
             is $content, 'OK';
         }
