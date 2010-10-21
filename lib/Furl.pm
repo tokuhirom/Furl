@@ -15,7 +15,6 @@ use Socket qw(
     inet_aton
     pack_sockaddr_in
 );
-use URI;
 
 XSLoader::load __PACKAGE__, $VERSION;
 
@@ -41,6 +40,18 @@ sub get {
     return $self->request(method => 'GET', url => $url);
 }
 
+# returns $scheme, $host, $port, $path_query
+sub _parse_url {
+    my($self, $url) = @_;
+    if (ref $url) {
+        return( $url->scheme, $url->host, $url->port, $url->path_query );
+    } else {
+        $url =~ m{\A ([a-z]+) :// ([^/:]+) (?::(\d+))? (.*) }xms
+            or Carp::croak("malformed URL: $url");
+        return( $1, $2, $3, $4 );
+    }
+}
+
 sub request {
     my $self = shift;
     my %args = @_;
@@ -50,15 +61,10 @@ sub request {
 
     my ($scheme, $host, $port, $path_query) = do {
         if (defined(my $url = $args{url})) {
-            if (ref $url) {
-                ($url->scheme, $url->host, $url->port, $url->path_query);
-            } else {
-                $url =~ m{\A ([a-z]+) :// ([^/:]+) (?::(\d+))? (.*) }xms
-                    or Carp::croak("malformed URL: $url");
-                ($1, $2, $3 || 80, $4 || '/');
-            }
-        } else {
-            ('http', $args{host}, $args{port} || 80, $args{path_query} || '/');
+            $self->_parse_url($url);
+        }
+        else {
+            ('http', $args{host}, $args{port}, $args{path_query});
         }
     };
 
@@ -68,29 +74,37 @@ sub request {
     if(not defined $host) {
         Carp::croak("missing host name in arguments");
     }
+    if(not defined $port) {
+        $port = 80;
+    }
+    if(not defined $path_query) {
+        $path_query = '/';
+    }
 
     local $SIG{PIPE} = 'IGNORE';
     my $sock;
     if ($self->{sock_cache} && $self->{sock_cache}->{host} eq $host && $self->{sock_cache}->{port}  eq $port) {
         $sock = $self->{sock_cache}->{sock};
     } else {
-        my ($iaddr, $sock_addr);
+        my ($_host, $_port);
         if (my $proxy = $ENV{HTTP_PROXY}) {
-            my $uri = URI->new($proxy);
-            $iaddr = inet_aton($uri->host)
-                or Carp::croak("cannot detect host name: $uri->host, $!");
-            $sock_addr = pack_sockaddr_in($uri->port, $iaddr);
-        } else {
-            $iaddr = inet_aton($host)
-                or Carp::croak("cannot detect host name: $host, $!");
-            $sock_addr = pack_sockaddr_in($port, $iaddr);
+            (undef, $_host, $_port, undef)
+                = $self->_parse_url($proxy);
         }
+        else {
+            $_host = $host;
+            $_port = $port;
+        }
+        my $iaddr = inet_aton($_host)
+            or Carp::croak("cannot detect host name: $_host, $!");
+        my $sock_addr = pack_sockaddr_in($port, $iaddr);
+
         socket($sock, PF_INET, SOCK_STREAM, 0)
             or Carp::croak("Cannot create socket: $!");
         connect($sock, $sock_addr)
-            or Carp::croak("cannot connect to $host, $port: $!");
+            or Carp::croak("cannot connect to ${host}:${port}: $!");
         setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
-          or Carp::croak("setsockopt(TCP_NODELAY) failed:$!");
+          or Carp::croak("setsockopt(TCP_NODELAY) failed: $!");
         if ($^O eq 'MSWin32') {
             my $tmp = 1;
             ioctl( $sock, 0x8004667E, \$tmp )
