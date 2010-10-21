@@ -38,10 +38,9 @@ You can easy to create the instance of it.
     - form serializer
         seraizlie_x_www_url_encoded(foo => bar, baz => 1);
     - idn support(with Net-IDN-Encode?)
-    - proxy support
-    - env_proxy support
     - cookie_jar support
     - ssl support
+    - test case for proxy support
 
 # AUTHOR
 
