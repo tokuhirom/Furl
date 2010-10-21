@@ -277,6 +277,7 @@ sub _read_body_chunked {
                     (
                         ([0-9a-fA-F]+)              # hex
                         (?:;$HTTP_TOKEN(?:=(?:$HTTP_TOKEN|$HTTP_QUOTED_STRING)))*  # chunk-extention
+                        [ ]*                        # www.yahoo.com adds spaces here. is this valid?
                         \015\012                    # crlf
                     )
                 /x
