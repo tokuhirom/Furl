@@ -17,13 +17,13 @@ my $HTTP_QUOTED_STRING = q{"([^"]+|\\.)*"};
 sub new {
     my $class = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
-    my $agent = __PACKAGE__ . '/' . $VERSION;
+
+    my $agent = $args{agent} || __PACKAGE__ . '/' . $VERSION;
     bless {
-        parse_header  => 1,
         timeout       => 10,
         max_redirects => 7,
         bufsize       => 10*1024, # no mmap
-        user_agent    => $agent,
+        headers       => ['User-Agent' => $agent],
         %args
     }, $class;
 }
@@ -79,11 +79,12 @@ sub request {
     {
         my $method = $args{method} || 'GET';
         my $p = "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012";
+        my @headers = @{$self->{headers}};
         if ($args{headers}) {
-            my $h = $args{headers};
-            for (my $i=0; $i<@{$h}; $i+=2) {
-                $p .= $h->[$i] . ': ' . $h->[$i+1] . "\015\012";
-            }
+            push @headers, @{$args{headers}};
+        }
+        for (my $i = 0; $i < @headers; $i += 2) {
+            $p .= $headers[$i] . ': ' . $headers[$i+1] . "\015\012";
         }
         $p .= "\015\012";
         $self->write_all($sock, $p, $timeout)
