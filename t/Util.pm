@@ -19,14 +19,14 @@ my @RELIABLE_HTTP = (
 );
 
 sub online () {
-    my $furl = Furl->new();
+    my $furl = Furl->new(timeout => 10);
     my $good = 0;
     my $bad  = 0;
     for (my $i=0; $i<@RELIABLE_HTTP; $i+=2) {
         my ($url, $check) = @RELIABLE_HTTP[$i, $i+1];
-        warn "getting $url";
+        note "getting $url";
         my ($code, $headers, $content) = $furl->request(method => 'GET', url => $url);
-        warn "OK $code";
+        note "OK $code";
         local $_ = $content;
         if ($code == 200 && $check->()) {
             $good++;
