@@ -76,6 +76,10 @@ You can easily create its instance from the result of `request()` and `get()`.
     - few dependencies are allowed.
     - faster than WWW::Curl::Easy
 
+- Why IO::Socket::SSL?
+
+Net::SSL is not well documented.
+
 - Why env_proxy is optional?
 
 Environment variables are highly dependent on users' environments.
@@ -93,7 +97,6 @@ And we can support other operating systems if you send a patch.
         seraizlie_x_www_url_encoded(foo => bar, baz => 1);
     - idn support(with Net-IDN-Encode?)
     - cookie_jar support
-    - ssl support
     - test case for proxy support
     - AnyEvent::Furl?
 

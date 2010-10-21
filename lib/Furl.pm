@@ -15,7 +15,6 @@ use Socket qw(
     inet_aton
     pack_sockaddr_in
 );
-our $SSL_AVAILABLE = eval "use IO::Socket::SSL; 1;";
 
 XSLoader::load __PACKAGE__, $VERSION;
 
@@ -120,12 +119,13 @@ sub request {
             connect($sock, $sock_addr)
                 or Carp::croak("cannot connect to ${host}:${port}: $!");
         } else {
-            Carp::croak("SSL support needs IO::Socket::SSL, but you don't have it. Please install IO::Socket::SSL first.") unless $SSL_AVAILABLE;
-            warn $scheme;
-
+            eval { require IO::Socket::SSL }
+                or Carp::croak("SSL support needs IO::Socket::SSL,"
+                    . " but you don't have it."
+                    . " Please install IO::Socket::SSL first.");
             $sock =
               IO::Socket::SSL->new( PeerHost => $_host, PeerPort => $_port )
-              or Carp::croak("cannot create new connection: IO::Socket::SSL");
+                or Carp::croak("cannot create new connection: IO::Socket::SSL");
         }
         setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
           or Carp::croak("setsockopt(TCP_NODELAY) failed: $!");
