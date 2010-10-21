@@ -11,6 +11,9 @@ use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in/;
 
 XSLoader::load __PACKAGE__, $VERSION;
 
+my $HTTP_TOKEN = '[^\x00-\x31\x7F]+';
+my $HTTP_QUOTED_STRING = q{"([^"]+|\\.)*"};
+
 sub new {
     my $class = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
@@ -117,23 +120,11 @@ sub request {
             }
         }
     }
-    my $sent_length = length($res_content);
-    READ_LOOP: while ($res_content_length == -1 || $res_content_length != $sent_length) {
-        my $bufsize = $self->{bufsize};
-        if ($res_content_length != -1 && $res_content_length - $sent_length < $bufsize) {
-            $bufsize = $res_content_length - $sent_length;
-        }
-        # TODO: save to fh
-        my $readed = sysread($sock, my $buf, $bufsize);
-        if (not defined $readed || $readed < 0 ) {
-            next READ_LOOP if $? == EAGAIN;
-        }
-        if ($readed == 0) {
-            # eof
-            last READ_LOOP;
-        }
-        $res_content .= substr($buf, 0, $readed);
-        $sent_length += $readed;
+    # TODO: deflate support
+    if ($res_transfer_encoding && $res_transfer_encoding eq 'chunked') {
+        $res_content = $self->_read_body_chunked($sock, $res_content);
+    } else {
+        $res_content = $self->_read_body_normal($sock, $res_content, $res_content_length);
     }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
@@ -155,6 +146,92 @@ sub request {
         $self->{sock_cache}->{port} = $port;
     }
     return ($res_status, $res_headers, $res_content);
+}
+
+sub _read_body_chunked {
+    my ($self, $sock, $res_content) = @_;
+
+    my $buf = $res_content;
+    my $ret;
+    my $need_read;
+  READ_LOOP: while (1) {
+        if ($need_read) {
+            my $readed = sysread( $sock, $buf, $self->{bufsize}, length($buf) );
+            if ( !defined $readed ) {
+                next READ_LOOP if $? == EAGAIN;
+            } elsif ($readed == 0) {
+                die "unexpected eof while reading packets";
+            }
+        }
+
+        if (
+            my ( $header, $next_len ) = (
+                $buf =~
+                  /^
+                    (
+                        ([0-9a-fA-F]+)              # hex
+                        (?:;$HTTP_TOKEN(?:=(?:$HTTP_TOKEN|$HTTP_QUOTED_STRING)))*  # chunk-extention
+                        \015\012                    # crlf
+                    )
+                /x
+            )
+          )
+        {
+            if ($next_len eq '0') {
+                $buf = substr($buf, length($header));
+                last READ_LOOP;
+            }
+            $next_len = hex($next_len);
+
+            $buf = substr($buf, length($header)); # remove header from buf.
+            # +2 means trailing CRLF
+          READ_CHUNK: while ( $next_len+2 > length($buf) ) {
+                my $readed =
+                  sysread( $sock, $buf, $self->{bufsize}, length($buf) );
+                if ( not defined $readed ) {
+                    if ( $? == EAGAIN ) {
+                        next READ_CHUNK;
+                    }
+                    else {
+                        die "cannot read chunk: $!";
+                    }
+                }
+            }
+            $ret .= substr($buf, 0, $next_len);
+            $buf = substr($buf, $next_len+2);
+            if (length($buf) > 0) {
+                $need_read = 0;
+            }
+        } else {
+            $need_read++;
+        }
+    }
+    $self->_read_body_normal($sock, $buf, 2); # read last crlf
+    return $ret;
+}
+
+sub _read_body_normal {
+    my ($self, $sock, $res_content, $res_content_length) = @_;
+
+    my $sent_length = length($res_content);
+    READ_LOOP: while ($res_content_length == -1 || $res_content_length != $sent_length) {
+        my $bufsize = $self->{bufsize};
+        if ($res_content_length != -1 && $res_content_length - $sent_length < $bufsize) {
+            $bufsize = $res_content_length - $sent_length;
+        }
+        # TODO: save to fh
+        my $readed = sysread($sock, my $buf, $bufsize);
+        if (not defined $readed || $readed < 0 ) {
+            next READ_LOOP if $? == EAGAIN;
+        }
+        if ($readed == 0) {
+            # eof
+            last READ_LOOP;
+        }
+        $res_content .= substr($buf, 0, $readed);
+        $sent_length += $readed;
+    }
+    return $res_content;
 }
 
 1;
@@ -209,7 +286,6 @@ You can easy to create the instance of it.
     - cookie_jar support
     - timeout support
     - ssl support
-    - chunked support(see RFC2616 sec 19.4.6)
 
 =head1 AUTHOR
 

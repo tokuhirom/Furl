@@ -5,8 +5,6 @@ use t::Util;
 use Test::More;
 use Furl;
 
-plan skip_all => "TODO";
-
 # skip_if_offline();
 
 my $url = 'http://www.google.co.jp/';
