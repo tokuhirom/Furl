@@ -425,6 +425,13 @@ You can easy to create the instance of it.
 
     my $res = HTTP::Response->new($furl->get($url));
 
+=head1 PROJECT POLICY
+
+    - Pure Perl implementation is required
+      (I want to use Furl without compilers)
+    - few dependencies are allowed.
+    - faster than WWW::Curl::Easy
+
 =head1 TODO
 
     - form serializer
@@ -433,6 +440,7 @@ You can easy to create the instance of it.
     - cookie_jar support
     - ssl support
     - test case for proxy support
+    - AnyEvent::Furl?
 
 =head1 AUTHOR
 
