@@ -81,11 +81,14 @@ sub request {
             }
         }
         $p .= "\015\012";
+        # XXX: is it safe to return $! ?
         defined(syswrite($sock, $p, length($p)))
-            or return $err->(500, [], [$!]);
+            or return $err->(500, 'Internal Server Error',
+                [], 'Internal Server Error');
         if (my $content = $args{content}) {
             defined(syswrite($sock, $content, length($content)))
-                or return $err->(500, [], [$!]);
+                or return $err->(500, 'Internal Serer Error',
+                    [], 'Internal Server Error');
         }
     }
 
@@ -106,13 +109,15 @@ sub request {
         if (not defined $read || $read < 0) {
             Carp::croak("error while reading from socket: $!");
         } elsif ( $read == 0 ) {    # eof
-            return $err->(500, [], "Unexpected EOF: $!");
+            return $err->(500, 'Internal Server Error',
+                [], "Unexpected EOF: $!");
         }
         else {
             ( $res_minor_version, $res_status, $res_msg, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_headers, my $ret ) =
               parse_http_response( $buf, $last_len );
             if ( $ret == -1 ) {
-                return $err->(500, [], ["invalid HTTP response"]);
+                return $err->(500, 'Internal Server Error',
+                    [], "Invalid HTTP response");
             }
             elsif ( $ret == -2 ) {
                 # partial response
