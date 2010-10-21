@@ -249,31 +249,12 @@ sub _read_body_normal {
 
 # I/O with tmeout (stolen from Starlet/kazuho++)
 
-# returns value returned by I/O syscalls, or undef on timeout or network error
-sub do_io {
-    my ($self, $is_write, $sock, $buf, $len, $off, $timeout) = @_;
-    my $ret;
-    unless ($is_write || delete $self->{_is_deferred_accept}) {
-        goto DO_SELECT;
-    }
- DO_READWRITE:
-    # try to do the IO
-    if ($is_write) {
-        $ret = syswrite $sock, $buf, $len, $off
-            and return $ret;
-    } else {
-        $ret = sysread $sock, $$buf, $len, $off
-            and return $ret;
-    }
-    unless ((! defined($ret)
-                 && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK))) {
-        return undef;
-    }
+sub do_select {
+    my($self, $is_write, $sock, $timeout) = @_;
     # wait for data
- DO_SELECT:
+    my($rfd, $wfd, $efd);
     while (1) {
-        my ($rfd, $wfd);
-        my $efd = '';
+        $efd = '';
         vec($efd, fileno($sock), 1) = 1;
         if ($is_write) {
             ($rfd, $wfd) = ('', $efd);
@@ -281,12 +262,36 @@ sub do_io {
             ($rfd, $wfd) = ($efd, '');
         }
         my $start_at = time;
-        my $nfound = select($rfd, $wfd, $efd, $timeout);
-        $timeout -= (time - $start_at);
-        last if $nfound;
-        return undef if $timeout <= 0;
+        my $nfound   = select($rfd, $wfd, $efd, $timeout);
+        $timeout    -= (time - $start_at);
+        return 1 if $nfound;
+        return 0 if $timeout <= 0;
     }
-    goto DO_READWRITE;
+    die 'not reached';
+}
+
+# returns value returned by I/O syscalls, or undef on timeout or network error
+sub do_io {
+    my ($self, $is_write, $sock, $buf, $len, $off, $timeout) = @_;
+    my $ret;
+    unless ($is_write) {
+        $self->do_select($is_write, $sock, $timeout) or return undef;
+    }
+    while(1) {
+        # try to do the IO
+        if ($is_write) {
+            $ret = syswrite $sock, $buf, $len, $off
+                and return $ret;
+        } else {
+            $ret = sysread $sock, $$buf, $len, $off
+                and return $ret;
+        }
+        unless (!defined($ret)
+                     && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
+            return undef;
+        }
+        $self->do_select($is_write, $sock, $timeout) or return undef;
+    }
 }
 
 # returns (positive) number of bytes read, or undef if the socket is to be closed
