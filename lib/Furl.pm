@@ -5,7 +5,7 @@ use 5.00800;
 our $VERSION = '0.01';
 
 use Carp ();
-use POSIX qw(:errno_h);
+use Errno qw(EAGAIN);
 use XSLoader;
 use Socket qw/inet_aton PF_INET SOCK_STREAM pack_sockaddr_in/;
 
