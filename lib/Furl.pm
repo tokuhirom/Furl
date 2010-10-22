@@ -588,8 +588,6 @@ And we can support other operating systems if you send a patch.
     - request body should allow \&code.
     - response body should allow $fh
       - $f->request(write_data => $fh)
-    - request with HTTP::Request
-      - e.g. $f->request_by_http_request($req)
     - AnyEvent::Furl?
     - Transfer-Encoding: deflate
     - Transfer-Encoding: gzip
