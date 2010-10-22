@@ -91,16 +91,17 @@ Linux 2.6 or higher, OSX Tiger or higher, Windows XP or higher.
 
 And we can support other operating systems if you send a patch.
 
+- Why Furl does not support chunked upload?
+
+    18:36 kazuho: てかクライアントだと、サーバが1.1であることを確認とれない限り chunked POST すべきじゃないんだけど
+    18:36 kazuho: だからいらないと思います！
+
 # TODO
 
     - form serializer
         make_form(foo => bar, baz => 1);
     - cookie_jar support(really need??)
     - request body should allow \&code.
-    - response body should allow $fh
-      - $f->request(write_data => $fh)
-    - request with HTTP::Request
-      - e.g. $f->request_by_http_request($req)
     - AnyEvent::Furl?
     - Transfer-Encoding: deflate
     - Transfer-Encoding: gzip

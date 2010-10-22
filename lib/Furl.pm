@@ -656,6 +656,11 @@ Linux 2.6 or higher, OSX Tiger or higher, Windows XP or higher.
 
 And we can support other operating systems if you send a patch.
 
+=item Why Furl does not support chunked upload?
+
+    18:36 kazuho: てかクライアントだと、サーバが1.1であることを確認とれない限り chunked POST すべきじゃないんだけど
+    18:36 kazuho: だからいらないと思います！
+
 =back
 
 =head1 TODO
