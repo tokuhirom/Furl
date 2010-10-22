@@ -3,9 +3,6 @@ use strict;
 use warnings;
 use 5.00800;
 our $VERSION = '0.01';
-use IO::Uncompress::Gunzip;
-
-our $DEFLATOR = sub { $_[0] };
 
 {
     package Furl::_CodeWrapper;
@@ -13,7 +10,8 @@ our $DEFLATOR = sub { $_[0] };
     use warnings;
     use overload '.=' => sub {
         my @self = @{$_[0]};
-        $self[3]->(@self[0,1,2], $DEFLATOR->($_[1]));
+        $self[3]->(@self[0,1,2], $_[1]);
+        return $_[0];
     };
 
     sub new {
@@ -27,7 +25,8 @@ our $DEFLATOR = sub { $_[0] };
     use strict;
     use warnings;
     use overload '.=' => sub {
-        print { ${ $_[0] } } $DEFLATOR->($_[1]);
+        print { ${ $_[0] } } $_[1];
+        return $_[0];
     };
 
     sub new {
@@ -39,6 +38,8 @@ our $DEFLATOR = sub { $_[0] };
 #use Smart::Comments;
 use Carp ();
 use XSLoader;
+
+use IO::Handle ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 use Socket qw(
@@ -282,16 +283,27 @@ sub request {
     } elsif (my $coderef = $args{write_code}) {
         $res_content = Furl::_CodeWrapper->new($res_status, $res_msg, $res_headers, $coderef);
     }
+    else {
+        $res_content = '';
+    }
 
-    local $DEFLATOR;
     if ($res_content_encoding eq 'gzip') {
-        $DEFLATOR = sub {
-            my $output;
-            IO::Uncompress::Gunzip::gunzip(\$_[0], \$output, Transparent => 0); 
-            $output;
-        };
-    } else {
-        $DEFLATOR = sub { $_[0] };
+        # XXX: I know it is really ugly, but works well!
+        #      IO::Handle::unread makes it easy, but is uncommon :(
+        #require IO::Handle::unread;
+        #$sock->unread($rest_header) if length($rest_header);
+        for my $ord(reverse unpack 'C*', $rest_header) {
+            # XXX: I know PerlIO allows any number of bytes to be put back
+            $sock->ungetc($ord);
+        }
+        $rest_header = '';
+        # I::U::G->new() requires a complete gzip header,
+        # so it is required to select(2) for reading data.
+        $self->do_select(0, $sock, $timeout);
+        require IO::Uncompress::Gunzip;
+        $sock = IO::Uncompress::Gunzip->new(
+            $sock,
+            Transparent => 0) or Carp::croak($IO::Uncompress::Gunzip::GunzipError);
     }
 
     if ($res_transfer_encoding eq 'chunked') {
@@ -300,10 +312,7 @@ sub request {
     } else {
         $res_content .= $rest_header;
         $self->_read_body_normal($sock,
-            \$res_content, $res_content_length, $timeout);
-    }
-    unless ($res_content_encoding && ref $res_content) {
-        $res_content = $DEFLATOR->($res_content);
+            \$res_content, length($rest_header), $res_content_length, $timeout);
     }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
@@ -464,18 +473,13 @@ sub _read_body_chunked {
             Carp::croak("unexpected eof while reading packets");
         }
     }
-    $self->_read_body_normal($sock, \$buf, 2, $timeout); # read last crlf
+    $self->_read_body_normal($sock, \$buf, length($buf), 2, $timeout); # read last crlf
 }
 
 sub _read_body_normal {
-    my ($self, $sock, $res_content, $res_content_length, $timeout) = @_;
-
-    my $sent_length = length($$res_content);
+    my ($self, $sock, $res_content, $sent_length, $res_content_length, $timeout) = @_;
     READ_LOOP: while ($res_content_length == -1 || $res_content_length != $sent_length) {
         my $bufsize = $self->{bufsize};
-        if ($res_content_length != -1 && $res_content_length - $sent_length < $bufsize) {
-            $bufsize = $res_content_length - $sent_length;
-        }
         my $readed = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
         if (not defined $readed) {
             if ($? == EAGAIN) {
@@ -502,7 +506,7 @@ sub do_select {
     my($rfd, $wfd, $efd);
     while (1) {
         $efd = '';
-        vec($efd, fileno($sock), 1) = 1;
+        vec($efd, $sock->fileno, 1) = 1;
         if ($is_write) {
             ($rfd, $wfd) = ('', $efd);
         } else {
@@ -524,7 +528,7 @@ sub read_timeout {
     $self->do_select(0, $sock, $timeout) or return undef;
     while(1) {
         # try to do the IO
-        $ret = sysread $sock, $$buf, $len, $off
+        $ret = $sock->sysread($$buf, $len, $off)
             and return $ret;
         unless (!defined($ret)
                      && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
@@ -540,7 +544,7 @@ sub write_timeout {
     my $ret;
     while(1) {
         # try to do the IO
-        $ret = syswrite $sock, $buf, $len, $off
+        $ret = $sock->syswrite($buf, $len, $off)
             and return $ret;
         unless (!defined($ret)
                      && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
