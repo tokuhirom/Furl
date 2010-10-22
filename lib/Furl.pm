@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use 5.00800;
 our $VERSION = '0.01';
+use IO::Uncompress::Gunzip;
+
+our $DEFLATOR;
 
 {
     package Furl::_CodeWrapper;
@@ -10,7 +13,7 @@ our $VERSION = '0.01';
     use warnings;
     use overload '.=' => sub {
         my @self = @{$_[0]};
-        $self[3]->(@self[0,1,2], $_[1]);
+        $self[3]->(@self[0,1,2], $DEFLATOR->($_[1]));
     };
 
     sub new {
@@ -24,7 +27,7 @@ our $VERSION = '0.01';
     use strict;
     use warnings;
     use overload '.=' => sub {
-        print { ${ $_[0] } } $_[1];
+        print { ${ $_[0] } } $DEFLATOR->($_[1]);
     };
 
     sub new {
@@ -280,7 +283,13 @@ sub request {
         $res_content = Furl::_CodeWrapper->new($res_status, $res_msg, $res_headers, $coderef);
     }
 
-    # TODO: deflate support
+    local $DEFLATOR;
+    if ($res_content_encoding eq 'gzip') {
+        $DEFLATOR = sub { my $output; IO::Uncompress::Gunzip::gunzip(\$_[0], \$output, Transparent => 0); $output };
+    } else {
+        $DEFLATOR = sub { $_[0] };
+    }
+
     if ($res_transfer_encoding eq 'chunked') {
         $self->_read_body_chunked($sock,
             $rest_header, $timeout, \$res_content);
@@ -288,6 +297,9 @@ sub request {
         $res_content .= $rest_header;
         $self->_read_body_normal($sock,
             \$res_content, $res_content_length, $timeout);
+    }
+    unless (ref $res_content) {
+        $res_content = $DEFLATOR->($res_content);
     }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
@@ -680,6 +692,10 @@ use L<Tie::Handle>. If you have any reason to support this, please send github t
 =item How to use cookie_jar?
 
 Furl does not support cookie_jar. You can create Furl wrapper to support cookie_jar.
+
+=item Why don't you support 'deflate'?
+
+Any reason to support it?
 
 =back
 
