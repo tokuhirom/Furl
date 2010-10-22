@@ -560,7 +560,6 @@ And we can support other operating systems if you send a patch.
     - form serializer
         seraizlie_x_www_url_encoded(foo => bar, baz => 1);
     - cookie_jar support
-    - test case for proxy support
     - AnyEvent::Furl?
 
 =head1 AUTHOR
