@@ -96,12 +96,19 @@ And we can support other operating systems if you send a patch.
     18:36 kazuho: てかクライアントだと、サーバが1.1であることを確認とれない限り chunked POST すべきじゃないんだけど
     18:36 kazuho: だからいらないと思います！
 
+# FAQ
+
+- How to make content body by coderef?
+
+use [Tie::Handle](http://search.cpan.org/perldoc?Tie::Handle). If you have any reason to support this, please send github ticket.
+
+- How to use cookie_jar?
+
+Furl does not support cookie_jar. You can create Furl wrapper to support cookie_jar.
+
 # TODO
 
-    - form serializer
-        make_form(foo => bar, baz => 1);
-    - cookie_jar support(really need??)
-    - request body should allow \&code.
+    - need $furl->post($url, \@parameters)?
     - AnyEvent::Furl?
     - Transfer-Encoding: deflate
     - Transfer-Encoding: gzip

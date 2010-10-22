@@ -663,12 +663,23 @@ And we can support other operating systems if you send a patch.
 
 =back
 
+=head1 FAQ
+
+=over 4
+
+=item How to make content body by coderef?
+
+use L<Tie::Handle>. If you have any reason to support this, please send github ticket.
+
+=item How to use cookie_jar?
+
+Furl does not support cookie_jar. You can create Furl wrapper to support cookie_jar.
+
+=back
+
 =head1 TODO
 
-    - form serializer
-        make_form(foo => bar, baz => 1);
-    - cookie_jar support(really need??)
-    - request body should allow \&code.
+    - need $furl->post($url, \@parameters)?
     - AnyEvent::Furl?
     - Transfer-Encoding: deflate
     - Transfer-Encoding: gzip
