@@ -285,7 +285,11 @@ sub request {
 
     local $DEFLATOR;
     if ($res_content_encoding eq 'gzip') {
-        $DEFLATOR = sub { my $output; IO::Uncompress::Gunzip::gunzip(\$_[0], \$output, Transparent => 0); $output };
+        $DEFLATOR = sub {
+            my $output;
+            IO::Uncompress::Gunzip::gunzip(\$_[0], \$output, Transparent => 0); 
+            $output;
+        };
     } else {
         $DEFLATOR = sub { $_[0] };
     }
