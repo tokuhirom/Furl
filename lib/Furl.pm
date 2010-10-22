@@ -46,13 +46,9 @@ sub get {
 # returns $scheme, $host, $port, $path_query
 sub _parse_url {
     my($self, $url) = @_;
-    if (ref $url) {
-        return( $url->scheme, $url->host, $url->port, $url->path_query );
-    } else {
-        $url =~ m{\A ([a-z]+) :// ([^/:]+) (?::(\d+))? (.*) }xms
-            or Carp::croak("malformed URL: $url");
-        return( $1, $2, $3, $4 );
-    }
+    $url =~ m{\A ([a-z]+) :// ([^/:]+) (?::(\d+))? (.*) }xms
+        or Carp::croak("malformed URL: $url");
+    return( $1, $2, $3, $4 );
 }
 
 sub env_proxy {
