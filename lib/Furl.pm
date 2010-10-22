@@ -5,7 +5,7 @@ use 5.00800;
 our $VERSION = '0.01';
 use IO::Uncompress::Gunzip;
 
-our $DEFLATOR;
+our $DEFLATOR = sub { $_[0] };
 
 {
     package Furl::_CodeWrapper;
@@ -475,9 +475,9 @@ sub _read_body_normal {
         my $readed = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
         if (not defined $readed) {
             if ($? == EAGAIN) {
-                next READ_LOOP
+                next READ_LOOP;
             } else {
-                # nop
+                last READ_LOOP;
             }
         }
         if ($readed == 0) {
