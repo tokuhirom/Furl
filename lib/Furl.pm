@@ -121,13 +121,7 @@ sub request {
             connect($sock, $sock_addr)
                 or Carp::croak("cannot connect to ${host}:${port}: $!");
         } else {
-            eval { require IO::Socket::SSL }
-                or Carp::croak("SSL support needs IO::Socket::SSL,"
-                    . " but you don't have it."
-                    . " Please install IO::Socket::SSL first.");
-            $sock =
-              IO::Socket::SSL->new( PeerHost => $_host, PeerPort => $_port )
-                or Carp::croak("cannot create new connection: IO::Socket::SSL");
+            $sock = $self->connect_ssl($_host, $_port);
         }
         setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
           or Carp::croak("setsockopt(TCP_NODELAY) failed: $!");
@@ -243,6 +237,20 @@ sub request {
         $self->add_conn_cache($host, $port, $sock);
     }
     return ($res_status, $res_msg, $res_headers, $res_content);
+}
+
+# connect SSL socket.
+# You can override this methond in your child class, if you want to use Crypt::SSLeay or some other library.
+# @return file handle like object
+sub connect_ssl {
+    my ($self, $host, $port) = @_;
+
+    eval { require IO::Socket::SSL }
+      or Carp::croak( "SSL support needs IO::Socket::SSL,"
+          . " but you don't have it."
+          . " Please install IO::Socket::SSL first." );
+    IO::Socket::SSL->new( PeerHost => $host, PeerPort => $port )
+      or Carp::croak("cannot create new connection: IO::Socket::SSL");
 }
 
 # following three connections are related to connection cache for keep-alive.
