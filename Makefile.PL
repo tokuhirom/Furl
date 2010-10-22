@@ -11,15 +11,15 @@ cc_warnings;
 
 requires 'Socket';
 requires 'Errno';
+requires 'IO::Uncompress::Gunzip';
 
 test_requires 'Test::More' => 0.96; # done_testing, subtest
 test_requires 'Test::TCP';
 test_requires 'Plack' =>  0.9949;
 test_requires 'IO::Socket::INET';
 test_requires 'HTTP::Response';
-test_requires 'URI';
 
-recommends 'Net::IDN::Encode';    # TODO: idn support
+recommends 'Net::IDN::Encode';
 recommends 'IO::Socket::SSL';       # for SSL support
 
 readme_markdown_from 'lib/Furl.pm';

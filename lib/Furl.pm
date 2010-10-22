@@ -711,7 +711,6 @@ Any reason to support it?
 
     - AnyEvent::Furl?
     - Transfer-Encoding: deflate
-    - Transfer-Encoding: gzip
 
     Furl::Easy or Furl::Common or Furl::REST or something.
     18:53 tokuhirom: ->put($url, \@headers, $content)
