@@ -167,8 +167,23 @@ sub request {
         $self->write_all($sock, $p, $timeout)
             or return $self->_r500("Failed to send HTTP request: $!");
         if (my $content = $args{content}) {
-            $self->write_all($sock, $content, $timeout)
-                or return $self->_r500("Failed to send content: $!");
+            if (ref $content) {
+                my $ret;
+                SENDFILE: while (1) {
+                    # TODO: sendfile(2) support?
+                    $ret = read($content, my $buf, $self->{bufsize});
+                    if (not defined $ret) {
+                        Carp::croak("Failed to read request content: $!");
+                    } elsif ($ret == 0) {
+                        last SENDFILE;
+                    }
+                    $self->write_all($sock, $buf, $timeout)
+                        or return $self->_r500("Failed to send content: $!");
+                }
+            } else {
+                $self->write_all($sock, $content, $timeout)
+                    or return $self->_r500("Failed to send content: $!");
+            }
         }
     }
 
@@ -556,7 +571,6 @@ And we can support other operating systems if you send a patch.
     - form serializer
         make_form(foo => bar, baz => 1);
     - cookie_jar support(really need??)
-    - request body should allow $fh
     - request body should allow \&code.
     - response body should allow $fh
       - $f->request(write_data => $fh)

@@ -96,7 +96,6 @@ And we can support other operating systems if you send a patch.
     - form serializer
         make_form(foo => bar, baz => 1);
     - cookie_jar support(really need??)
-    - request body should allow $fh
     - request body should allow \&code.
     - response body should allow $fh
       - $f->request(write_data => $fh)
