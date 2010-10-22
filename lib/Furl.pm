@@ -558,8 +558,12 @@ And we can support other operating systems if you send a patch.
 =head1 TODO
 
     - form serializer
-        seraizlie_x_www_url_encoded(foo => bar, baz => 1);
-    - cookie_jar support
+        make_form(foo => bar, baz => 1);
+    - cookie_jar support(really need??)
+    - request body should allow $fh
+    - request body should allow \&code.
+    - response body should allow $fh
+      - $f->request(write_data => $fh)
     - AnyEvent::Furl?
 
 =head1 AUTHOR
