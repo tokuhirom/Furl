@@ -463,7 +463,6 @@ sub _read_body_normal {
         my $readed = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
         if (not defined $readed) {
             if ($? == EAGAIN) {
-                warn "EAGAIN";
                 next READ_LOOP
             } else {
                 # nop
