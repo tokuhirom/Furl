@@ -4,6 +4,7 @@ use utf8;
 use t::Util;
 use Test::More;
 use Furl;
+use Test::Requires 'Net::IDN::Encode';
 
 skip_if_offline();
 
