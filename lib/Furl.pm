@@ -298,7 +298,7 @@ sub request {
         $self->_read_body_normal($sock,
             \$res_content, $res_content_length, $timeout);
     }
-    unless (ref $res_content) {
+    unless ($res_content_encoding && ref $res_content) {
         $res_content = $DEFLATOR->($res_content);
     }
 
