@@ -465,11 +465,11 @@ sub _read_body_chunked {
             }
         }
 
-        my $readed = $self->read_timeout( $sock,
+        my $n = $self->read_timeout( $sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
-        if ( not defined $readed ) {
+        if ( not defined $n ) {
             next READ_LOOP if $? == EAGAIN;
-        } elsif ($readed == 0) {
+        } elsif ($n == 0) {
             Carp::croak("unexpected eof while reading packets");
         }
     }
@@ -477,23 +477,23 @@ sub _read_body_chunked {
 }
 
 sub _read_body_normal {
-    my ($self, $sock, $res_content, $sent_length, $res_content_length, $timeout) = @_;
-    READ_LOOP: while ($res_content_length == -1 || $res_content_length != $sent_length) {
+    my ($self, $sock, $res_content, $nread, $res_content_length, $timeout) = @_;
+  READ_LOOP: while ($res_content_length == -1 || $res_content_length != $nread) {
         my $bufsize = $self->{bufsize};
-        my $readed = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
-        if (not defined $readed) {
+        my $n = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
+        if (not defined $n) {
             if ($? == EAGAIN) {
                 next READ_LOOP;
             } else {
                 last READ_LOOP;
             }
         }
-        if ($readed == 0) {
+        if ($n == 0) {
             # eof
             last READ_LOOP;
         }
         $$res_content .= $buf;
-        $sent_length += $readed;
+        $nread        += $n;
     }
 }
 
