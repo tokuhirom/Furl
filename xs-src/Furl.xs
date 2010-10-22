@@ -28,6 +28,7 @@ PPCODE:
     SV * connection        = &PL_sv_no; // as an empty string
     SV * location          = &PL_sv_no;
     SV * transfer_encoding = &PL_sv_no;
+    SV * content_encoding = &PL_sv_no;
     av_extend(headers, (num_headers - 1) * 2);
     for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
@@ -51,12 +52,14 @@ PPCODE:
             location = valuesv;
         } else if (strncasecmp(name, "Transfer-Encoding", name_len) == 0) {
             transfer_encoding = valuesv;
+        } else if (strncasecmp(name, "Content-Encoding", name_len) == 0) {
+            content_encoding = valuesv;
         }
         av_push(headers, SvREFCNT_inc_simple_NN(namesv));
         av_push(headers, SvREFCNT_inc_simple_NN(valuesv));
     }
 
-    EXTEND(SP, 9);
+    EXTEND(SP, 10);
     mPUSHi(minor_version);
     mPUSHi(status);
     mPUSHp(msg, msg_len);
@@ -64,6 +67,7 @@ PPCODE:
     PUSHs(connection);
     PUSHs(location);
     PUSHs(transfer_encoding);
+    PUSHs(content_encoding);
     mPUSHs(newRV_inc((SV*)headers));
     mPUSHi(ret);
     /* returns number of bytes cosumed if successful, -2 if request is partial,

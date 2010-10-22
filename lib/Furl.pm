@@ -244,6 +244,7 @@ sub request {
     my $res_minor_version;
     my $res_content_length;
     my $res_transfer_encoding;
+    my $res_content_encoding;
     my $res_location;
     my $rest_header;
   LOOP: while (1) {
@@ -255,7 +256,7 @@ sub request {
             return $self->_r500("Unexpected EOF");
         }
         else {
-            ( $res_minor_version, $res_status, $res_msg, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_headers, my $ret ) =
+            ( $res_minor_version, $res_status, $res_msg, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_content_encoding, $res_headers, my $ret ) =
               parse_http_response( $buf, $last_len );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
