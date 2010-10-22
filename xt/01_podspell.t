@@ -38,4 +38,5 @@ http
 url
 SSL
 san
-
+OSX
+XP
