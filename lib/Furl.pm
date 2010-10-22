@@ -460,7 +460,6 @@ sub _read_body_normal {
         if ($res_content_length != -1 && $res_content_length - $sent_length < $bufsize) {
             $bufsize = $res_content_length - $sent_length;
         }
-        # TODO: save to fh
         my $readed = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
         if (not defined $readed) {
             if ($? == EAGAIN) {
