@@ -213,6 +213,7 @@ sub request {
     my $res_content_length;
     my $res_transfer_encoding;
     my $res_location;
+    my $rest_header;
   LOOP: while (1) {
         my $read = $self->read_timeout($sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
@@ -234,7 +235,7 @@ sub request {
             }
             else {
                 # succeeded
-                $res_content = substr( $buf, $ret );
+                $rest_header = substr( $buf, $ret );
                 last LOOP;
             }
         }
@@ -242,11 +243,12 @@ sub request {
 
     # TODO: deflate support
     if ($res_transfer_encoding eq 'chunked') {
-        $res_content = $self->_read_body_chunked($sock,
-            $res_content, $timeout);
+        $self->_read_body_chunked($sock,
+            $rest_header, $timeout, \$res_content);
     } else {
-        $res_content = $self->_read_body_normal($sock,
-            $res_content, $res_content_length, $timeout);
+        $res_content = $rest_header;
+        $self->_read_body_normal($sock,
+            \$res_content, $res_content_length, $timeout);
     }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
@@ -310,10 +312,9 @@ sub add_conn_cache {
 }
 
 sub _read_body_chunked {
-    my ($self, $sock, $res_content, $timeout) = @_;
+    my ($self, $sock, $rest_header, $timeout, $res_content) = @_;
 
-    my $buf = $res_content;
-    my $ret;
+    my $buf = $rest_header;
   READ_LOOP: while (1) {
         if (
             my ( $header, $next_len ) = (
@@ -349,7 +350,7 @@ sub _read_body_chunked {
                     }
                 }
             }
-            $ret .= substr($buf, 0, $next_len);
+            $$res_content .= substr($buf, 0, $next_len);
             $buf = substr($buf, $next_len+2);
             if (length($buf) > 0) {
                 next; # re-parse header
@@ -364,14 +365,13 @@ sub _read_body_chunked {
             Carp::croak("unexpected eof while reading packets");
         }
     }
-    $self->_read_body_normal($sock, $buf, 2, $timeout); # read last crlf
-    return $ret;
+    $self->_read_body_normal($sock, \$buf, 2, $timeout); # read last crlf
 }
 
 sub _read_body_normal {
     my ($self, $sock, $res_content, $res_content_length, $timeout) = @_;
 
-    my $sent_length = length($res_content);
+    my $sent_length = length($$res_content);
     READ_LOOP: while ($res_content_length == -1 || $res_content_length != $sent_length) {
         my $bufsize = $self->{bufsize};
         if ($res_content_length != -1 && $res_content_length - $sent_length < $bufsize) {
@@ -386,10 +386,9 @@ sub _read_body_normal {
             # eof
             last READ_LOOP;
         }
-        $res_content .= $buf;
+        $$res_content .= $buf;
         $sent_length += $readed;
     }
-    return $res_content;
 }
 
 
