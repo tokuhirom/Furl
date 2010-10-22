@@ -686,10 +686,17 @@ Furl does not support cookie_jar. You can create Furl wrapper to support cookie_
 
 =head1 TODO
 
-    - need $furl->post($url, \@parameters)?
     - AnyEvent::Furl?
     - Transfer-Encoding: deflate
     - Transfer-Encoding: gzip
+
+    Furl::Easy or Furl::Common or Furl::REST or something.
+    18:53 tokuhirom: ->put($url, \@headers, $content)
+    18:53 tokuhirom: ->head($url, \@headers)
+    18:53 tokuhirom: ->get($url, \@headers)
+    18:53 tokuhirom: ->delete($url, \@headers)
+    18:53 tokuhirom: ->post($url, \@headers, \@content)
+    18:53 tokuhirom: ->post($url, \@headers, $content)
 
 =head1 AUTHOR
 
