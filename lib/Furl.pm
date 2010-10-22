@@ -140,7 +140,10 @@ sub request {
             connect($sock, $sock_addr)
                 or Carp::croak("cannot connect to ${host}:${port}: $!");
         } else {
-            $sock = $self->connect_ssl($_host, $_port);
+            $sock = $self->{proxy} ?
+                $self->connect_ssl_over_proxy(
+                    $_host, $_port, $host, $port, $timeout)
+                : $self->connect_ssl($_host, $_port);
         }
         setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
           or Carp::croak("setsockopt(TCP_NODELAY) failed: $!");
@@ -284,6 +287,42 @@ sub connect_ssl {
           . " Please install IO::Socket::SSL first." );
     IO::Socket::SSL->new( PeerHost => $host, PeerPort => $port )
       or Carp::croak("cannot create new connection: IO::Socket::SSL");
+}
+
+sub connect_ssl_over_proxy {
+    my ($self, $proxy_host, $proxy_port, $host, $port, $timeout) = @_;
+
+    eval { require IO::Socket::SSL }
+      or Carp::croak( "SSL support needs IO::Socket::SSL,"
+          . " but you don't have it."
+          . " Please install IO::Socket::SSL first." );
+
+    my $iaddr = inet_aton($proxy_host)
+        or Carp::croak("cannot detect host name: $host, $!");
+    my $sock_addr = pack_sockaddr_in($proxy_port, $iaddr);
+
+    my $sock;
+    socket($sock, PF_INET, SOCK_STREAM, 0)
+        or Carp::croak("Cannot create socket: $!");
+    connect($sock, $sock_addr)
+        or Carp::croak("cannot connect to ${proxy_host}:${proxy_port}: $!");
+
+    my $p = "CONNECT $host:$port HTTP/1.0\015\012Server: $host\015\012\015\012";
+    $self->write_all($sock, $p, $timeout)
+        or return $self->_r500("Failed to send HTTP request to proxy: $!");
+    my $buf = '';
+    my $read = $self->read_timeout($sock,
+        \$buf, $self->{bufsize}, length($buf), $timeout);
+    if (not defined $read) {
+        return $self->_r500("error while reading from socket: $!");
+    } elsif ( $read == 0 ) {    # eof
+        return $self->_r500("Unexpected EOF");
+    } elsif ( $buf !~ /^HTTP\/1.[01] 200 Connection established\015\012/ ) {
+        return $self->_r500("Invalid HTTP Response via proxy");
+    }
+
+    IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout )
+      or Carp::croak("cannot start connection: IO::Socket::SSL");
 }
 
 # following three connections are related to connection cache for keep-alive.
