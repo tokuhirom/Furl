@@ -56,6 +56,24 @@ sub env_proxy {
     $self;
 }
 
+# XXX more better naming?
+sub request_with_http_request {
+    my ($self, $req, %args) = @_;
+    my $headers = +[
+        map {
+            my $k = $_;
+            map { ( $k => $_ ) } $req->headers->header($_);
+          } $req->headers->header_field_names
+    ];
+    $self->request(
+        url     => $req->uri,
+        method  => $req->method,
+        content => $req->content,
+        headers => $headers,
+        %args
+    );
+}
+
 sub request {
     my $self = shift;
     my %args = @_;
