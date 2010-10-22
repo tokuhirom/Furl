@@ -96,6 +96,12 @@ sub request {
         $path_query = '/';
     }
 
+    if ($host !~ /\A[A-Z0-9-]+\z/i) {
+        eval { require Net::IDN::Encode } or Carp::croak("Net::IDN::Encode is required to use idn");
+        $host = Net::IDN::Encode::domain_to_ascii($host);
+    }
+
+
     local $SIG{PIPE} = 'IGNORE';
     my $sock;
     if ($sock = $self->get_conn_cache($host, $port)) {
@@ -553,7 +559,6 @@ And we can support other operating systems if you send a patch.
 
     - form serializer
         seraizlie_x_www_url_encoded(foo => bar, baz => 1);
-    - idn support(with Net-IDN-Encode?)
     - cookie_jar support
     - test case for proxy support
     - AnyEvent::Furl?
