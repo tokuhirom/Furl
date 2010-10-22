@@ -4,6 +4,35 @@ use warnings;
 use 5.00800;
 our $VERSION = '0.01';
 
+{
+    package Furl::_CodeWrapper;
+    use strict;
+    use warnings;
+    use overload '.=' => sub {
+        my @self = @{$_[0]};
+        $self[3]->(@self[0,1,2], $_[1]);
+    };
+
+    sub new {
+        my ($class, $code, $msg, $headers, $coderef) = @_;
+        bless [$code, $msg, $headers, $coderef], $class;
+    }
+}
+
+{
+    package Furl::_IOWrapper;
+    use strict;
+    use warnings;
+    use overload '.=' => sub {
+        print { ${ $_[0] } } $_[1];
+    };
+
+    sub new {
+        my ($class, $fh) = @_;
+        bless \$fh, $class;
+    }
+}
+
 #use Smart::Comments;
 use Carp ();
 use XSLoader;
@@ -244,12 +273,18 @@ sub request {
         }
     }
 
+    if (my $fh = $args{write_file}) {
+        $res_content = Furl::_IOWrapper->new($fh);
+    } elsif (my $coderef = $args{write_code}) {
+        $res_content = Furl::_CodeWrapper->new($res_status, $res_msg, $res_headers, $coderef);
+    }
+
     # TODO: deflate support
     if ($res_transfer_encoding eq 'chunked') {
         $self->_read_body_chunked($sock,
             $rest_header, $timeout, \$res_content);
     } else {
-        $res_content = $rest_header;
+        $res_content .= $rest_header;
         $self->_read_body_normal($sock,
             \$res_content, $res_content_length, $timeout);
     }
@@ -419,7 +454,12 @@ sub _read_body_normal {
         # TODO: save to fh
         my $readed = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
         if (not defined $readed) {
-            next READ_LOOP if $? == EAGAIN;
+            if ($? == EAGAIN) {
+                warn "EAGAIN";
+                next READ_LOOP
+            } else {
+                # nop
+            }
         }
         if ($readed == 0) {
             # eof
@@ -624,8 +664,6 @@ And we can support other operating systems if you send a patch.
         make_form(foo => bar, baz => 1);
     - cookie_jar support(really need??)
     - request body should allow \&code.
-    - response body should allow $fh
-      - $f->request(write_data => $fh)
     - AnyEvent::Furl?
     - Transfer-Encoding: deflate
     - Transfer-Encoding: gzip
