@@ -666,8 +666,7 @@ And we can support other operating systems if you send a patch.
 
 =item Why Furl does not support chunked upload?
 
-    18:36 kazuho: てかクライアントだと、サーバが1.1であることを確認とれない限り chunked POST すべきじゃないんだけど
-    18:36 kazuho: だからいらないと思います！
+There are reasons why chunked POST/PUTs should not be generally used.  You cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.  However HTTP/1.1 servers disconnect their persistent connection quite quickly (when comparing to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.  The two facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is of high priority.
 
 =back
 
