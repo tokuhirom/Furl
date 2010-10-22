@@ -91,7 +91,7 @@ sub request {
         $path_query = '/';
     }
 
-    if ($host !~ /\A[A-Z0-9-]+\z/i) {
+    if ($host !~ /\A[A-Z0-9.-]+\z/i) {
         eval { require Net::IDN::Encode } or Carp::croak("Net::IDN::Encode is required to use idn");
         $host = Net::IDN::Encode::domain_to_ascii($host);
     }
