@@ -4,6 +4,7 @@ use Furl;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
+use Fcntl qw(SEEK_SET);
 
 use Plack::Request;
 
@@ -12,18 +13,40 @@ test_tcp(
         my $port = shift;
         my $furl = Furl->new(bufsize => 1024);
 
-        for my $x(1, 10000) {
+        for my $x(1, 1000) {
             my $req_content = "WOWOW!" x $x;
             note 'request content length: ', length $req_content;
             open my $req_content_fh, '<', \$req_content or die "oops";
             my ( $code, $msg, $headers, $content ) =
                 $furl->request(
+                    method     => 'POST',
                     port       => $port,
                     path_query => '/foo',
                     host       => '127.0.0.1',
-                    headers    => [ "X-Foo" => "ppp",
-                        'Content-Length' => length($req_content) ],
-                    content => $req_content_fh,
+                    headers    => [ "X-Foo" => "ppp" ],
+                    content    => $req_content_fh,
+                );
+            is $code, 200, "request()";
+            is $msg, "OK";
+            is Furl::Util::header_get($headers, 'Content-Length'),
+                length($req_content);
+            is $content, $req_content
+                or do{ require Devel::Peek; Devel::Peek::Dump($content) };
+        }
+
+        {
+            open my $req_content_fh, '<', $0 or die "oops";
+            note 'request $0: ', -s $req_content_fh;
+            my $req_content = do{ local $/; <$req_content_fh> };
+            seek $req_content_fh, 0, SEEK_SET;
+            my ( $code, $msg, $headers, $content ) =
+                $furl->request(
+                    method     => 'POST',
+                    port       => $port,
+                    path_query => '/foo',
+                    host       => '127.0.0.1',
+                    headers    => [ "X-Foo" => "ppp" ],
+                    content    => $req_content_fh,
                 );
             is $code, 200, "request()";
             is $msg, "OK";

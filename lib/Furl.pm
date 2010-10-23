@@ -10,7 +10,7 @@ use XSLoader;
 
 use Scalar::Util ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK);
-use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK SEEK_SET SEEK_END);
 use Socket qw(
     PF_INET SOCK_STREAM
     IPPROTO_TCP
@@ -247,11 +247,24 @@ sub request {
                 $content = Furl::Util::encode_content($content);
             }
             if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
+                my $content_length;
                 if($content_is_fh) {
-                    # -s $fh only works for normal files (-s uses stat(2))
-                    Carp::croak("Missing Content-Length for a filehandle");
+                    $content_length = -s $content;
+                    defined(my $cur_pos = tell $content)
+                      or Carp::croak("Failed to tell() for Content-Length: $!");
+                    seek $content, 0, SEEK_END
+                      or Carp::croak("Failed to seek() for Content-Length: $!");
+                    defined(my $end_pos = tell $content)
+                      or Carp::croak("Failed to tell() for Content-Length: $!");
+                    seek $content, $cur_pos, SEEK_SET
+                      or Carp::croak("Failed to seek() for Content-Length: $!");
+
+                    $content_length = $end_pos - $cur_pos;
                 }
-                push @headers, 'Content-Length', length($content);
+                else {
+                    $content_length = length($content);
+                }
+                push @headers, 'Content-Length', $content_length;
             }
         }
 
