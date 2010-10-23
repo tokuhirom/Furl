@@ -722,7 +722,7 @@ Furl - Lightning-fast URL fetcher
         [ foo => 'bar' ],      # form data (HashRef/FileHandle are also okay)
     );
 
-    # Enable compessed contents
+    # Accept-Encoding is supported but optional
     $furl = Furl->new(
         headers => [ 'Accept-Encoding' => 'gzip' ],
     );
@@ -733,6 +733,8 @@ Furl - Lightning-fast URL fetcher
 Furl is yet another HTTP client library. LWP is the de facto standard HTTP
 client for Perl5, but it is too slow for some critical jobs, and too complex
 for weekend hacking. Furl will resolves these issues. Enjoy it!
+
+This library is an B<alpha> software. Any APIs will change without notice.
 
 =head1 INTERFACE
 
@@ -868,7 +870,7 @@ Add an B<Accept-Encoding> header to your request. Furl inflates response bodies 
 
 Before First Release
 
-    - Docs!
+    - Docs, docs, docs!
 
 After First Release
 
@@ -878,6 +880,7 @@ After First Release
         my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
+    - multipart/form-data support
 
 =head1 OPTIONAL FEATURES
 
