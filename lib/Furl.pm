@@ -5,33 +5,25 @@ use 5.00800;
 our $VERSION = '0.01';
 
 {
-    package Furl::_CodeWrapper;
+    package Furl::PartialWriter;
     use strict;
     use warnings;
-    use overload '.=' => sub {
-        my @self = @{$_[0]};
-        $self[3]->(@self[0,1,2], $_[1]);
-        return $_[0];
-    };
-
+    use overload '.=' => 'append', fallback => 1;
     sub new {
-        my ($class, $code, $msg, $headers, $coderef) = @_;
-        bless [$code, $msg, $headers, $coderef], $class;
+        my ($class, %args) = @_;
+        bless \%args, $class;
     }
-}
-
-{
-    package Furl::_IOWrapper;
-    use strict;
-    use warnings;
-    use overload '.=' => sub {
-        print { ${ $_[0] } } $_[1];
-        return $_[0];
-    };
-
-    sub new {
-        my ($class, $fh) = @_;
-        bless \$fh, $class;
+    sub append {
+        my($self, $partial) = @_;
+        $self->{append}->($partial);
+        return $self;
+    }
+    sub finalize {
+        my($self) = @_;
+        if($self->{finalize}) {
+            return $self->{finalize}->();
+        }
+        return undef;
     }
 }
 
@@ -39,7 +31,6 @@ our $VERSION = '0.01';
 use Carp ();
 use XSLoader;
 
-use IO::Handle ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 use Socket qw(
@@ -279,31 +270,42 @@ sub request {
     }
 
     if (my $fh = $args{write_file}) {
-        $res_content = Furl::_IOWrapper->new($fh);
+        $res_content = Furl::PartialWriter->new(
+            append => sub { print $fh @_ },
+        );
     } elsif (my $coderef = $args{write_code}) {
-        $res_content = Furl::_CodeWrapper->new($res_status, $res_msg, $res_headers, $coderef);
+        $res_content = Furl::PartialWriter->new(
+            append => sub {
+                $coderef->($res_status, $res_msg, $res_headers, @_);
+            },
+        );
     }
     else {
         $res_content = '';
     }
 
     if ($res_content_encoding eq 'gzip') {
-        # XXX: I know it is really ugly, but works well!
-        #      IO::Handle::unread makes it easy, but is uncommon :(
-        #require IO::Handle::unread;
-        #$sock->unread($rest_header) if length($rest_header);
-        for my $ord(reverse unpack 'C*', $rest_header) {
-            # XXX: I know PerlIO allows any number of bytes to be put back
-            $sock->ungetc($ord);
-        }
-        $rest_header = '';
-        # I::U::G->new() requires a complete gzip header,
-        # so it is required to select(2) for reading data.
-        $self->do_select(0, $sock, $timeout);
-        require IO::Uncompress::Gunzip;
-        $sock = IO::Uncompress::Gunzip->new(
-            $sock,
-            Transparent => 0) or Carp::croak($IO::Uncompress::Gunzip::GunzipError);
+        my $inflated        = '';
+        my $old_res_content = $res_content;
+        $res_content = Furl::PartialWriter->new(
+            append => sub {
+                $inflated .= $_[0];
+            },
+            finalize => sub {
+                require IO::Uncompress::Gunzip;
+                IO::Uncompress::Gunzip::gunzip(
+                    \$inflated  => \my $deflated,
+                    Transparent => 0)
+                        or Carp::croak($IO::Uncompress::Gunzip::GunzipError);
+                if(ref $old_res_content) {
+                    $old_res_content .= $deflated;
+                    return $old_res_content->finalize();
+                }
+                else {
+                    return $deflated;
+                }
+            },
+        );
     }
 
     if ($res_transfer_encoding eq 'chunked') {
@@ -341,7 +343,8 @@ sub request {
     } else {
         $self->add_conn_cache($host, $port, $sock);
     }
-    return ($res_status, $res_msg, $res_headers, $res_content);
+    return ($res_status, $res_msg, $res_headers,
+        ref($res_content) ? $res_content->finalize() : $res_content);
 }
 
 # connect SSL socket.
@@ -506,7 +509,7 @@ sub do_select {
     my($rfd, $wfd, $efd);
     while (1) {
         $efd = '';
-        vec($efd, $sock->fileno, 1) = 1;
+        vec($efd, fileno($sock), 1) = 1;
         if ($is_write) {
             ($rfd, $wfd) = ('', $efd);
         } else {
@@ -528,7 +531,7 @@ sub read_timeout {
     $self->do_select(0, $sock, $timeout) or return undef;
     while(1) {
         # try to do the IO
-        $ret = $sock->sysread($$buf, $len, $off)
+        $ret = sysread($sock, $$buf, $len, $off)
             and return $ret;
         unless (!defined($ret)
                      && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
@@ -544,7 +547,7 @@ sub write_timeout {
     my $ret;
     while(1) {
         # try to do the IO
-        $ret = $sock->syswrite($buf, $len, $off)
+        $ret = syswrite($sock, $buf, $len, $off)
             and return $ret;
         unless (!defined($ret)
                      && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
