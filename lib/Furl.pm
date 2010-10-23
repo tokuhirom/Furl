@@ -728,9 +728,17 @@ I<%args> might be:
 
 =back
 
-=head3 C<< $furl->get($url :Str) :($code, $msg, \@headers, $body) >>
+=head3 C<< $furl->get($url :Str) :($code, $msg[, \@headers]) >>
 
-Equivalent to C<< $furl->request(url => $url) >>.
+=head3 C<< $furl->head($url :Str) :($code, $msg[, \@headers]) >>
+
+=head3 C<< $furl->post($url :Str) :($code, $msg, \@headers, \@content) >>
+
+=head3 C<< $furl->post($url :Str) :($code, $msg, \@headers, $content) >>
+
+=head3 C<< $furl->put($url :Str) :($code, $msg, \@headers, $content) >>
+
+=head3 C<< $furl->delete($url :Str) :($code, $msg[, \@headers]) >>
 
 =head1 INTEGRATE WITH HTTP::Response
 
