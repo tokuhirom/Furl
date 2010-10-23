@@ -11,7 +11,7 @@ cc_warnings;
 
 requires 'Socket';
 requires 'Errno';
-requires 'IO::Uncompress::Gunzip';
+requires 'Compress::Raw::Zlib';
 requires 'URI::Escape';
 
 test_requires 'Test::More' => 0.96; # done_testing, subtest
