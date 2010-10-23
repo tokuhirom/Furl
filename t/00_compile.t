@@ -6,5 +6,5 @@ diag "Furl/$Furl::VERSION";
 
 for my $optional(qw( Net::IDN::Encde IO::Socket::SSL Compress::Raw::Zlib )) {
     eval qq{ require $optional };
-    diag $optional . '/' . $optional->VERSION || '(not installed)';
+    diag $optional . '/' . ($optional->VERSION || '(not installed)');
 }
