@@ -181,10 +181,8 @@ sub request {
 
 
     local $SIG{PIPE} = 'IGNORE';
-    my $sock;
-    if ($sock = $self->get_conn_cache($host, $port)) {
-        # nop
-    } else {
+    my $sock = $self->get_conn_cache($host, $port);
+    if(not defined $sock) {
         my ($_host, $_port);
         if ($self->{proxy}) {
             (undef, $_host, $_port, undef)
