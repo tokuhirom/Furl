@@ -5,27 +5,10 @@ use Test::TCP;
 use Test::More;
 use Plack::Util;
 use Plack::Request;
+
+use t::Slowloris;
+
 my $n = shift(@ARGV) || 3;
-{
-    package Slowloris::Socket;
-    use parent qw(IO::Socket::INET);
-    sub syswrite {
-        my($sock, $buff, $len, $off) = @_;
-        my $w = $off;
-        while($off < $len) {
-            $off += $sock->SUPER::syswrite($buff, 1, $off);
-        }
-        return $off - $w;
-    }
-    package Slowloris::Server;
-    use parent qw(HTTP::Server::PSGI);
-    sub setup_listener {
-        my $self = shift;
-        $self->SUPER::setup_listener(@_);
-        bless $self->{listen_sock}, 'Slowloris::Socket';
-        ::note 'Slowloris::Server listening';
-    }
-}
 
 test_tcp(
     client => sub {

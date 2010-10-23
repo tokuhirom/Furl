@@ -332,16 +332,22 @@ sub request {
     if ($res_content_encoding eq 'gzip') {
         my $inflated        = '';
         my $old_res_content = $res_content;
+        my $assert_z_ok     = sub {
+            $_[0] == Compress::Raw::Zlib::Z_OK()
+                or Carp::croak("Uncompressing error: $_[0]");
+        };
         $res_content = Furl::PartialWriter->new(
             append => sub {
                 $inflated .= $_[0];
             },
             finalize => sub {
-                require IO::Uncompress::Gunzip;
-                IO::Uncompress::Gunzip::gunzip(
-                    \$inflated  => \my $deflated,
-                    Transparent => 0)
-                        or Carp::croak($IO::Uncompress::Gunzip::GunzipError);
+                require Compress::Raw::Zlib;
+                my($z, $status) = Compress::Raw::Zlib::Inflate->new(
+                    -WindowBits => Compress::Raw::Zlib::WANT_GZIP(),
+                );
+                $assert_z_ok->($status);
+                $status = $z->inflate($inflated, \my $deflated);
+                $assert_z_ok->($status);
                 if(ref $old_res_content) {
                     $old_res_content .= $deflated;
                     return $old_res_content->finalize();
