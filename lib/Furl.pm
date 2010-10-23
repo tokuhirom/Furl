@@ -180,6 +180,11 @@ sub request {
         $path_query = '/';
     }
 
+    if ($host =~ /[^A-Za-z0-9.-]/) {
+        Furl::Util::requires('Net/IDN/Encode.pm',
+            'Internationalized Domain Name (IDN)');
+        $host = Net::IDN::Encode::domain_to_ascii($host);
+    }
 
 
     local $SIG{PIPE} = 'IGNORE';
@@ -424,13 +429,6 @@ sub request {
 # You can override this methond in your child class.
 sub connect :method {
     my($self, $host, $port) = @_;
-
-    if ($host =~ /[^A-Za-z0-9.-]/) {
-        Furl::Util::requires('Net/IDN/Encode.pm',
-            'Internationalized Domain Name (IDN)');
-        $host = Net::IDN::Encode::domain_to_ascii($host);
-    }
-
     my $sock;
     my $iaddr = inet_aton($host)
         or Carp::croak("cannot detect host name: $host, $!");
