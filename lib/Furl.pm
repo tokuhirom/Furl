@@ -28,12 +28,17 @@ sub new {
     my $class = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
 
-    my $agent = $args{agent} || __PACKAGE__ . '/' . $VERSION;
+    my @headers = (
+        'User-Agent' => (delete($args{agent}) || __PACKAGE__ . '/' . $VERSION),
+    );
+    if(defined $args{headers}) {
+        push @headers, @{delete $args{headers}};
+    }
     bless {
         timeout       => 10,
         max_redirects => 7,
         bufsize       => 10*1024, # no mmap
-        headers       => ['User-Agent' => $agent],
+        headers       => \@headers,
         proxy         => '',
         %args
     }, $class;
