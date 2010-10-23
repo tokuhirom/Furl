@@ -9,7 +9,6 @@ use_xshelper;
 cc_src_paths qw(xs-src);
 cc_warnings;
 
-requires 'Compress::Raw::Zlib';
 
 test_requires 'Test::More' => 0.96; # done_testing, subtest
 test_requires 'Test::TCP';
@@ -17,8 +16,9 @@ test_requires 'Plack' =>  0.9949;
 test_requires 'IO::Socket::INET';
 test_requires 'HTTP::Response';
 
-recommends 'Net::IDN::Encode';
-recommends 'IO::Socket::SSL';       # for SSL support
+recommends 'Net::IDN::Encode';    # for International Domain Name
+recommends 'IO::Socket::SSL';     # for SSL
+recommends 'Compress::Raw::Zlib'; # for Content-Encoding
 
 readme_markdown_from 'lib/Furl.pm';
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';

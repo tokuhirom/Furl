@@ -58,9 +58,17 @@ _%args_ might be:
 
 - headers :ArrayRef
 
-### C<< $furl->get($url :Str) :($code, $msg, \@headers, $body) >>
+### C<< $furl->get($url :Str) :($code, $msg[, \@headers]) >>
 
-Equivalent to `$furl->request(url => $url)`.
+### C<< $furl->head($url :Str) :($code, $msg[, \@headers]) >>
+
+### C<< $furl->post($url :Str) :($code, $msg, \@headers, \@content) >>
+
+### C<< $furl->post($url :Str) :($code, $msg, \@headers, $content) >>
+
+### C<< $furl->put($url :Str) :($code, $msg, \@headers, $content) >>
+
+### C<< $furl->delete($url :Str) :($code, $msg[, \@headers]) >>
 
 # INTEGRATE WITH HTTP::Response
 
