@@ -68,13 +68,6 @@ sub Furl::Util::encode_content {
     return join( "&", @params );
 }
 
-#   18:53 tokuhirom: ->get($url, \@headers)
-#   18:53 tokuhirom: ->post($url, \@headers, \@content)
-#   18:53 tokuhirom: ->post($url, \@headers, $content)
-#   18:53 tokuhirom: ->put($url, \@headers, $content)
-#   18:53 tokuhirom: ->head($url, \@headers)
-#   18:53 tokuhirom: ->delete($url, \@headers)
-
 sub get {
     my ($self, $url, $headers) = @_;
     $self->request( method => 'GET',
