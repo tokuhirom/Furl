@@ -243,6 +243,7 @@ sub request {
             if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
                 if($content_is_fh) {
                     # -s $fh only works for normal files (-s uses stat(2))
+                    # ref. RFC 2616 Sec 4.4
                     Carp::croak("Missing Content-Length for a filehandle");
                 }
                 push @headers, 'Content-Length', length($content);
