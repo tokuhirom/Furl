@@ -260,7 +260,6 @@ sub request {
             if ($content_is_fh) {
                 my $ret;
                 SENDFILE: while (1) {
-                    # TODO: sendfile(2) support?
                     $ret = read($content, my $buf, $self->{bufsize});
                     if (not defined $ret) {
                         Carp::croak("Failed to read request content: $!");
@@ -333,7 +332,7 @@ sub request {
         $res_content = '';
     }
 
-    if ($res_content_encoding eq 'gzip') {
+    if ($res_content_encoding eq 'gzip' || $res_content_encoding eq 'deflate') {
         Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
 
         my $inflated        = '';
@@ -343,7 +342,7 @@ sub request {
                 or Carp::croak("Uncompressing error: $_[0]");
         };
         my($z, $status) = Compress::Raw::Zlib::Inflate->new(
-            -WindowBits => Compress::Raw::Zlib::WANT_GZIP(),
+            -WindowBits => Compress::Raw::Zlib::WANT_GZIP_OR_ZLIB(),
         );
         $assert_z_ok->($status);
         $res_content = Furl::PartialWriter->new(
@@ -804,9 +803,9 @@ use L<Tie::Handle>. If you have any reason to support this, please send github t
 
 Furl does not support cookie_jar. You can create Furl wrapper to support cookie_jar.
 
-=item Why don't you support 'deflate'?
+=item How to use gzip/deflate compressed communication?
 
-Any reason to support it?
+Add B<Accept-Encoding> header to your request. L<Furl> inflates it automatically.
 
 =back
 
@@ -814,7 +813,6 @@ Any reason to support it?
 
 Before First Release
 
-    - Transfer-Encoding: deflate
     - Docs!
 
 After First Release

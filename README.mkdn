@@ -113,19 +113,35 @@ use [Tie::Handle](http://search.cpan.org/perldoc?Tie::Handle). If you have any r
 
 Furl does not support cookie_jar. You can create Furl wrapper to support cookie_jar.
 
-- Why don't you support 'deflate'?
+- How to use gzip/deflate compressed communication?
 
-Any reason to support it?
+Add __Accept-Encoding__ header to your request. [Furl](http://search.cpan.org/perldoc?Furl) inflates it automatically.
 
 # TODO
 
+Before First Release
+
+    - Docs!
+
+After First Release
+
     - AnyEvent::Furl?
-    - Transfer-Encoding: deflate
+    - change the parser_http_response args. and backport to HTTP::Response::Parser.
+        my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
+    - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
 
 # AUTHOR
 
 Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>
+
+gfx
+
+# THANKS TO
+
+Kazuho Oku
+
+mala
 
 # SEE ALSO
 
