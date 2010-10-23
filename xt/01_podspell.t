@@ -43,3 +43,7 @@ XP
 FAQ
 chunked
 github
+gfx
+kazuho
+oku
+mala
