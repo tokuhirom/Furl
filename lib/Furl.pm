@@ -721,14 +721,6 @@ Any reason to support it?
     - AnyEvent::Furl?
     - Transfer-Encoding: deflate
 
-    Furl::Easy or Furl::Common or Furl::REST or something.
-    18:53 tokuhirom: ->put($url, \@headers, $content)
-    18:53 tokuhirom: ->head($url, \@headers)
-    18:53 tokuhirom: ->get($url, \@headers)
-    18:53 tokuhirom: ->delete($url, \@headers)
-    18:53 tokuhirom: ->post($url, \@headers, \@content)
-    18:53 tokuhirom: ->post($url, \@headers, $content)
-
 =head1 AUTHOR
 
 Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>
