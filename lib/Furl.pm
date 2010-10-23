@@ -800,6 +800,7 @@ Any reason to support it?
 Before First Release
 
     - Transfer-Encoding: deflate
+    - Docs!
 
 After First Release
 
