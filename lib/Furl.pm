@@ -180,11 +180,6 @@ sub request {
         $path_query = '/';
     }
 
-    if ($host =~ /[^A-Za-z0-9.-]/) {
-        Furl::Util::requires('Net/IDN/Encode.pm',
-            'Internationalized Domain Name (IDN)');
-        $host = Net::IDN::Encode::domain_to_ascii($host);
-    }
 
 
     local $SIG{PIPE} = 'IGNORE';
@@ -254,14 +249,15 @@ sub request {
             if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
                 my $content_length;
                 if($content_is_fh) {
-                    defined(my $cur_pos = tell $content)
-                      or Carp::croak("Failed to tell() for Content-Length: $!");
-                    seek $content, 0, SEEK_END
-                      or Carp::croak("Failed to seek() for Content-Length: $!");
-                    defined(my $end_pos = tell $content)
-                      or Carp::croak("Failed to tell() for Content-Length: $!");
-                    seek $content, $cur_pos, SEEK_SET
-                      or Carp::croak("Failed to seek() for Content-Length: $!");
+                    my $assert = sub {
+                        $_[0] or Carp::croak(
+                            "Failed to $_[1] for Content-Length: $!",
+                        );
+                    };
+                    $assert->(defined(my $cur_pos = tell($content)), 'tell');
+                    $assert->(seek($content, 0, SEEK_END),           'seek');
+                    $assert->(defined(my $end_pos = tell($content)), 'tell');
+                    $assert->(seek($content, $cur_pos, SEEK_SET),    'seek');
 
                     $content_length = $end_pos - $cur_pos;
                 }
@@ -428,6 +424,13 @@ sub request {
 # You can override this methond in your child class.
 sub connect :method {
     my($self, $host, $port) = @_;
+
+    if ($host =~ /[^A-Za-z0-9.-]/) {
+        Furl::Util::requires('Net/IDN/Encode.pm',
+            'Internationalized Domain Name (IDN)');
+        $host = Net::IDN::Encode::domain_to_ascii($host);
+    }
+
     my $sock;
     my $iaddr = inet_aton($host)
         or Carp::croak("cannot detect host name: $host, $!");
@@ -481,8 +484,8 @@ sub get_conn_cache {
     my ( $self, $host, $port ) = @_;
 
     my $cache = $self->{sock_cache};
-    if ($cache && $cache->[0] eq $host && $cache->[1] eq $port) {
-        return $cache->[2];
+    if ($cache && $cache->[0] eq "$host:$port") {
+        return $cache->[1];
     } else {
         return undef;
     }
@@ -497,7 +500,7 @@ sub remove_conn_cache {
 sub add_conn_cache {
     my ($self, $host, $port, $sock) = @_;
 
-    $self->{sock_cache} = [$host, $port, $sock];
+    $self->{sock_cache} = ["$host:$port" => $sock];
 }
 
 sub _read_body_chunked {
@@ -725,6 +728,8 @@ I<%args> might be:
 
 =item max_redirects :Int = 7
 
+=item proxy :Str
+
 =back
 
 =head2 Instance Methods
@@ -821,9 +826,9 @@ There are reasons why chunked POST/PUTs should not be generally used.  You canno
 
 =over 4
 
-=item How to make content body by coderef?
+=item How to make content body by CodeRef?
 
-use L<Tie::Handle>. If you have any reason to support this, please send github ticket.
+use L<Tie::Handle>. If you have any reason to support this, please send a github ticket.
 
 =item How to use cookie_jar?
 
@@ -831,7 +836,7 @@ Furl does not support cookie_jar. You can create Furl wrapper to support cookie_
 
 =item How to use gzip/deflate compressed communication?
 
-Add B<Accept-Encoding> header to your request. L<Furl> inflates it automatically.
+Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently according to the B<Content-Encoding> response header.
 
 =back
 
@@ -849,6 +854,20 @@ After First Release
         my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
+
+=head1 OPTIONAL FEATURES
+
+=head2 Internationalized Domain Name (IDN)
+
+This feature requires Net::IDN::Encode.
+
+=head2 SSL
+
+This feature requires IO::Socket::SSL.
+
+=head2 Content-Encoding
+
+This feature requires Compress::Raw::Zlib.
 
 =head1 AUTHOR
 

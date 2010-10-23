@@ -51,3 +51,5 @@ mattn
 ArrayRef
 HashRef
 Str
+IDN
+
