@@ -228,8 +228,11 @@ sub request {
                 $content = Furl::Util::encode_content($content);
             }
             if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
-                push @headers, 'Content-Length',
-                    $content_is_fh ? -s $content : length($content);
+                if($content_is_fh) {
+                    # -s $fh only works for normal files (-s uses stat(2))
+                    Carp::croak("Missing Content-Length for a filehandle");
+                }
+                push @headers, 'Content-Length', length($content);
             }
         }
 
