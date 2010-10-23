@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use 5.00800;
 our $VERSION = '0.01';
+use URI::Escape ();
 
 {
     package Furl::PartialWriter;
@@ -61,9 +62,53 @@ sub new {
     }, $class;
 }
 
+#   18:53 tokuhirom: ->get($url, \@headers)
+#   18:53 tokuhirom: ->post($url, \@headers, \@content)
+#   18:53 tokuhirom: ->post($url, \@headers, $content)
+#   18:53 tokuhirom: ->put($url, \@headers, $content)
+#   18:53 tokuhirom: ->head($url, \@headers)
+#   18:53 tokuhirom: ->delete($url, \@headers)
+
 sub get {
-    my ($self, $url) = @_;
-    return $self->request(method => 'GET', url => $url);
+    my ($self, $url, $headers) = @_;
+    $self->request( method => 'GET', url => $url, headers => $headers );
+}
+
+{
+    package Furl::Util;
+    sub header_get {
+        my ($headers, $key) = (shift, lc shift);
+        for (my $i=0; $i<@$headers; $i+=2) {
+            return $headers->[$i+1] if lc($headers->[$i]) eq $key;
+        }
+        return undef;
+    }
+}
+
+sub post {
+    my ( $self, $url, $headers, $content ) = @_;
+    if ( ref $content && ref $content eq 'ARRAY' ) {
+        my @p = @$content;
+        my @params;
+        while ( my ( $k, $v ) = splice @p, 0, 2 ) {
+            push @params,
+              URI::Escape::uri_escape($k) . '=' . URI::Escape::uri_escape($v);
+        }
+        $content = join( "&", @params );
+    }
+    push @$headers, 'Content-Length' => length($content) unless defined Furl::Util::header_get($headers, 'Content-Length');
+
+    $self->request( method => 'POST', url => $url, headers => $headers, content => $content );
+}
+
+sub head {
+    my ($self, $url, $headers) = @_;
+    $self->request( method => 'HEAD', url => $url, headers => $headers );
+}
+
+sub delete {
+    my ($self, $url, $headers) = @_;
+    $self->request( method => 'DELETE', url => $url, headers => $headers );
 }
 
 # returns $scheme, $host, $port, $path_query
