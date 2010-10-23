@@ -833,7 +833,7 @@ Furl does not support cookie_jar. You can create Furl wrapper to support cookie_
 
 =item How to use gzip/deflate compressed communication?
 
-Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently accoding to the B<Content-Encoding> response header.
+Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently according to the B<Content-Encoding> response header.
 
 =back
 
