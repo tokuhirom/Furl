@@ -2,13 +2,15 @@ use strict;
 use warnings;
 use Furl;
 use Test::TCP;
-use Plack::Loader;
 use Test::More;
 use Plack::Util;
 use Plack::Request;
 use File::Temp;
 use Fcntl qw/:seek/;
 use Test::Requires 'Plack::Middleware::Deflater';
+
+use t::Slowloris;
+
 my $n = 10;
 my $CONTENT = 'OK! YAY!' x 10;
 test_tcp(
@@ -59,7 +61,7 @@ test_tcp(
     },
     server => sub {
         my $port = shift;
-        Plack::Loader->auto( port => $port )->run(
+        Slowloris::Server->new( port => $port )->run(
             Plack::Middleware::Deflater->wrap(
                 sub {
                     my $env     = shift;
