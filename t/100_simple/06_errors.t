@@ -7,20 +7,34 @@ use Test::More;
 use Plack::Request;
 use Errno ();
 
-eval {
-    Furl->new->request();
-};
-like $@, qr/missing host name/i, 'missuse';
+{
+    my $furl = Furl->new();
+    eval {
+        $furl->request();
+    };
+    like $@, qr/missing host name/i, 'missuse';
 
-eval {
-    Furl->new->get('ftp://ftp.example.com/');
-};
-like $@, qr/unsupported scheme/i, 'missuse';
+    eval {
+        $furl->get('ftp://ftp.example.com/');
+    };
+    like $@, qr/unsupported scheme/i, 'missuse';
 
-eval {
-    Furl->new->get('http://./');
-};
-like $@, qr/cannot resolve host name/i, 'missuse';
+    eval {
+        $furl->get('http://./');
+    };
+    like $@, qr/cannot resolve host name/i, 'missuse';
+
+    foreach my $bad_url(qw(
+        hogehoge
+        http://example.com:80foobar
+        http://example.com:
+    )) {
+        eval {
+            $furl->get($bad_url);
+        };
+        like $@, qr/malformed URL/, "malformed URL: $bad_url";
+    }
+}
 
 my $n = shift(@ARGV) || 3;
 

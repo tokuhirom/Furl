@@ -121,8 +121,13 @@ sub delete {
 # returns $scheme, $host, $port, $path_query
 sub _parse_url {
     my($self, $url) = @_;
-    $url =~ m{\A ([a-z]+) :// ([^/:]+) (?::(\d+))? (.*) }xms
-        or Carp::croak("malformed URL: $url");
+    $url =~ m{\A
+        ([a-z]+)       # scheme
+        ://
+        ([^/:]+)       # host
+        (?: : (\d+) )? # port
+        (?: (/ .*)  )? # path_query
+    \z}xms or Carp::croak("Passed malformed URL: $url");
     return( $1, $2, $3, $4 );
 }
 
@@ -181,7 +186,7 @@ sub request {
             $port = 443;
         }
     }
-    if(!$path_query) {
+    if(not defined $path_query) {
         $path_query = '/';
     }
 
