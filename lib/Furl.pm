@@ -260,7 +260,6 @@ sub request {
             if ($content_is_fh) {
                 my $ret;
                 SENDFILE: while (1) {
-                    # TODO: sendfile(2) support?
                     $ret = read($content, my $buf, $self->{bufsize});
                     if (not defined $ret) {
                         Carp::croak("Failed to read request content: $!");
