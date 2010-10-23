@@ -535,15 +535,10 @@ sub _read_body_chunked {
 
             # +2 means trailing CRLF
           READ_CHUNK: while ( $next_len+2 > length($buf) ) {
-                my $readed = $self->read_timeout( $sock,
+                my $n = $self->read_timeout( $sock,
                     \$buf, $self->{bufsize}, length($buf), $timeout );
-                if ( not defined $readed ) {
-                    if ( $! == EAGAIN ) {
-                        next READ_CHUNK;
-                    }
-                    else {
-                        Carp::croak("cannot read chunk: $!");
-                    }
+                if ( not defined $n ) {
+                    Carp::croak("Cannot read chunk: $!");
                 }
             }
             $$res_content .= substr($buf, 0, $next_len);
@@ -556,9 +551,9 @@ sub _read_body_chunked {
         my $n = $self->read_timeout( $sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
         if ( not defined $n ) {
-            next READ_LOOP if $! == EAGAIN;
+            Carp::croak("Cannot read chunk: $!");
         } elsif ($n == 0) {
-            Carp::croak("unexpected eof while reading packets");
+            Carp::croak("Unexpected EOF while reading packets");
         }
     }
     $self->_read_body_normal($sock, \$buf, length($buf), 2, $timeout); # read last crlf
@@ -570,11 +565,7 @@ sub _read_body_normal {
         my $bufsize = $self->{bufsize};
         my $n = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
         if (not defined $n) {
-            if ($! == EAGAIN) {
-                next READ_LOOP;
-            } else {
-                Carp::croak("Cannot read content body: $!");
-            }
+            Carp::croak("Cannot read content body: $!");
         }
         if ($n == 0) {
             # eof
@@ -620,11 +611,10 @@ sub read_timeout {
     $self->do_select(0, $sock, $timeout) or return undef;
     while(1) {
         # try to do the IO
-        $ret = sysread($sock, $$buf, $len, $off)
+        defined($ret = sysread($sock, $$buf, $len, $off))
             and return $ret;
 
-        unless (!defined($ret)
-                     && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
+        unless ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK) {
             return undef;
         }
         # on EINTER/EAGAIN/EWOULDBLOCK
@@ -638,11 +628,10 @@ sub write_timeout {
     my $ret;
     while(1) {
         # try to do the IO
-        $ret = syswrite($sock, $buf, $len, $off)
+        defined($ret = syswrite($sock, $buf, $len, $off))
             and return $ret;
 
-        unless (!defined($ret)
-                     && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
+        unless ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK) {
             return undef;
         }
         # on EINTER/EAGAIN/EWOULDBLOCK
