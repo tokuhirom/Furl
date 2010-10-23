@@ -6,7 +6,11 @@ Furl - Lightning-fast URL fetcher
 
     use Furl;
 
-    my $furl = Furl->new(agent => ...);
+    my $furl = Furl->new(
+        agent   => 'MyGreatUA/2.0',
+        timeout => 10,
+    );
+
     my ($code, $msg, $headers, $body) = $furl->request(
         method => 'GET',
         host   => 'example.com',
@@ -15,10 +19,25 @@ Furl - Lightning-fast URL fetcher
     );
     # or
     my ($code, $msg, $headers, $body) = $furl->get('http://example.com/');
+    my ($code, $msg, $headers, $body) = $furl->post(
+        'http://example.com/', # URL
+        [...],                 # headers
+        [ foo => 'bar' ],      # form data (HashRef/FileHandle are also okay)
+    );
+
+    # Accept-Encoding is supported but optional
+    $furl = Furl->new(
+        headers => [ 'Accept-Encoding' => 'gzip' ],
+    );
+    my $body = $furl->get('http://example.com/some/compressed');
 
 # DESCRIPTION
 
-Furl is yet another HTTP client library.
+Furl is yet another HTTP client library. LWP is the de facto standard HTTP
+client for Perl5, but it is too slow for some critical jobs, and too complex
+for weekend hacking. Furl will resolves these issues. Enjoy it!
+
+This library is an __alpha__ software. Any APIs will change without notice.
 
 # INTERFACE
 
@@ -35,6 +54,8 @@ _%args_ might be:
 - timeout :Int = 10
 
 - max_redirects :Int = 7
+
+- proxy :Str
 
 ## Instance Methods
 
@@ -120,9 +141,9 @@ There are reasons why chunked POST/PUTs should not be generally used.  You canno
 
 # FAQ
 
-- How to make content body by coderef?
+- How to make content body by CodeRef?
 
-use [Tie::Handle](http://search.cpan.org/perldoc?Tie::Handle). If you have any reason to support this, please send github ticket.
+use [Tie::Handle](http://search.cpan.org/perldoc?Tie::Handle). If you have any reason to support this, please send a github ticket.
 
 - How to use cookie_jar?
 
@@ -130,13 +151,13 @@ Furl does not support cookie_jar. You can create Furl wrapper to support cookie_
 
 - How to use gzip/deflate compressed communication?
 
-Add __Accept-Encoding__ header to your request. [Furl](http://search.cpan.org/perldoc?Furl) inflates it automatically.
+Add an __Accept-Encoding__ header to your request. Furl inflates response bodies transparently according to the __Content-Encoding__ response header.
 
 # TODO
 
 Before First Release
 
-    - Docs!
+    - Docs, docs, docs!
 
 After First Release
 
@@ -146,6 +167,21 @@ After First Release
         my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
+    - multipart/form-data support
+
+# OPTIONAL FEATURES
+
+## Internationalized Domain Name (IDN)
+
+This feature requires Net::IDN::Encode.
+
+## SSL
+
+This feature requires IO::Socket::SSL.
+
+## Content-Encoding
+
+This feature requires Compress::Raw::Zlib.
 
 # AUTHOR
 
@@ -164,6 +200,10 @@ mattn
 # SEE ALSO
 
 [LWP](http://search.cpan.org/perldoc?LWP)
+
+HTTP specs:
+<http://www.w3.org/Protocols/HTTP/1.0/spec.html>
+<http://www.w3.org/Protocols/HTTP/1.1/spec.html>
 
 # LICENSE
 
