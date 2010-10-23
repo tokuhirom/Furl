@@ -821,9 +821,9 @@ There are reasons why chunked POST/PUTs should not be generally used.  You canno
 
 =over 4
 
-=item How to make content body by coderef?
+=item How to make content body by CodeRef?
 
-use L<Tie::Handle>. If you have any reason to support this, please send github ticket.
+use L<Tie::Handle>. If you have any reason to support this, please send a github ticket.
 
 =item How to use cookie_jar?
 
@@ -831,7 +831,7 @@ Furl does not support cookie_jar. You can create Furl wrapper to support cookie_
 
 =item How to use gzip/deflate compressed communication?
 
-Add B<Accept-Encoding> header to your request. L<Furl> inflates it automatically.
+Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently accoding to the B<Content-Encoding> response header.
 
 =back
 
@@ -849,6 +849,20 @@ After First Release
         my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
+
+=head1 OPTIONAL FEATURES
+
+=head2 Internationalized Domain Name (IDN)
+
+This feature requires Net::IDN::Encode.
+
+=head2 SSL
+
+This feature requires IO::Socket::SSL.
+
+=head2 Content-Encoding
+
+This feature requires Compress::Raw::Zlib.
 
 =head1 AUTHOR
 
