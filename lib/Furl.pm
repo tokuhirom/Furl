@@ -784,6 +784,7 @@ Any reason to support it?
 
     - AnyEvent::Furl?
     - Transfer-Encoding: deflate
+    - PP version(by HTTP::Respones::Parser)
 
 =head1 AUTHOR
 
