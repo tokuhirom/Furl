@@ -34,11 +34,12 @@ sub online () {
     my $furl = Furl->new(timeout => 10);
     my $good = 0;
     my $bad  = 0;
+    note 'checking if online';
     for (my $i=0; $i<@RELIABLE_HTTP; $i+=2) {
         my ($url, $check) = @RELIABLE_HTTP[$i, $i+1];
         note "getting $url";
         my ($code, $msg, $headers, $content) = $furl->request(method => 'GET', url => $url);
-        note "OK $code";
+        note "$code $msg";
         local $_ = $content;
         if ($code == 200 && $check->()) {
             $good++;
