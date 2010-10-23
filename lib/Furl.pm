@@ -797,13 +797,30 @@ Any reason to support it?
 
 =head1 TODO
 
-    - AnyEvent::Furl?
+Before First Release
+
     - Transfer-Encoding: deflate
+    - Docs!
+
+After First Release
+
+    - AnyEvent::Furl?
+    - change the parser_http_response args. and backport to HTTP::Response::Parser.
+        my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
+    - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
 
 =head1 AUTHOR
 
 Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>
+
+gfx
+
+=head1 THANKS TO
+
+Kazuho Oku
+
+mala
 
 =head1 SEE ALSO
 
