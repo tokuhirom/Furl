@@ -1,7 +1,7 @@
 package Furl;
 use strict;
 use warnings;
-use 5.00800;
+use 5.008;
 our $VERSION = '0.01';
 
 #use Smart::Comments;
@@ -181,7 +181,7 @@ sub request {
             $port = 443;
         }
     }
-    if(not defined $path_query or not length $path_query) {
+    if(!$path_query) {
         $path_query = '/';
     }
 
@@ -280,7 +280,7 @@ sub request {
 
         for (my $i = 0; $i < @headers; $i += 2) {
             my $val = $headers[ $i + 1 ];
-            # this is defacto standard way to handle [\015\012](曰、kazuho-san)
+            # the de facto standard way to handle [\015\012](by kazuho-san)
             $val =~ s/[\015\012]/ /g;
             $p .= $headers[$i] . ": $val\015\012";
         }
@@ -379,9 +379,8 @@ sub request {
         $assert_z_ok->($status);
         $res_content = Furl::PartialWriter->new(
             append => sub {
-                $status = $z->inflate($_[0], \my $deflated);
+                $assert_z_ok->( $z->inflate($_[0], \my $deflated) );
                 $old_res_content .= $deflated;
-                $assert_z_ok->($status);
             },
             finalize => sub {
                 return ref($old_res_content)
@@ -427,7 +426,7 @@ sub request {
         $self->add_conn_cache($host, $port, $sock);
     }
     return ($res_status, $res_msg, $res_headers,
-        ref($res_content) ? $res_content->finalize() : $res_content);
+            ref($res_content) ? $res_content->finalize() : $res_content);
 }
 
 # connects to $host:$port and returns $socket
@@ -514,14 +513,17 @@ sub _read_body_chunked {
         if (
             my ( $header, $next_len ) = (
                 $buf =~
-                  /^
-                    (
-                        ([0-9a-fA-F]+)              # hex
-                        (?:;$HTTP_TOKEN(?:=(?:$HTTP_TOKEN|$HTTP_QUOTED_STRING)))*  # chunk-extention
-                        [ ]*                        # www.yahoo.com adds spaces here. is this valid?
-                        \015\012                    # crlf
-                    )
-                /x
+                  m{\A (                 # header
+                        ( [0-9a-fA-F]+ ) # next_len (hex number)
+                        (?:;
+                            $HTTP_TOKEN
+                            =
+                            (?: $HTTP_TOKEN | $HTTP_QUOTED_STRING )
+                        )*               # optional chunk-extentions
+                        [ ]*             # www.yahoo.com adds spaces here.
+                                         # Is this valid?
+                        \015\012         # CR+LF
+                  ) }xmso
             )
           )
         {
