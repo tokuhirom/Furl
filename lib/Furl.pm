@@ -249,14 +249,15 @@ sub request {
             if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
                 my $content_length;
                 if($content_is_fh) {
-                    defined(my $cur_pos = tell $content)
-                      or Carp::croak("Failed to tell() for Content-Length: $!");
-                    seek $content, 0, SEEK_END
-                      or Carp::croak("Failed to seek() for Content-Length: $!");
-                    defined(my $end_pos = tell $content)
-                      or Carp::croak("Failed to tell() for Content-Length: $!");
-                    seek $content, $cur_pos, SEEK_SET
-                      or Carp::croak("Failed to seek() for Content-Length: $!");
+                    my $assert = sub {
+                        $_[0] or Carp::croak(
+                            "Failed to $_[1] for Content-Length: $!",
+                        );
+                    };
+                    $assert->(defined(my $cur_pos = tell($content)), 'tell');
+                    $assert->(seek($content, 0, SEEK_END),           'seek');
+                    $assert->(defined(my $end_pos = tell($content)), 'tell');
+                    $assert->(seek($content, $cur_pos, SEEK_SET),    'seek');
 
                     $content_length = $end_pos - $cur_pos;
                 }
