@@ -3,7 +3,9 @@
 #include "picohttpparser/picohttpparser.h"
 #include "picohttpparser/picohttpparser.c"
 
-MODULE=Furl PACKAGE=Furl
+MODULE = Furl PACKAGE = Furl
+
+PROTOTYPES: DISABLE
 
 void
 parse_http_response(SV *buffer_sv, int last_len)
