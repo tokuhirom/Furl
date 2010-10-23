@@ -527,13 +527,12 @@ sub _read_body_chunked {
             )
           )
         {
+            $buf = substr($buf, length($header)); # remove header from buf
             if ($next_len eq '0') {
-                $buf = substr($buf, length($header));
                 last READ_LOOP;
             }
             $next_len = hex($next_len);
 
-            $buf = substr($buf, length($header)); # remove header from buf.
             # +2 means trailing CRLF
           READ_CHUNK: while ( $next_len+2 > length($buf) ) {
                 my $readed = $self->read_timeout( $sock,
