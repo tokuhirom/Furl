@@ -569,7 +569,7 @@ sub _read_body_normal {
             if ($? == EAGAIN) {
                 next READ_LOOP;
             } else {
-                last READ_LOOP;
+                Carp::croak("Cannot read content body: $!");
             }
         }
         if ($n == 0) {
