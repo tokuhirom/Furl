@@ -250,7 +250,6 @@ sub request {
             if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
                 my $content_length;
                 if($content_is_fh) {
-                    $content_length = -s $content;
                     defined(my $cur_pos = tell $content)
                       or Carp::croak("Failed to tell() for Content-Length: $!");
                     seek $content, 0, SEEK_END
