@@ -663,8 +663,6 @@ sub _r500 {
 # utility class
 {
     package Furl::PartialWriter;
-    use strict;
-    use warnings;
     use overload '.=' => 'append', fallback => 1;
     sub new {
         my ($class, %args) = @_;
