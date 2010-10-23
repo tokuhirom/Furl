@@ -26,3 +26,5 @@
 \.o$
 MYMETA\.yml$
 xs/Furl\.[co]$
+\.online$
+
