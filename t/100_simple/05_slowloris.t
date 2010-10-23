@@ -3,7 +3,7 @@ use warnings;
 use Furl;
 use Test::TCP;
 use Test::More;
-use Plack::Util;
+
 use Plack::Request;
 
 use t::Slowloris;
@@ -24,7 +24,7 @@ test_tcp(
                 );
             is $code, 200, "request()/$_";
             is $msg, "OK";
-            is Plack::Util::header_get($headers, 'Content-Length'), 4;
+            is Furl::Util::header_get($headers, 'Content-Length'), 4;
             is $content, '/foo';
         }
         for (1..3) {
@@ -33,7 +33,7 @@ test_tcp(
                 $furl->get("http://127.0.0.1:$port$path_query");
             is $code, 200, "get()/$_";
             is $msg, "OK";
-            is Plack::Util::header_get($headers, 'Content-Length'),
+            is Furl::Util::header_get($headers, 'Content-Length'),
                 length($path_query);
             is $content, $path_query;
         }

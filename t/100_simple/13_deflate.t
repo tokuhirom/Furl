@@ -3,7 +3,7 @@ use warnings;
 use Furl;
 use Test::TCP;
 use Test::More;
-use Plack::Util;
+
 use Plack::Request;
 use File::Temp;
 use Fcntl qw/:seek/;
@@ -25,7 +25,7 @@ test_tcp(
                     headers    => ['Accept-Encoding' => 'gzip'],
                 );
             is $code, 200, "request()";
-            is Plack::Util::header_get($headers, 'content-encoding'), "gzip";
+            is Furl::Util::header_get($headers, 'content-encoding'), "gzip";
             is($content, $CONTENT) or do { require Devel::Peek; Devel::Peek::Dump($content) };
         }
 
@@ -39,7 +39,7 @@ test_tcp(
                     write_file => $fh,
                 );
             is $code, 200, "request()";
-            is Plack::Util::header_get($headers, 'content-encoding'), "gzip";
+            is Furl::Util::header_get($headers, 'content-encoding'), "gzip";
             is($content, $CONTENT) or do { require Devel::Peek; Devel::Peek::Dump($content) };
         }
 
@@ -53,7 +53,7 @@ test_tcp(
                     write_code => sub { $content .= $_[3] },
                 );
             is $code, 200, "request()";
-            is Plack::Util::header_get($headers, 'content-encoding'), "gzip";
+            is Furl::Util::header_get($headers, 'content-encoding'), "gzip";
             is($content, $CONTENT) or do { require Devel::Peek; Devel::Peek::Dump($content) };
         }
 

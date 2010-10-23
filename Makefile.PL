@@ -12,6 +12,7 @@ cc_warnings;
 requires 'Socket';
 requires 'Errno';
 requires 'IO::Uncompress::Gunzip';
+requires 'URI::Escape';
 
 test_requires 'Test::More' => 0.96; # done_testing, subtest
 test_requires 'Test::TCP';

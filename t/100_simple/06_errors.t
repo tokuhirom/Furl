@@ -3,7 +3,7 @@ use warnings;
 use Furl;
 use Test::TCP;
 use Test::More;
-use Plack::Util;
+
 use Plack::Request;
 use Errno ();
 my $n = shift(@ARGV) || 3;
