@@ -478,8 +478,8 @@ sub get_conn_cache {
     my ( $self, $host, $port ) = @_;
 
     my $cache = $self->{sock_cache};
-    if ($cache && $cache->[0] eq $host && $cache->[1] eq $port) {
-        return $cache->[2];
+    if ($cache && $cache->[0] eq "$host:$port") {
+        return $cache->[1];
     } else {
         return undef;
     }
@@ -494,7 +494,7 @@ sub remove_conn_cache {
 sub add_conn_cache {
     my ($self, $host, $port, $sock) = @_;
 
-    $self->{sock_cache} = [$host, $port, $sock];
+    $self->{sock_cache} = ["$host:$port" => $sock];
 }
 
 sub _read_body_chunked {
