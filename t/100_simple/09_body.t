@@ -11,7 +11,7 @@ use Plack::Request;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new(bufsize => 1024);
+        my $furl = Furl->new(bufsize => 80);
 
         for my $x(1, 1000) {
             my $req_content = "WOWOW!" x $x;

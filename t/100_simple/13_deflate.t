@@ -16,7 +16,9 @@ test_tcp(
     client => sub {
         my $port = shift;
         for my $encoding (qw/gzip deflate/) {
-            my $furl = Furl->new(headers => ['Accept-Encoding' => $encoding]);
+            my $furl = Furl->new(
+                headers => ['Accept-Encoding' => $encoding],
+            );
             for(1 .. $n) {
                 note "normal $_ $encoding";
                 my ( $code, $msg, $headers, $content ) =

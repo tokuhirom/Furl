@@ -622,10 +622,12 @@ sub read_timeout {
         # try to do the IO
         $ret = sysread($sock, $$buf, $len, $off)
             and return $ret;
+
         unless (!defined($ret)
                      && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
             return undef;
         }
+        # on EINTER/EAGAIN/EWOULDBLOCK
         $self->do_select(0, $sock, $timeout) or return undef;
     }
 }
@@ -638,10 +640,12 @@ sub write_timeout {
         # try to do the IO
         $ret = syswrite($sock, $buf, $len, $off)
             and return $ret;
+
         unless (!defined($ret)
                      && ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK)) {
             return undef;
         }
+        # on EINTER/EAGAIN/EWOULDBLOCK
         $self->do_select(1, $sock, $timeout) or return undef;
     }
 }
