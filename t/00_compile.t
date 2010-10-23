@@ -3,5 +3,8 @@ use Test::More tests => 1;
 
 BEGIN { use_ok 'Furl' }
 diag "Furl/$Furl::VERSION";
-eval { require IO::Socket::SSL }
-    and diag "IO::Socket::SSL/$IO::Socket::SSL::VERSION";
+
+for my $optional(qw( Net::IDN::Encde IO::Socket::SSL Compress::Raw::Zlib )) {
+    eval qq{ require $optional };
+    diag $optional . '/' . $optional->VERSION || '(not installed)';
+}
