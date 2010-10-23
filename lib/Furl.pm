@@ -793,7 +793,6 @@ Any reason to support it?
 Before First Release
 
     - Transfer-Encoding: deflate
-    - PP version(by HTTP::Respones::Parser)
 
 After First Release
 
@@ -801,6 +800,7 @@ After First Release
     - change the parser_http_response args. and backport to HTTP::Response::Parser.
         my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
     - use HTTP::Response::Parser
+    - PP version(by HTTP::Respones::Parser)
 
 =head1 AUTHOR
 
