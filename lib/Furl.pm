@@ -246,6 +246,10 @@ sub request {
             $content_is_fh = Scalar::Util::openhandle($content);
             if(!$content_is_fh && ref $content) {
                 $content = Furl::Util::make_x_www_form_urlencoded($content);
+                if(!defined Furl::Util::header_get(\@headers, 'Content-Type')) {
+                    push @headers, 'Content-Type'
+                        => 'application/x-www-form-urlencoded';
+                }
             }
             if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
                 my $content_length;
@@ -265,10 +269,6 @@ sub request {
                     $content_length = length($content);
                 }
                 push @headers, 'Content-Length' => $content_length;
-            }
-            if(!defined Furl::Util::header_get(\@headers, 'Content-Type')) {
-                push @headers, 'Content-Type'
-                    => 'application/x-www-form-urlencoded';
             }
         }
 
