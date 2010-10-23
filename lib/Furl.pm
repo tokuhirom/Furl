@@ -88,16 +88,22 @@ sub get {
         url => $url, headers => $headers );
 }
 
+sub head {
+    my ($self, $url, $headers) = @_;
+    $self->request( method => 'HEAD',
+        url => $url, headers => $headers );
+}
+
 sub post {
     my ( $self, $url, $headers, $content ) = @_;
     $self->request( method => 'POST',
         url => $url, headers => $headers, content => $content );
 }
 
-sub head {
-    my ($self, $url, $headers) = @_;
-    $self->request( method => 'HEAD',
-        url => $url, headers => $headers );
+sub post {
+    my ( $self, $url, $headers, $content ) = @_;
+    $self->request( method => 'PUT',
+        url => $url, headers => $headers, content => $content );
 }
 
 sub delete {
