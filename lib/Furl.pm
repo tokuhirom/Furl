@@ -696,7 +696,11 @@ Furl - Lightning-fast URL fetcher
 
     use Furl;
 
-    my $furl = Furl->new(agent => ...);
+    my $furl = Furl->new(
+        agent   => 'MyGreatUA/2.0',
+        timeout => 10,
+    );
+
     my ($code, $msg, $headers, $body) = $furl->request(
         method => 'GET',
         host   => 'example.com',
@@ -705,6 +709,10 @@ Furl - Lightning-fast URL fetcher
     );
     # or
     my ($code, $msg, $headers, $body) = $furl->get('http://example.com/');
+
+    my $body = $furl->get('http://example.com/some/compressed',
+        [ 'Accept-Encoding' => 'gzip,deflate,identity' ],
+    );
 
 =head1 DESCRIPTION
 
