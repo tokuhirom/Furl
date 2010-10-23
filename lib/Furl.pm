@@ -725,6 +725,8 @@ I<%args> might be:
 
 =item max_redirects :Int = 7
 
+=item proxy :Str
+
 =back
 
 =head2 Instance Methods
