@@ -836,6 +836,7 @@ Before First Release
 
 After First Release
 
+    - cookbook for how to use cookie_jar with HTTP::Cookies
     - AnyEvent::Furl?
     - change the parser_http_response args. and backport to HTTP::Response::Parser.
         my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
