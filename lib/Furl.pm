@@ -5,29 +5,6 @@ use 5.00800;
 our $VERSION = '0.01';
 use URI::Escape ();
 
-{
-    package Furl::PartialWriter;
-    use strict;
-    use warnings;
-    use overload '.=' => 'append', fallback => 1;
-    sub new {
-        my ($class, %args) = @_;
-        bless \%args, $class;
-    }
-    sub append {
-        my($self, $partial) = @_;
-        $self->{append}->($partial);
-        return $self;
-    }
-    sub finalize {
-        my($self) = @_;
-        if($self->{finalize}) {
-            return $self->{finalize}->();
-        }
-        return undef;
-    }
-}
-
 #use Smart::Comments;
 use Carp ();
 use XSLoader;
@@ -62,6 +39,27 @@ sub new {
     }, $class;
 }
 
+
+sub Furl::Util::header_get {
+    my ($headers, $key) = (shift, lc shift);
+    for (my $i=0; $i<@$headers; $i+=2) {
+        return $headers->[$i+1] if lc($headers->[$i]) eq $key;
+    }
+    return undef;
+}
+
+sub Furl::Util::encode_content {
+    my($content) = @_;
+    return $content unless ref($content) eq 'HASH' or ref($content) eq 'ARRAY';
+    my @params;
+    my @p = ref($content) eq 'HASH' ? %{$content} : @{$content};
+    while ( my ( $k, $v ) = splice @p, 0, 2 ) {
+        push @params,
+          URI::Escape::uri_escape($k) . '=' . URI::Escape::uri_escape($v);
+    }
+    return join( "&", @params );
+}
+
 #   18:53 tokuhirom: ->get($url, \@headers)
 #   18:53 tokuhirom: ->post($url, \@headers, \@content)
 #   18:53 tokuhirom: ->post($url, \@headers, $content)
@@ -74,29 +72,8 @@ sub get {
     $self->request( method => 'GET', url => $url, headers => $headers );
 }
 
-{
-    package Furl::Util;
-    sub header_get {
-        my ($headers, $key) = (shift, lc shift);
-        for (my $i=0; $i<@$headers; $i+=2) {
-            return $headers->[$i+1] if lc($headers->[$i]) eq $key;
-        }
-        return undef;
-    }
-}
-
 sub post {
     my ( $self, $url, $headers, $content ) = @_;
-    if ( ref $content && ref $content eq 'ARRAY' ) {
-        my @p = @$content;
-        my @params;
-        while ( my ( $k, $v ) = splice @p, 0, 2 ) {
-            push @params,
-              URI::Escape::uri_escape($k) . '=' . URI::Escape::uri_escape($v);
-        }
-        $content = join( "&", @params );
-    }
-    push @$headers, 'Content-Length' => length($content) unless defined Furl::Util::header_get($headers, 'Content-Length');
 
     $self->request( method => 'POST', url => $url, headers => $headers, content => $content );
 }
@@ -245,6 +222,20 @@ sub request {
         if ($args{headers}) {
             push @headers, @{$args{headers}};
         }
+
+        my $content       = $args{content};
+        my $content_is_fh = 0;
+        if(defined $content) {
+            $content_is_fh = Scalar::Util::openhandle($content);
+            if(!$content_is_fh) {
+                $content = Furl::Util::encode_content($content);
+            }
+            if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
+                push @headers, 'Content-Length',
+                    $content_is_fh ? -s $content : length($content);
+            }
+        }
+
         for (my $i = 0; $i < @headers; $i += 2) {
             $p .= $headers[$i] . ': ' . $headers[$i+1] . "\015\012";
         }
@@ -252,8 +243,8 @@ sub request {
         ### $p
         $self->write_all($sock, $p, $timeout)
             or return $self->_r500("Failed to send HTTP request: $!");
-        if (my $content = $args{content}) {
-            if (ref $content) {
+        if (defined $content) {
+            if ($content_is_fh) {
                 my $ret;
                 SENDFILE: while (1) {
                     # TODO: sendfile(2) support?
@@ -266,7 +257,7 @@ sub request {
                     $self->write_all($sock, $buf, $timeout)
                         or return $self->_r500("Failed to send content: $!");
                 }
-            } else {
+            } else { # simple string
                 $self->write_all($sock, $content, $timeout)
                     or return $self->_r500("Failed to send content: $!");
             }
@@ -623,6 +614,30 @@ sub _r500 {
     $message ||= 'Internal Server Error';
     return(500, 'Internal Server Error',
         ['Content-Length' => length($message)], $message);
+}
+
+# utility class
+{
+    package Furl::PartialWriter;
+    use strict;
+    use warnings;
+    use overload '.=' => 'append', fallback => 1;
+    sub new {
+        my ($class, %args) = @_;
+        bless \%args, $class;
+    }
+    sub append {
+        my($self, $partial) = @_;
+        $self->{append}->($partial);
+        return $self;
+    }
+    sub finalize {
+        my($self) = @_;
+        if($self->{finalize}) {
+            return $self->{finalize}->();
+        }
+        return undef;
+    }
 }
 
 1;
