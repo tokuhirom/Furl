@@ -14,4 +14,8 @@ my $furl = Furl->new();
 my ($code, $msg, $headers, $content) = $furl->get($url);
 is $code, 200;
 
+utf8::decode($url);
+($code, $msg, $headers, $content) = $furl->get($url);
+is $code, 200;
+
 done_testing;
