@@ -1,13 +1,12 @@
 use strict;
 use warnings;
+use Test::Requires 'Plack::Middleware::Deflater', 'Compress::Raw::Zlib';
 use Furl;
 use Test::TCP;
 use Test::More;
 
 use Plack::Request;
 use File::Temp;
-use Fcntl qw/:seek/;
-use Test::Requires 'Plack::Middleware::Deflater';
 
 use t::Slowloris;
 

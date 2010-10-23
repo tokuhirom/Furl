@@ -68,6 +68,20 @@ sub Furl::Util::encode_content {
     return join( "&", @params );
 }
 
+sub Furl::Util::requires {
+    my($file, $feature) = @_;
+    return if exists $INC{$file};
+    unless(eval { require $file }) {
+        $file =~ s/ \.pm \z//xms;
+        $file =~ s{/}{::}g;
+        Carp::croak(
+            "$feature requires $file, but it is not available."
+            . " Please install $file using your prefer CPAN client"
+            . " (App::cpanminus is recommended)"
+        );
+    }
+}
+
 sub get {
     my ($self, $url, $headers) = @_;
     $self->request( method => 'GET',
@@ -160,16 +174,15 @@ sub request {
     }
 
     if ($host =~ /[^A-Za-z0-9.-]/) {
-        eval { require Net::IDN::Encode } or Carp::croak("Net::IDN::Encode is required to use idn");
+        Furl::Util::requires('Net/IDN/Encode.pm',
+            'Internationalized Domain Name (IDN)');
         $host = Net::IDN::Encode::domain_to_ascii($host);
     }
 
 
     local $SIG{PIPE} = 'IGNORE';
-    my $sock;
-    if ($sock = $self->get_conn_cache($host, $port)) {
-        # nop
-    } else {
+    my $sock = $self->get_conn_cache($host, $port);
+    if(not defined $sock) {
         my ($_host, $_port);
         if ($self->{proxy}) {
             (undef, $_host, $_port, undef)
@@ -321,7 +334,8 @@ sub request {
     }
 
     if ($res_content_encoding eq 'gzip') {
-        require Compress::Raw::Zlib;
+        Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
+
         my $inflated        = '';
         my $old_res_content = $res_content;
         my $assert_z_ok     = sub {
@@ -406,22 +420,15 @@ sub connect :method {
 # @return file handle like object
 sub connect_ssl {
     my ($self, $host, $port) = @_;
+    Furl::Util::requires('IO/Socket/SSL.pm', 'SSL');
 
-    eval { require IO::Socket::SSL }
-      or Carp::croak( "SSL support needs IO::Socket::SSL,"
-          . " but you don't have it."
-          . " Please install IO::Socket::SSL first." );
     return IO::Socket::SSL->new( PeerHost => $host, PeerPort => $port )
       or Carp::croak("cannot create new connection: IO::Socket::SSL");
 }
 
 sub connect_ssl_over_proxy {
     my ($self, $proxy_host, $proxy_port, $host, $port, $timeout) = @_;
-
-    eval { require IO::Socket::SSL }
-      or Carp::croak( "SSL support needs IO::Socket::SSL,"
-          . " but you don't have it."
-          . " Please install IO::Socket::SSL first." );
+    Furl::Util::requires('IO/Socket/SSL.pm', 'SSL');
 
     my $sock = $self->connect($proxy_host, $proxy_port);
 
