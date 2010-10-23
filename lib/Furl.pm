@@ -716,10 +716,17 @@ Furl - Lightning-fast URL fetcher
     );
     # or
     my ($code, $msg, $headers, $body) = $furl->get('http://example.com/');
-
-    my $body = $furl->get('http://example.com/some/compressed',
-        [ 'Accept-Encoding' => 'gzip,deflate,identity' ],
+    my ($code, $msg, $headers, $body) = $furl->post(
+        'http://example.com/', # URL
+        [...],                 # headers
+        [ foo => 'bar' ],      # form data (HashRef/FileHandle are also okay)
     );
+
+    # Enable compessed contents
+    $furl = Furl->new(
+        headers => [ 'Accept-Encoding' => 'gzip' ],
+    );
+    my $body = $furl->get('http://example.com/some/compressed');
 
 =head1 DESCRIPTION
 
