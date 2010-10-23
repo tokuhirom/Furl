@@ -8,7 +8,6 @@ our $VERSION = '0.01';
 use Carp ();
 use XSLoader;
 
-use URI::Escape ();
 use Scalar::Util ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
@@ -49,6 +48,14 @@ sub Furl::Util::header_get {
     return undef;
 }
 
+sub Furl::Util::uri_escape {
+    my($s) = @_;
+    utf8::encode($s);
+    # escape unsafe chars (defined by RFC 3986)
+    $s =~ s/ ([^A-Za-z0-9\-\._~]) / sprintf '%%%02X', ord $1 /xmsge;
+    return $s;
+}
+
 sub Furl::Util::encode_content {
     my($content) = @_;
     return $content unless ref($content) eq 'HASH' or ref($content) eq 'ARRAY';
@@ -56,7 +63,7 @@ sub Furl::Util::encode_content {
     my @p = ref($content) eq 'HASH' ? %{$content} : @{$content};
     while ( my ( $k, $v ) = splice @p, 0, 2 ) {
         push @params,
-          URI::Escape::uri_escape($k) . '=' . URI::Escape::uri_escape($v);
+            Furl::Util::uri_escape($k) . '=' . Furl::Util::uri_escape($v);
     }
     return join( "&", @params );
 }

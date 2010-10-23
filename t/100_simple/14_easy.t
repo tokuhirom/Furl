@@ -17,9 +17,9 @@ my @data = (
     ['post', [undef, 'doya'],      sub { is $_->content_length, 4; is $_->content, 'doya' }],
     ['post', [[], ['do' => 'ya']], sub { is $_->content_length, 5; is $_->content, 'do=ya' }],
     ['post', [[], {'do' => 'ya'}], sub { is $_->content_length, 5; is $_->content, 'do=ya' }],
-    ['post', [[], ['do' => 'ya', foo => 'bar baz']],
+    ['post', [[], ['do' => 'ya', '=foo=' => 'bar baz']],
         sub {
-            my $c = 'do=ya&foo=bar%20baz';
+            my $c = 'do=ya&%3Dfoo%3D=bar%20baz';
             is $_->content_length, length($c);
             is $_->content, $c;
         },
