@@ -56,11 +56,12 @@ sub Furl::Util::uri_escape {
     return $s;
 }
 
-sub Furl::Util::encode_content {
+sub Furl::Util::make_x_www_form_urlencoded {
     my($content) = @_;
-    return $content unless ref($content) eq 'HASH' or ref($content) eq 'ARRAY';
     my @params;
-    my @p = ref($content) eq 'HASH' ? %{$content} : @{$content};
+    my @p = ref($content) eq 'HASH'  ? %{$content}
+          : ref($content) eq 'ARRAY' ? @{$content}
+          : Carp::croak("Cannot coerce $content to x-www-form-urlencoded");
     while ( my ( $k, $v ) = splice @p, 0, 2 ) {
         push @params,
             Furl::Util::uri_escape($k) . '=' . Furl::Util::uri_escape($v);
@@ -244,7 +245,7 @@ sub request {
         if(defined $content) {
             $content_is_fh = Scalar::Util::openhandle($content);
             if(!$content_is_fh && ref $content) {
-                $content = Furl::Util::encode_content($content);
+                $content = Furl::Util::make_x_www_form_urlencoded($content);
             }
             if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
                 my $content_length;
@@ -264,7 +265,11 @@ sub request {
                 else {
                     $content_length = length($content);
                 }
-                push @headers, 'Content-Length', $content_length;
+                push @headers, 'Content-Length' => $content_length;
+            }
+            if(!defined Furl::Util::header_get(\@headers, 'Content-Type')) {
+                push @headers, 'Content-Type'
+                    => 'application/x-www-form-urlencoded';
             }
         }
 
