@@ -6,6 +6,22 @@ use Test::More;
 
 use Plack::Request;
 use Errno ();
+
+eval {
+    Furl->new->request();
+};
+like $@, qr/missing host name/i, 'missuse';
+
+eval {
+    Furl->new->get('ftp://ftp.example.com/');
+};
+like $@, qr/unsupported scheme/i, 'missuse';
+
+eval {
+    Furl->new->get('http://./');
+};
+like $@, qr/cannot resolve host name/i, 'missuse';
+
 my $n = shift(@ARGV) || 3;
 
 my $fail_on_syswrite = 1;

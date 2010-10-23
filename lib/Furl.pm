@@ -169,10 +169,10 @@ sub request {
     if (not defined $scheme) {
         $scheme = 'http';
     } elsif($scheme ne 'http' && $scheme ne 'https') {
-        Carp::croak("unsupported scheme: $scheme");
+        Carp::croak("Unsupported scheme: $scheme");
     }
     if(not defined $host) {
-        Carp::croak("missing host name in arguments");
+        Carp::croak("Missing host name in arguments");
     }
     if(not defined $port) {
         if ($scheme eq 'http') {
@@ -214,16 +214,16 @@ sub request {
                 : $self->connect_ssl($_host, $_port);
         }
         setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
-          or Carp::croak("setsockopt(TCP_NODELAY) failed: $!");
+          or Carp::croak("Failed to setsockopt(TCP_NODELAY): $!");
         if ($^O eq 'MSWin32') {
             my $tmp = 1;
             ioctl( $sock, 0x8004667E, \$tmp )
-              or Carp::croak("Can't set flags for the socket: $!");
+              or Carp::croak("Cannot set flags for the socket: $!");
         } else {
             my $flags = fcntl( $sock, F_GETFL, 0 )
-              or Carp::croak("Can't get flags for the socket: $!");
+              or Carp::croak("Cannot get flags for the socket: $!");
             $flags = fcntl( $sock, F_SETFL, $flags | O_NONBLOCK )
-              or Carp::croak("Can't set flags for the socket: $!");
+              or Carp::croak("Cannot set flags for the socket: $!");
         }
 
         {
@@ -326,9 +326,9 @@ sub request {
         my $read = $self->read_timeout($sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
         if (not defined $read) {
-            return $self->_r500("error while reading from socket: $!");
+            return $self->_r500("Cannot read response: $!");
         } elsif ( $read == 0 ) {    # eof
-            return $self->_r500("Unexpected EOF");
+            return $self->_r500("Unexpected EOF while reading response");
         }
         else {
             ( $res_minor_version, $res_status, $res_msg, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_content_encoding, $res_headers, my $ret ) =
@@ -435,13 +435,13 @@ sub connect :method {
     my($self, $host, $port) = @_;
     my $sock;
     my $iaddr = inet_aton($host)
-        or Carp::croak("cannot detect host name: $host, $!");
+        or Carp::croak("Cannot resolve host name: $host, $!");
     my $sock_addr = pack_sockaddr_in($port, $iaddr);
 
     socket($sock, PF_INET, SOCK_STREAM, 0)
         or Carp::croak("Cannot create socket: $!");
     connect($sock, $sock_addr)
-        or Carp::croak("cannot connect to ${host}:${port}: $!");
+        or Carp::croak("Cannot connect to ${host}:${port}: $!");
     return $sock;
 }
 
@@ -453,7 +453,7 @@ sub connect_ssl {
     Furl::Util::requires('IO/Socket/SSL.pm', 'SSL');
 
     return IO::Socket::SSL->new( PeerHost => $host, PeerPort => $port )
-      or Carp::croak("cannot create new connection: IO::Socket::SSL");
+      or Carp::croak("Cannot create SSL connection: $!");
 }
 
 sub connect_ssl_over_proxy {
@@ -469,15 +469,15 @@ sub connect_ssl_over_proxy {
     my $read = $self->read_timeout($sock,
         \$buf, $self->{bufsize}, length($buf), $timeout);
     if (not defined $read) {
-        return $self->_r500("error while reading from socket: $!");
+        return $self->_r500("Cannot read proxy response: $!");
     } elsif ( $read == 0 ) {    # eof
-        return $self->_r500("Unexpected EOF");
+        return $self->_r500("Unexpected EOF while reading proxy response");
     } elsif ( $buf !~ /^HTTP\/1.[01] 200 Connection established\015\012/ ) {
         return $self->_r500("Invalid HTTP Response via proxy");
     }
 
     IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout )
-      or Carp::croak("cannot start connection: IO::Socket::SSL");
+      or Carp::croak("Cannot start SSL connection: $!");
 }
 
 # following three connections are related to connection cache for keep-alive.
