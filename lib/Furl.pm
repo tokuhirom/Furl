@@ -100,7 +100,7 @@ sub post {
         url => $url, headers => $headers, content => $content );
 }
 
-sub post {
+sub put {
     my ( $self, $url, $headers, $content ) = @_;
     $self->request( method => 'PUT',
         url => $url, headers => $headers, content => $content );
