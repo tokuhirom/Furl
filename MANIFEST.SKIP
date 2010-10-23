@@ -25,4 +25,4 @@
 \.bs$
 \.o$
 MYMETA\.yml$
-xs-src/Furl\.c$
+xs/Furl\.[co]$

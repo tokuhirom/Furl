@@ -15,8 +15,8 @@ README
 blib/
 pm_to_blib
 Furl.bs
-xs-src/Furl.o
-xs-src/Furl.c
+xs/Furl.o
+xs/Furl.c
 nytprof.out
 nytprof.out.*
 core
