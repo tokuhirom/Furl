@@ -8,24 +8,8 @@ use Plack::Request;
 use Errno ();
 my $n = shift(@ARGV) || 3;
 
-my $sleep = 5;
-{
-    package Errorneous::Socket;
-    use parent qw(IO::Socket::INET);
-    sub close {
-        my($sock) = @_;
-        sleep $sleep;
-        $sock->SUPER::close();
-    }
-    package Errorneous::Server;
-    use parent qw(HTTP::Server::PSGI);
-    sub setup_listener {
-        my $self = shift;
-        $self->SUPER::setup_listener(@_);
-        bless $self->{listen_sock}, 'Errorneous::Socket';
-        ::note 'Errorneous::Server listening';
-    }
-}
+use t::Slowloris;
+$Slowloris::SleepByWrite = 5;
 
 test_tcp(
     client => sub {
@@ -48,7 +32,7 @@ test_tcp(
     },
     server => sub {
         my $port = shift;
-        Errorneous::Server->new(port => $port)->run(sub {
+        Slowloris::Server->new(port => $port)->run(sub {
             my $env = shift;
             #note explain $env;
             my $req = Plack::Request->new($env);
