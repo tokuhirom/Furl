@@ -181,17 +181,10 @@ sub request {
         }
 
         if ($scheme eq 'http') {
-            my $iaddr = inet_aton($_host)
-                or Carp::croak("cannot detect host name: $_host, $!");
-            my $sock_addr = pack_sockaddr_in($_port, $iaddr);
-
-            socket($sock, PF_INET, SOCK_STREAM, 0)
-                or Carp::croak("Cannot create socket: $!");
-            connect($sock, $sock_addr)
-                or Carp::croak("cannot connect to ${host}:${port}: $!");
+            $sock = $self->connect($_host, $_port);
         } else {
-            $sock = $self->{proxy} ?
-                $self->connect_ssl_over_proxy(
+            $sock = $self->{proxy}
+                ? $self->connect_ssl_over_proxy(
                     $_host, $_port, $host, $port, $timeout)
                 : $self->connect_ssl($_host, $_port);
         }
@@ -389,6 +382,22 @@ sub request {
         ref($res_content) ? $res_content->finalize() : $res_content);
 }
 
+# connects to $host:$port and returns $socket
+# You can override this methond in your child class.
+sub connect :method {
+    my($self, $host, $port) = @_;
+    my $sock;
+    my $iaddr = inet_aton($host)
+        or Carp::croak("cannot detect host name: $host, $!");
+    my $sock_addr = pack_sockaddr_in($port, $iaddr);
+
+    socket($sock, PF_INET, SOCK_STREAM, 0)
+        or Carp::croak("Cannot create socket: $!");
+    connect($sock, $sock_addr)
+        or Carp::croak("cannot connect to ${host}:${port}: $!");
+    return $sock;
+}
+
 # connect SSL socket.
 # You can override this methond in your child class, if you want to use Crypt::SSLeay or some other library.
 # @return file handle like object
@@ -399,7 +408,7 @@ sub connect_ssl {
       or Carp::croak( "SSL support needs IO::Socket::SSL,"
           . " but you don't have it."
           . " Please install IO::Socket::SSL first." );
-    IO::Socket::SSL->new( PeerHost => $host, PeerPort => $port )
+    return IO::Socket::SSL->new( PeerHost => $host, PeerPort => $port )
       or Carp::croak("cannot create new connection: IO::Socket::SSL");
 }
 
@@ -411,15 +420,7 @@ sub connect_ssl_over_proxy {
           . " but you don't have it."
           . " Please install IO::Socket::SSL first." );
 
-    my $iaddr = inet_aton($proxy_host)
-        or Carp::croak("cannot detect host name: $host, $!");
-    my $sock_addr = pack_sockaddr_in($proxy_port, $iaddr);
-
-    my $sock;
-    socket($sock, PF_INET, SOCK_STREAM, 0)
-        or Carp::croak("Cannot create socket: $!");
-    connect($sock, $sock_addr)
-        or Carp::croak("cannot connect to ${proxy_host}:${proxy_port}: $!");
+    my $sock = $self->connect($proxy_host, $proxy_port);
 
     my $p = "CONNECT $host:$port HTTP/1.0\015\012Server: $host\015\012\015\012";
     $self->write_all($sock, $p, $timeout)
