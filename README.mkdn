@@ -14,23 +14,19 @@ Furl - Lightning-fast URL fetcher
         path   => '/'
     );
     # or
-    my ($code, $msg, $headers, $body) = $furl->request(
-        method => 'GET',
-        host   => 'example.com',
-        port   => 80,
-        path   => '/'
-        save_to_tmpfile => 1,
-    );
+    my ($code, $msg, $headers, $body) = $furl->get('http://example.com/');
 
 # DESCRIPTION
 
-Furl is yet another http client library.
+Furl is yet another HTTP client library.
 
 # INTERFACE
 
 ## Class Methods
 
 ### C<< Furl->new(%args | \%args) :Furl >>
+
+Creates and returns a new Furl client with _%args_. Dies on errors.
 
 _%args_ might be:
 
@@ -44,6 +40,9 @@ _%args_ might be:
 
 ### C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
 
+Sends an HTTP request to a specified URL and returns a status code,
+status message, response headers, response body respectively.
+
 _%args_ might be:
 
 - scheme :Str = "http"
@@ -56,19 +55,35 @@ _%args_ might be:
 
 - url :Str
 
+You can use `url` instead of `scheme`, `host`, `port` and `path_query`.
+
 - headers :ArrayRef
 
-### C<< $furl->get($url :Str) :($code, $msg[, \@headers]) >>
+- content : Str | ArrayRef[Str] | HashRef[Str] | FileHandle
 
-### C<< $furl->head($url :Str) :($code, $msg[, \@headers]) >>
+### C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
 
-### C<< $furl->post($url :Str) :($code, $msg, \@headers, \@content) >>
+This is an easy-to-use alias to `request()`.
 
-### C<< $furl->post($url :Str) :($code, $msg, \@headers, $content) >>
+### C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) :List >>
 
-### C<< $furl->put($url :Str) :($code, $msg, \@headers, $content) >>
+This is an easy-to-use alias to `request()`.
 
-### C<< $furl->delete($url :Str) :($code, $msg[, \@headers]) >>
+### C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+
+This is an easy-to-use alias to `request()`.
+
+### C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+
+This is an easy-to-use alias to `request()`.
+
+### C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) :List >>
+
+This is an easy-to-use alias to `request()`.
+
+### C<< $furl->env_proxy() >>
+
+Loads proxy settings from `$ENV{HTTP_PROXY}`.
 
 # INTEGRATE WITH HTTP::Response
 
@@ -125,6 +140,7 @@ Before First Release
 
 After First Release
 
+    - cookbook for how to use cookie_jar with HTTP::Cookies
     - AnyEvent::Furl?
     - change the parser_http_response args. and backport to HTTP::Response::Parser.
         my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
@@ -142,6 +158,8 @@ gfx
 Kazuho Oku
 
 mala
+
+mattn
 
 # SEE ALSO
 
