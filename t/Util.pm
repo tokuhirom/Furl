@@ -4,6 +4,7 @@ use warnings;
 use base qw/Exporter/;
 use Test::More;
 use Furl;
+use Fcntl qw(O_CREAT O_RDWR SEEK_SET);
 
 our @EXPORT = qw/online skip_if_offline/;
 
@@ -31,26 +32,42 @@ my @RELIABLE_HTTP = (
 );
 
 sub online () {
-    my $furl = Furl->new(timeout => 10);
+    # return the cache if exists
+    sysopen my $cache, '.online', O_CREAT | O_RDWR
+        or return 0;
+
+    my $online = <$cache>;
+    if(defined $online) {
+        return $online; # cache
+    }
+
+    my $furl = Furl->new(timeout => 5);
     my $good = 0;
     my $bad  = 0;
     note 'checking if online';
-    for (my $i=0; $i<@RELIABLE_HTTP; $i+=2) {
-        my ($url, $check) = @RELIABLE_HTTP[$i, $i+1];
-        note "getting $url";
-        my ($code, $msg, $headers, $content) = $furl->request(method => 'GET', url => $url);
-        note "$code $msg";
-        local $_ = $content;
-        if ($code == 200 && $check->()) {
-            $good++;
-        } else {
-            $bad++;
+    $online = eval {
+        for (my $i=0; $i<@RELIABLE_HTTP; $i+=2) {
+            my ($url, $check) = @RELIABLE_HTTP[$i, $i+1];
+            note "getting $url";
+            my ($code, $msg, $headers, $content) = $furl->get($url);
+            note "$code $msg";
+            local $_ = $content;
+            if ($code == 200 && $check->()) {
+                $good++;
+            } else {
+                $bad++;
+            }
+
+            return 1 if $good > 1;
+            return 0 if $bad  > 2;
         }
-        
-        return 1 if $good > 1;
-        return 0 if $bad  > 2;
-    }
-    return 0;
+    };
+    diag $@ if $@;
+
+    seek $cache, 0, SEEK_SET;
+    print $cache $online ? 1 : 0;
+    close $cache;
+    return $online;
 }
 
 sub skip_if_offline {
