@@ -914,6 +914,10 @@ mattn
 
 L<LWP>
 
+HTTP specs:
+L<http://www.w3.org/Protocols/HTTP/1.0/spec.html>
+L<http://www.w3.org/Protocols/HTTP/1.1/spec.html>
+
 =head1 LICENSE
 
 Copyright (C) Tokuhiro Matsuno
