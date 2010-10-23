@@ -273,7 +273,10 @@ sub request {
         }
 
         for (my $i = 0; $i < @headers; $i += 2) {
-            $p .= $headers[$i] . ': ' . $headers[$i+1] . "\015\012";
+            my $val = $headers[ $i + 1 ];
+            # this is defacto standard way to handle [\015\012](曰、kazuho-san)
+            $val =~ s/[\015\012]/ /g;
+            $p .= $headers[$i] . ": $val\015\012";
         }
         $p .= "\015\012";
         ### $p
