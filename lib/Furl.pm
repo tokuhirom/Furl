@@ -813,6 +813,14 @@ After First Release
 
 Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>
 
+gfx
+
+=head1 THANKS TO
+
+Kazuho Oku
+
+mala
+
 =head1 SEE ALSO
 
 L<LWP>
