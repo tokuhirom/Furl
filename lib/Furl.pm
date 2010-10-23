@@ -574,7 +574,11 @@ sub _read_body_normal {
         }
         if ($n == 0) {
             # eof
-            last READ_LOOP;
+            if ($res_content_length == -1 || $res_content_length == $nread) {
+                last READ_LOOP;
+            } else {
+                Carp::croak("Unexpected EOF while reading content body");
+            }
         }
         $$res_content .= $buf;
         $nread        += $n;
