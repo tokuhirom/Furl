@@ -9,10 +9,7 @@ use_xshelper;
 cc_src_paths qw(xs-src);
 cc_warnings;
 
-requires 'Socket';
-requires 'Errno';
 requires 'Compress::Raw::Zlib';
-requires 'URI::Escape';
 
 test_requires 'Test::More' => 0.96; # done_testing, subtest
 test_requires 'Test::TCP';
