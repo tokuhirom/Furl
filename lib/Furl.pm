@@ -676,23 +676,19 @@ Furl - Lightning-fast URL fetcher
         path   => '/'
     );
     # or
-    my ($code, $msg, $headers, $body) = $furl->request(
-        method => 'GET',
-        host   => 'example.com',
-        port   => 80,
-        path   => '/'
-        save_to_tmpfile => 1,
-    );
+    my ($code, $msg, $headers, $body) = $furl->get('http://example.com/');
 
 =head1 DESCRIPTION
 
-Furl is yet another http client library.
+Furl is yet another HTTP client library.
 
 =head1 INTERFACE
 
 =head2 Class Methods
 
 =head3 C<< Furl->new(%args | \%args) :Furl >>
+
+Creates and returns a new Furl client with I<%args>. Dies on errors.
 
 I<%args> might be:
 
@@ -710,6 +706,9 @@ I<%args> might be:
 
 =head3 C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
 
+Sends an HTTP request to a specified URL and returns a status code,
+status message, response headers, response body respectively.
+
 I<%args> might be:
 
 =over
@@ -724,21 +723,37 @@ I<%args> might be:
 
 =item url :Str
 
+You can use C<url> instead of C<scheme>, C<host>, C<port> and C<path_query>.
+
 =item headers :ArrayRef
+
+=item content : Str | ArrayRef[Str] | HashRef[Str] | FileHandle
 
 =back
 
-=head3 C<< $furl->get($url :Str) :($code, $msg[, \@headers]) >>
+=head3 C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
 
-=head3 C<< $furl->head($url :Str) :($code, $msg[, \@headers]) >>
+This is an easy-to-use alias to C<request()>.
 
-=head3 C<< $furl->post($url :Str) :($code, $msg, \@headers, \@content) >>
+=head3 C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) :List >>
 
-=head3 C<< $furl->post($url :Str) :($code, $msg, \@headers, $content) >>
+This is an easy-to-use alias to C<request()>.
 
-=head3 C<< $furl->put($url :Str) :($code, $msg, \@headers, $content) >>
+=head3 C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
 
-=head3 C<< $furl->delete($url :Str) :($code, $msg[, \@headers]) >>
+This is an easy-to-use alias to C<request()>.
+
+=head3 C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+
+This is an easy-to-use alias to C<request()>.
+
+=head3 C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) :List >>
+
+This is an easy-to-use alias to C<request()>.
+
+=head3 C<< $furl->env_proxy() >>
+
+Loads proxy settings from C<< $ENV{HTTP_PROXY} >>.
 
 =head1 INTEGRATE WITH HTTP::Response
 
@@ -821,6 +836,8 @@ gfx
 Kazuho Oku
 
 mala
+
+mattn
 
 =head1 SEE ALSO
 
