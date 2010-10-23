@@ -4,7 +4,7 @@ use Furl;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
-use Plack::Util;
+
 use Plack::Request;
 
 test_tcp(
@@ -17,7 +17,7 @@ test_tcp(
             $furl->request( url => "http://127.0.0.1:$port/1", );
             is $code, 200;
             is $msg, "OK";
-            is Plack::Util::header_get($headers, 'Content-Length'), 2;
+            is Furl::Util::header_get($headers, 'Content-Length'), 2;
             is $content, 'OK';
         };
 
@@ -27,8 +27,8 @@ test_tcp(
             $furl->request( url => "http://127.0.0.1:$port/1", );
             is $code, 302;
             is $msg, 'Found';
-            is Plack::Util::header_get($headers, 'Content-Length'), 0;
-            is Plack::Util::header_get($headers, 'Location'), "http://127.0.0.1:$port/2";
+            is Furl::Util::header_get($headers, 'Content-Length'), 0;
+            is Furl::Util::header_get($headers, 'Location'), "http://127.0.0.1:$port/2";
             is $content, '';
         };
 

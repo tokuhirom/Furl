@@ -4,7 +4,7 @@ use Furl;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
-use Plack::Util;
+
 use Plack::Request;
 
 test_tcp(
@@ -27,7 +27,7 @@ test_tcp(
                 );
             is $code, 200, "request()";
             is $msg, "OK";
-            is Plack::Util::header_get($headers, 'Content-Length'),
+            is Furl::Util::header_get($headers, 'Content-Length'),
                 length($req_content);
             is $content, $req_content
                 or do{ require Devel::Peek; Devel::Peek::Dump($content) };

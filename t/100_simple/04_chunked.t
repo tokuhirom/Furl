@@ -5,7 +5,7 @@ use Furl;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
-use Plack::Util;
+
 use Plack::Request;
 
 test_tcp(
