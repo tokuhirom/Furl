@@ -43,7 +43,11 @@ XP
 FAQ
 chunked
 github
+Kazuho
+Oku
 gfx
-kazuho
-oku
 mala
+mattn
+ArrayRef
+HashRef
+Str
