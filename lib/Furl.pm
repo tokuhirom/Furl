@@ -243,7 +243,7 @@ sub request {
         my $content_is_fh = 0;
         if(defined $content) {
             $content_is_fh = Scalar::Util::openhandle($content);
-            if(!$content_is_fh) {
+            if(!$content_is_fh && ref $content) {
                 $content = Furl::Util::encode_content($content);
             }
             if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
