@@ -4,11 +4,20 @@ use Furl;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
-use Plack::Util;
 use Plack::Request;
 use Test::Requires 'HTTP::Proxy';
 
 plan tests => 7*3;
+
+my $verbose = 1;
+{
+    package Test::HTTP::Proxy;
+    use parent qw(HTTP::Proxy);
+    sub log {
+        my($self, $level, $prefix, $msg) = @_;
+        ::note "$prefix: $msg" if $verbose;
+    }
+}
 
 my $via = "VIA!VIA!VIA!";
 
@@ -22,13 +31,13 @@ test_tcp(
                     my $furl = Furl->new(proxy => "http://127.0.0.1:$proxy_port");
                     my ( $code, $msg, $headers, $content ) =
                         $furl->request(
-                            url => "http://127.0.0.1:$httpd_port/foo",
-                            headers    => [ "X-Foo" => "ppp" ]
+                            url     => "http://127.0.0.1:$httpd_port/foo",
+                            headers => [ "X-Foo" => "ppp" ]
                         );
                     is $code, 200, "request()";
                     is $msg, "OK";
-                    is Plack::Util::header_get($headers, 'Content-Length'), 10;
-                    is Plack::Util::header_get($headers, 'Via'), "1.0 $via";
+                    is Furl::Util::header_get($headers, 'Content-Length'), 10;
+                    is Furl::Util::header_get($headers, 'Via'), "1.0 $via";
                     is $content, 'Hello, foo'
                         or do{ require Devel::Peek; Devel::Peek::Dump($content) };
                 }
@@ -52,10 +61,7 @@ test_tcp(
     },
     server => sub { # proxy server
         my $proxy_port = shift;
-        no warnings 'redefine';
-        local *HTTP::Proxy::log = sub { }; # suppress error log
-        my $proxy = HTTP::Proxy->new(port => $proxy_port, via => $via);
-        # $proxy->logmask(HTTP::Proxy::ALL);
+        my $proxy = Test::HTTP::Proxy->new(port => $proxy_port, via => $via);
         $proxy->start();
     },
 );
