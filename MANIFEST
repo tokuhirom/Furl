@@ -45,8 +45,6 @@ t/100_simple/12_write_code.t
 t/100_simple/13_deflate.t
 t/100_simple/14_easy.t
 t/100_simple/15_multiline_header.t
-t/200_misc/01_idn.t
-t/200_misc/02_google.t
 t/200_online/01_idn.t
 t/200_online/02_google.t
 t/200_online/03_yahoo_com.t
@@ -54,7 +52,6 @@ t/200_online/04_ssl.t
 t/Slowloris.pm
 t/Util.pm
 TODO
-xs-src/Furl.xs
 xs/Furl.xs
 xt/01_podspell.t
 xt/02_perlcritic.t
