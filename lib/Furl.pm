@@ -3,12 +3,13 @@ use strict;
 use warnings;
 use 5.00800;
 our $VERSION = '0.01';
-use URI::Escape ();
 
 #use Smart::Comments;
 use Carp ();
 use XSLoader;
 
+use URI::Escape ();
+use Scalar::Util ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK);
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 use Socket qw(
@@ -69,23 +70,26 @@ sub Furl::Util::encode_content {
 
 sub get {
     my ($self, $url, $headers) = @_;
-    $self->request( method => 'GET', url => $url, headers => $headers );
+    $self->request( method => 'GET',
+        url => $url, headers => $headers );
 }
 
 sub post {
     my ( $self, $url, $headers, $content ) = @_;
-
-    $self->request( method => 'POST', url => $url, headers => $headers, content => $content );
+    $self->request( method => 'POST',
+        url => $url, headers => $headers, content => $content );
 }
 
 sub head {
     my ($self, $url, $headers) = @_;
-    $self->request( method => 'HEAD', url => $url, headers => $headers );
+    $self->request( method => 'HEAD',
+        url => $url, headers => $headers );
 }
 
 sub delete {
     my ($self, $url, $headers) = @_;
-    $self->request( method => 'DELETE', url => $url, headers => $headers );
+    $self->request( method => 'DELETE',
+        url => $url, headers => $headers );
 }
 
 # returns $scheme, $host, $port, $path_query
