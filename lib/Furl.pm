@@ -925,6 +925,31 @@ After First Release
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
     - multipart/form-data support
+
+        my ($content, $content_length, $boundary) = Furl::Util::make_multipart_form_data(
+            parameters => [
+                name => 'foo',
+                init => ['/etc/passwd'],
+            ],
+        );
+
+        my ($content, $content_length, $boundary) = Furl::Util::make_multipart_form_data(
+            type => 'coderef',
+            parameters => [
+                name => 'foo',
+                init => ['/etc/passwd'],
+            ],
+        );
+        $content = IO::Callback->new('<', $content);
+        Furl->new()->put(
+            $url,
+            [
+                'Content-Length' => $content_length,
+                "Content-Type" => qq{multipart/form-data; boundary="$boundary"}
+            ],
+            $content
+        );
+
     - ipv6 support
 
 =head1 OPTIONAL FEATURES
