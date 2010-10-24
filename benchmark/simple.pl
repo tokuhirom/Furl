@@ -9,6 +9,11 @@ my $ua = LWP::UserAgent->new(parse_head => 0, keep_alive => 1);
 my $curl = WWW::Curl::Easy->new();
 my $furl = Furl->new(parse_header => 0);
 my $url = shift @ARGV || 'http://192.168.1.3:80/';
+my $uri = URI->new($url);
+my $host = $uri->host;
+my $scheme = $uri->scheme;
+my $port = $uri->port;
+my $path_query = $uri->path_query;
 
 cmpthese(
     -1, {
@@ -34,7 +39,14 @@ cmpthese(
             $code == 200 or die "oops: $code";
         },
         furl => sub {
-            my ($code, $headers, $content) = $furl->request(method => 'GET', url => $url, headers => ['Connection: Keep-Alive', 'Keep-Alive: 300']);
+            my ( $code, $msg, $headers, $content ) = $furl->request(
+                method     => 'GET',
+                host       => $host,
+                port       => $port,
+                scheme     => $scheme,
+                path_query => $path_query,
+                headers    => [ 'Connection' => 'Keep-Alive' ]
+            );
             $code == 200 or die "oops: $code, $content";
         },
     },
