@@ -899,7 +899,7 @@ This feature requires Net::IDN::Encode.
 
 This feature requires IO::Socket::SSL.
 
-=head2 Content-Encoding
+=head2 Content-Encoding(deflate, gzip)
 
 This feature requires Compress::Raw::Zlib.
 
