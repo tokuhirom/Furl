@@ -868,7 +868,18 @@ There are reasons why chunked POST/PUTs should not be generally used.  You canno
 
 =item How to make content body by CodeRef?
 
-use L<Tie::Handle>. If you have any reason to support this, please send a github ticket.
+You can use L<IO::Callback> for this purpose.
+
+    my $fh = IO::Callback->new(
+        '<',
+        sub {
+            my $x = shift @data;
+            $x ? "-$x" : undef;
+        }
+    );
+    my ( $code, $msg, $headers, $content ) =
+      $furl->put( "http://127.0.0.1:$port/", [ 'Content-Length' => $len ], $fh,
+      );
 
 =item How to use cookie_jar?
 
