@@ -19,6 +19,8 @@ use Socket qw(
     pack_sockaddr_in
 );
 
+use constant WIN32 => $^O eq 'MSWin32';
+
 XSLoader::load __PACKAGE__, $VERSION;
 
 # ref. RFC 2616, 3.5 Content Codings:
@@ -223,7 +225,7 @@ sub request {
         }
         setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
           or Carp::croak("Failed to setsockopt(TCP_NODELAY): $!");
-        if ($^O eq 'MSWin32') {
+        if (WIN32) {
             my $tmp = 1;
             ioctl( $sock, 0x8004667E, \$tmp )
               or Carp::croak("Cannot set flags for the socket: $!");
@@ -325,7 +327,6 @@ sub request {
     my $res_status;
     my $res_msg;
     my $res_headers;
-    my $res_content;
     my $res_connection;
     my $res_minor_version;
     my $res_content_length;
@@ -362,6 +363,7 @@ sub request {
         }
     }
 
+    my $res_content;
     if (my $fh = $args{write_file}) {
         $res_content = Furl::PartialWriter->new(
             append => sub { print $fh @_ },
