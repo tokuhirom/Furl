@@ -822,6 +822,10 @@ This is an easy-to-use alias to C<request()>.
 
 This is an easy-to-use alias to C<request()>.
 
+=head3 C<< $furl->request_with_http_request($req :HTTP::Request) :List >>
+
+This is an easy-to-use alias to C<request()>.
+
 =head3 C<< $furl->env_proxy() >>
 
 Loads proxy settings from C<< $ENV{HTTP_PROXY} >>.
@@ -873,7 +877,15 @@ use L<Tie::Handle>. If you have any reason to support this, please send a github
 
 =item How to use cookie_jar?
 
-Furl does not support cookie_jar. You can create Furl wrapper to support cookie_jar.
+Furl does not support cookie_jar. You can use L<HTTP::Cookies>, L<HTTP::Request>, L<HTTP::Response> like following.
+
+    my $f = Furl->new();
+    my $cookies = HTTP::Cookies->new();
+    my $req = HTTP::Request->new(...);
+    $cookies->add_cookie_header($req);
+    my $res = HTTP::Response->new($f->request_with_http_request($req));
+    $cookies->extract_cookies($res);
+    # and use $res.
 
 =item How to use gzip/deflate compressed communication?
 
@@ -889,7 +901,6 @@ Before First Release
 
 After First Release
 
-    - cookbook for how to use cookie_jar with HTTP::Cookies
     - AnyEvent::Furl?
     - change the parser_http_response args. and backport to HTTP::Response::Parser.
         my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
