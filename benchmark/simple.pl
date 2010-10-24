@@ -45,7 +45,7 @@ cmpthese(
                 port       => $port,
                 scheme     => $scheme,
                 path_query => $path_query,
-                headers    => [ 'Connection' => 'Keep-Alive' ]
+                headers    => [ 'Content-Length' => 0 ]
             );
             $code == 200 or die "oops: $code, $content";
         },
