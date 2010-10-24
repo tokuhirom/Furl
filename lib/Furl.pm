@@ -435,7 +435,6 @@ sub request {
             || $res_minor_version == 0
             || lc($res_connection) eq 'close') {
         $self->remove_conn_cache($host, $port);
-        undef $sock;
     } else {
         $self->add_conn_cache($host, $port, $sock);
     }
