@@ -830,6 +830,12 @@ This is an easy-to-use alias to C<request()>.
 
 Loads proxy settings from C<< $ENV{HTTP_PROXY} >>.
 
+=head2 Utilitis
+
+=head3 C<< Furl::Util::header_get(\@headers, $name :Str) :Maybe[Str] >>
+
+This is equivalent to C<< Plack::Util::header_get() >>.
+
 =head1 INTEGRATE WITH HTTP::Response
 
 Some useful libraries require HTTP::Response instances for their arguments.
