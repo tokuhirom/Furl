@@ -242,15 +242,13 @@ sub request {
         }
     }
 
-    my $buf;
-
     # write request
     my $method = $args{method} || 'GET';
     {
         if($self->{proxy}) {
             $path_query = "$scheme://$host:$port$path_query";
         }
-        my $buf = "$method $path_query HTTP/1.1\015\012"
+        my $p = "$method $path_query HTTP/1.1\015\012"
               . "Host: $host:$port\015\012";
 
         my @headers = @{$self->{headers}};
@@ -295,11 +293,11 @@ sub request {
             my $val = $headers[ $i + 1 ];
             # the de facto standard way to handle [\015\012](by kazuho-san)
             $val =~ s/[\015\012]/ /g;
-            $buf .= $headers[$i] . ": $val\015\012";
+            $p .= $headers[$i] . ": $val\015\012";
         }
-        $buf .= "\015\012";
-
-        $self->write_all($sock, $buf, $timeout)
+        $p .= "\015\012";
+        ### $p
+        $self->write_all($sock, $p, $timeout)
             or return $self->_r500("Failed to send HTTP request: $!");
         if (defined $content) {
             if ($content_is_fh) {
@@ -322,11 +320,12 @@ sub request {
     }
 
     # read response
-    $buf = ''; # for reading buffer
+    my $buf = '';
     my $last_len = 0;
     my $res_status;
     my $res_msg;
     my $res_headers;
+    my $res_content;
     my $res_connection;
     my $res_minor_version;
     my $res_content_length;
@@ -363,27 +362,26 @@ sub request {
         }
     }
 
-    # $buf for the response content
     if (my $fh = $args{write_file}) {
-        $buf = Furl::PartialWriter->new(
+        $res_content = Furl::PartialWriter->new(
             append => sub { print $fh @_ },
         );
     } elsif (my $coderef = $args{write_code}) {
-        $buf = Furl::PartialWriter->new(
+        $res_content = Furl::PartialWriter->new(
             append => sub {
                 $coderef->($res_status, $res_msg, $res_headers, @_);
             },
         );
     }
     else {
-        $buf = '';
+        $res_content = '';
     }
 
     if (exists $COMPRESSED{ $res_content_encoding }) {
         Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
 
         my $inflated        = '';
-        my $old_res_content = $buf;
+        my $old_res_content = $res_content;
         my $assert_z_ok     = sub {
             $_[0] == Compress::Raw::Zlib::Z_OK()
                 or Carp::croak("Uncompressing error: $_[0]");
@@ -392,7 +390,7 @@ sub request {
             -WindowBits => Compress::Raw::Zlib::WANT_GZIP_OR_ZLIB(),
         );
         $assert_z_ok->($status);
-        $buf = Furl::PartialWriter->new(
+        $res_content = Furl::PartialWriter->new(
             append => sub {
                 $assert_z_ok->( $z->inflate($_[0], \my $deflated) );
                 $old_res_content .= $deflated;
@@ -408,11 +406,11 @@ sub request {
     my @err;
     if ($res_transfer_encoding eq 'chunked') {
         @err = $self->_read_body_chunked($sock,
-            $rest_header, $timeout, \$buf);
+            $rest_header, $timeout, \$res_content);
     } else {
-        $buf .= $rest_header;
+        $res_content .= $rest_header;
         @err = $self->_read_body_normal($sock,
-            \$buf, length($rest_header), $res_content_length, $timeout);
+            \$res_content, length($rest_header), $res_content_length, $timeout);
     }
     if(@err) {
         return @err;
@@ -444,7 +442,7 @@ sub request {
         $self->add_conn_cache($host, $port, $sock);
     }
     return ($res_status, $res_msg, $res_headers,
-            ref($buf) ? $buf->finalize() : $buf);
+            ref($res_content) ? $res_content->finalize() : $res_content);
 }
 
 # connects to $host:$port and returns $socket
