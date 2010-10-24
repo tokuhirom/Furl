@@ -827,7 +827,7 @@ Loads proxy settings from C<< $ENV{HTTP_PROXY} >>.
 =head1 INTEGRATE WITH HTTP::Response
 
 Some useful libraries require HTTP::Response instances for their arguments.
-You can easily create its instance from the result of C<request()> and C<get()>.
+You can easily create its instance from the result of C<request()> and other HTTP reqeust methods.
 
     my $res = HTTP::Response->new($furl->get($url));
 

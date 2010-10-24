@@ -179,7 +179,7 @@ This feature requires Net::IDN::Encode.
 
 This feature requires IO::Socket::SSL.
 
-## Content-Encoding(deflate, gzip)
+## Content-Encoding (deflate, gzip)
 
 This feature requires Compress::Raw::Zlib.
 
