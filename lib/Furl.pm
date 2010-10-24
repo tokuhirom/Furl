@@ -918,6 +918,7 @@ After First Release
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
     - multipart/form-data support
+    - ipv6 support
 
 =head1 OPTIONAL FEATURES
 
