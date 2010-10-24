@@ -3,17 +3,6 @@
 #include "picohttpparser/picohttpparser.h"
 #include "picohttpparser/picohttpparser.c"
 
-STATIC_INLINE
-int my_strncasecmp(const char *s1, const char *s2, size_t n) {
-    size_t i;
-    for (i=0; i<n; i++) {
-        if (*s1!=*s2) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
 MODULE = Furl PACKAGE = Furl
 
 PROTOTYPES: DISABLE
@@ -51,21 +40,21 @@ PPCODE:
             headers_st[i].value,
             headers_st[i].value_len,
             SVs_TEMP );
-
-        if (my_strncasecmp(name, "Content-Length", name_len) == 0) {
+        /* TODO:strncasecmp is not portable */
+        if (strncasecmp(name, "Content-Length", name_len) == 0) {
             content_length = SvIV(valuesv);
             /* TODO: more strict check using grok_number() */
             if (content_length == IV_MIN || content_length == IV_MAX) {
                 croak("overflow or undeflow is found in Content-Length"
                     "(%"SVf")", valuesv);
             }
-        } else if (my_strncasecmp(name, "Connection", name_len) == 0) {
+        } else if (strncasecmp(name, "Connection", name_len) == 0) {
             connection = valuesv;
-        } else if (my_strncasecmp(name, "Location", name_len) == 0) {
+        } else if (strncasecmp(name, "Location", name_len) == 0) {
             location = valuesv;
-        } else if (my_strncasecmp(name, "Transfer-Encoding", name_len) == 0) {
+        } else if (strncasecmp(name, "Transfer-Encoding", name_len) == 0) {
             transfer_encoding = valuesv;
-        } else if (my_strncasecmp(name, "Content-Encoding", name_len) == 0) {
+        } else if (strncasecmp(name, "Content-Encoding", name_len) == 0) {
             content_encoding = valuesv;
         }
         av_push(headers, SvREFCNT_inc_simple_NN(namesv));
