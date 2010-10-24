@@ -166,22 +166,21 @@ sub request {
     my $timeout = $args{timeout};
     $timeout = $self->{timeout} if not defined $timeout;
 
-    my ($scheme, $host, $port, $path_query) = do {
-        if (defined(my $url = $args{url})) {
-            $self->_parse_url($url);
+    my ($scheme, $host, $port, $path_query);
+    if (defined(my $url = $args{url})) {
+        ($scheme, $host, $port, $path_query) = $self->_parse_url($url);
+    }
+    else {
+        ($scheme, $host, $port, $path_query) = @args{qw/scheme host port path_query/};
+        if (not defined $host) {
+            Carp::croak("Missing host name in arguments");
         }
-        else {
-            ($args{scheme}, $args{host}, $args{port}, $args{path_query});
-        }
-    };
+    }
 
     if (not defined $scheme) {
         $scheme = 'http';
     } elsif($scheme ne 'http' && $scheme ne 'https') {
         Carp::croak("Unsupported scheme: $scheme");
-    }
-    if(not defined $host) {
-        Carp::croak("Missing host name in arguments");
     }
     if(not defined $port) {
         if ($scheme eq 'http') {
@@ -862,7 +861,7 @@ And we can support other operating systems if you send a patch.
 
 There are reasons why chunked POST/PUTs should not be used in general.
 
-First, uou cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.
+First, you cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.
 
 Second, HTTP/1.1 servers disconnect their persistent connection quite quickly (compared to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.
 

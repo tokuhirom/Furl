@@ -35,9 +35,9 @@ Furl - Lightning-fast URL fetcher
 
 Furl is yet another HTTP client library. LWP is the de facto standard HTTP
 client for Perl5, but it is too slow for some critical jobs, and too complex
-for weekend hacking. Furl will resolves these issues. Enjoy it!
+for weekend hacking. Furl resolves these issues. Enjoy it!
 
-This library is an __alpha__ software. Any APIs will change without notice.
+This library is an __alpha__ software. Any API may change without notice.
 
 # INTERFACE
 
@@ -84,6 +84,9 @@ You can use `url` instead of `scheme`, `host`, `port` and `path_query`.
 
 - content : Str | ArrayRef[Str] | HashRef[Str] | FileHandle
 
+You must encode all the queries or this method will die, saying
+`Wide character in ...`.
+
 ### C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
 
 This is an easy-to-use alias to `request()`.
@@ -125,30 +128,47 @@ You can easily create its instance from the result of `request()` and other HTTP
 
 Net::SSL is not well documented.
 
-- Why env_proxy is optional?
+- Why is env_proxy optional?
 
-Environment variables are highly dependent on users' environments.
-It makes confusing users.
+Environment variables are highly dependent on each users' environment,
+and we think it may confuse users when something doesn't go right.
 
-- Supported Operating Systems.
+- What operating systems are supported?
 
 Linux 2.6 or higher, OSX Tiger or higher, Windows XP or higher.
 
 And we can support other operating systems if you send a patch.
 
-- Why Furl does not support chunked upload?
+- Why doesn't Furl support chunked upload?
 
-There are reasons why chunked POST/PUTs should not be generally used.  You cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.  However HTTP/1.1 servers disconnect their persistent connection quite quickly (when comparing to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.  The two facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is of high priority.
+There are reasons why chunked POST/PUTs should not be used in general.
+
+First, you cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.
+
+Second, HTTP/1.1 servers disconnect their persistent connection quite quickly (compared to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.
+
+These facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is NOT of high priority.
 
 # FAQ
 
-- How to make content body by CodeRef?
+- How do you build the response content as it arrives?
 
-use [Tie::Handle](http://search.cpan.org/perldoc?Tie::Handle). If you have any reason to support this, please send a github ticket.
+You can use [IO::Callback](http://search.cpan.org/perldoc?IO::Callback) for this purpose.
 
-- How to use cookie_jar?
+    my $fh = IO::Callback->new(
+        '<',
+        sub {
+            my $x = shift @data;
+            $x ? "-$x" : undef;
+        }
+    );
+    my ( $code, $msg, $headers, $content ) =
+      $furl->put( "http://127.0.0.1:$port/", [ 'Content-Length' => $len ], $fh,
+      );
 
-Furl does not support cookie_jar. You can use [HTTP::Cookies](http://search.cpan.org/perldoc?HTTP::Cookies), [HTTP::Request](http://search.cpan.org/perldoc?HTTP::Request), [HTTP::Response](http://search.cpan.org/perldoc?HTTP::Response) like following.
+- How do you use cookie_jar?
+
+Furl does not directly support the cookie_jar option available in LWP. You can use [HTTP::Cookies](http://search.cpan.org/perldoc?HTTP::Cookies), [HTTP::Request](http://search.cpan.org/perldoc?HTTP::Request), [HTTP::Response](http://search.cpan.org/perldoc?HTTP::Response) like following.
 
     my $f = Furl->new();
     my $cookies = HTTP::Cookies->new();
@@ -158,7 +178,7 @@ Furl does not support cookie_jar. You can use [HTTP::Cookies](http://search.cpan
     $cookies->extract_cookies($res);
     # and use $res.
 
-- How to use gzip/deflate compressed communication?
+- How do you use gzip/deflate compressed communication?
 
 Add an __Accept-Encoding__ header to your request. Furl inflates response bodies transparently according to the __Content-Encoding__ response header.
 
