@@ -382,7 +382,6 @@ sub request {
     if (exists $COMPRESSED{ $res_content_encoding }) {
         Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
 
-        my $inflated        = '';
         my $old_res_content = $res_content;
         my $assert_z_ok     = sub {
             $_[0] == Compress::Raw::Zlib::Z_OK()
