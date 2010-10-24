@@ -242,9 +242,12 @@ sub request {
     # write request
     my $method = $args{method} || 'GET';
     {
-        my $p = $self->{proxy} ?
-            "$method $scheme://$host:$port$path_query HTTP/1.1\015\012Host: $host:$port\015\012" :
-            "$method $path_query HTTP/1.1\015\012Host: $host:$port\015\012";
+        if($self->{proxy}) {
+            $path_query = "$scheme://$host:$port$path_query";
+        }
+        my $p = "$method $path_query HTTP/1.1\015\012"
+              . "Host: $host:$port\015\012";
+
         my @headers = @{$self->{headers}};
         if ($args{headers}) {
             push @headers, @{$args{headers}};
