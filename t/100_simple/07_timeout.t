@@ -29,7 +29,7 @@ test_tcp(
             ok $content, 'content: ' . $content;
         }
 
-        my $furl = Furl->new(timeout => 0.5);
+        $furl = Furl->new(timeout => 0.5);
         note 'write_timeout';
         for (1 .. $n) {
             my ( $code, $msg, $headers, $content ) =
