@@ -436,7 +436,7 @@ sub request {
     }
 
     # manage cache
-    if ($res_content_length == -1
+    if (!defined($res_content_length)
             || $res_minor_version == 0
             || lc($res_connection) eq 'close') {
         $self->remove_conn_cache($host, $port);
@@ -583,7 +583,7 @@ sub _read_body_chunked {
 
 sub _read_body_normal {
     my ($self, $sock, $res_content, $nread, $res_content_length, $timeout) = @_;
-  READ_LOOP: while ($res_content_length == -1 || $res_content_length != $nread) {
+  READ_LOOP: while (!defined($res_content_length) || $res_content_length != $nread) {
         my $n = $self->read_timeout( $sock,
             \my $buf, $self->{bufsize}, 0, $timeout );
         if (!$n) {
