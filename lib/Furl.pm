@@ -839,11 +839,6 @@ You can easily create its instance from the result of C<request()> and other HTT
 
 =head1 PROJECT POLICY
 
-    - Pure Perl implementation is required
-      (I want to use Furl without compilers)
-    - few dependencies are allowed.
-    - faster than WWW::Curl::Easy
-
 =over 4
 
 =item Why IO::Socket::SSL?
