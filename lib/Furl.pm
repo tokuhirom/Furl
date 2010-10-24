@@ -407,7 +407,7 @@ sub request {
     my @err;
     if ($res_transfer_encoding eq 'chunked') {
         @err = $self->_read_body_chunked($sock,
-            $rest_header, $timeout, \$res_content);
+            \$res_content, $rest_header, $timeout);
     } else {
         $res_content .= $rest_header;
         @err = $self->_read_body_normal($sock,
@@ -523,7 +523,7 @@ sub add_conn_cache {
 }
 
 sub _read_body_chunked {
-    my ($self, $sock, $rest_header, $timeout, $res_content) = @_;
+    my ($self, $sock, $res_content, $rest_header, $timeout) = @_;
 
     my $buf = $rest_header;
   READ_LOOP: while (1) {
