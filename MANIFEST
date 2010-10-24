@@ -45,10 +45,12 @@ t/100_simple/12_write_code.t
 t/100_simple/13_deflate.t
 t/100_simple/14_easy.t
 t/100_simple/15_multiline_header.t
+t/100_simple/16_read_callback.t
 t/200_online/01_idn.t
 t/200_online/02_google.t
 t/200_online/03_yahoo_com.t
 t/200_online/04_ssl.t
+t/300_parser/01_simple.t
 t/Slowloris.pm
 t/Util.pm
 TODO
@@ -58,4 +60,5 @@ xt/02_perlcritic.t
 xt/03_pod.t
 xt/04_leaktrace.t
 xt/05_valgrind.t
+xt/06_vars.t
 xt/perlcriticrc
