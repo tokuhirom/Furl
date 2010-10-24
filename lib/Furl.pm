@@ -328,12 +328,14 @@ sub request {
     my $res_location;
     my $rest_header;
   LOOP: while (1) {
-        my $read = $self->read_timeout($sock,
+        my $n = $self->read_timeout($sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
-        if (not defined $read) {
-            return $self->_r500("Cannot read response: $!");
-        } elsif ( $read == 0 ) {    # eof
-            return $self->_r500("Unexpected EOF while reading response");
+        if(!$n) { # error or eof
+            return $self->_r500(
+                !defined($n)
+                    ? "Cannot read response header: $!"
+                    : "Unexpected EOF while reading response header"
+            );
         }
         else {
             ( $res_minor_version, $res_status, $res_msg, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_content_encoding, $res_headers, my $ret ) =
@@ -395,13 +397,17 @@ sub request {
         );
     }
 
+    my @err;
     if ($res_transfer_encoding eq 'chunked') {
-        $self->_read_body_chunked($sock,
+        @err = $self->_read_body_chunked($sock,
             $rest_header, $timeout, \$res_content);
     } else {
         $res_content .= $rest_header;
-        $self->_read_body_normal($sock,
+        @err = $self->_read_body_normal($sock,
             \$res_content, length($rest_header), $res_content_length, $timeout);
+    }
+    if(@err) {
+        return @err;
     }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
@@ -474,11 +480,11 @@ sub connect_ssl_over_proxy {
     my $read = $self->read_timeout($sock,
         \$buf, $self->{bufsize}, length($buf), $timeout);
     if (not defined $read) {
-        return $self->_r500("Cannot read proxy response: $!");
+        Carp::croak("Cannot read proxy response: $!");
     } elsif ( $read == 0 ) {    # eof
-        return $self->_r500("Unexpected EOF while reading proxy response");
+        Carp::croak("Unexpected EOF while reading proxy response");
     } elsif ( $buf !~ /^HTTP\/1.[01] 200 Connection established\015\012/ ) {
-        return $self->_r500("Invalid HTTP Response via proxy");
+        Carp::croak("Invalid HTTP Response via proxy");
     }
 
     IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout )
@@ -543,7 +549,7 @@ sub _read_body_chunked {
                 my $n = $self->read_timeout( $sock,
                     \$buf, $self->{bufsize}, length($buf), $timeout );
                 if ( not defined $n ) {
-                    Carp::croak("Cannot read chunk: $!");
+                    return $self->_r500("Cannot read chunk: $!");
                 }
             }
             $$res_content .= substr($buf, 0, $next_len);
@@ -555,13 +561,17 @@ sub _read_body_chunked {
 
         my $n = $self->read_timeout( $sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
-        if ( not defined $n ) {
-            Carp::croak("Cannot read chunk: $!");
-        } elsif ($n == 0) {
-            Carp::croak("Unexpected EOF while reading packets");
+        if (!$n) {
+            return $self->_r500(
+                !defined($n)
+                    ? "Cannot read chunk: $!"
+                    : "Unexpected EOF while reading packets"
+            );
         }
     }
-    $self->_read_body_normal($sock, \$buf, length($buf), 2, $timeout); # read last crlf
+    # read last CRLF
+    return $self->_read_body_normal(
+        $sock, \$buf, length($buf), 2, $timeout);
 }
 
 sub _read_body_normal {
@@ -569,20 +579,17 @@ sub _read_body_normal {
   READ_LOOP: while ($res_content_length == -1 || $res_content_length != $nread) {
         my $bufsize = $self->{bufsize};
         my $n = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
-        if (not defined $n) {
-            Carp::croak("Cannot read content body: $!");
-        }
-        if ($n == 0) {
-            # eof
-            if ($res_content_length == -1 || $res_content_length == $nread) {
-                last READ_LOOP;
-            } else {
-                Carp::croak("Unexpected EOF while reading content body");
-            }
+        if (!$n) {
+            return $self->_r500(
+                !defined($n)
+                    ? "Cannot read content body: $!"
+                    : "Unexpected EOF while reading content body"
+            );
         }
         $$res_content .= $buf;
         $nread        += $n;
     }
+    return;
 }
 
 
@@ -660,7 +667,7 @@ sub write_all {
 sub _r500 {
     my($self, $message) = @_;
     $self->remove_conn_cache();
-    $message ||= 'Internal Server Error';
+    $message = Carp::shortmess($message); # add lineno and filename
     return(500, 'Internal Server Error',
         ['Content-Length' => length($message)], $message);
 }
