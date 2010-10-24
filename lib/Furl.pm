@@ -862,7 +862,7 @@ And we can support other operating systems if you send a patch.
 
 There are reasons why chunked POST/PUTs should not be used in general.
 
-First, uou cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.
+First, you cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.
 
 Second, HTTP/1.1 servers disconnect their persistent connection quite quickly (compared to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.
 
