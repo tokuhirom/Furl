@@ -584,8 +584,8 @@ sub _read_body_chunked {
 sub _read_body_normal {
     my ($self, $sock, $res_content, $nread, $res_content_length, $timeout) = @_;
   READ_LOOP: while ($res_content_length == -1 || $res_content_length != $nread) {
-        my $bufsize = $self->{bufsize};
-        my $n = $self->read_timeout($sock, \my $buf, $bufsize, 0, $timeout);
+        my $n = $self->read_timeout( $sock,
+            \my $buf, $self->{bufsize}, 0, $timeout );
         if (!$n) {
             return $self->_r500(
                 !defined($n)
