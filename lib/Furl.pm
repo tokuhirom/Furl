@@ -21,6 +21,13 @@ use Socket qw(
 
 XSLoader::load __PACKAGE__, $VERSION;
 
+# ref. RFC 2616, 3.5 Content Codings:
+#     For compatibility with previous implementations of HTTP,
+#     applications SHOULD consider "x-gzip" and "x-compress" to be
+#     equivalent to "gzip" and "compress" respectively.
+# ("compress" is not supported, though)
+my %COMPRESSED = map { $_ => undef } qw(gzip x-gzip compress);
+
 my $HTTP_TOKEN         = '[^\x00-\x31\x7F]+';
 my $HTTP_QUOTED_STRING = q{"([^"]+|\\.)*"};
 
@@ -374,7 +381,7 @@ sub request {
         $res_content = '';
     }
 
-    if ($res_content_encoding =~ /\A(?:x-)?gzip\z/ || $res_content_encoding eq 'deflate') {
+    if (exists $CONTENT_COMPRESSED{ $res_content_encoding }) {
         Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
 
         my $inflated        = '';
@@ -899,7 +906,7 @@ This feature requires Net::IDN::Encode.
 
 This feature requires IO::Socket::SSL.
 
-=head2 Content-Encoding(deflate, gzip)
+=head2 Content-Encoding (deflate, gzip)
 
 This feature requires Compress::Raw::Zlib.
 
