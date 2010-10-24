@@ -49,11 +49,11 @@ PPCODE:
         headers_st, &num_headers, last_len);
     AV* const headers = newAV_mortal();
     size_t i;
-    IV content_length      = -1;
+    SV * content_length    = &PL_sv_undef;
     SV * connection        = &PL_sv_no; // as an empty string
     SV * location          = &PL_sv_no;
     SV * transfer_encoding = &PL_sv_no;
-    SV * content_encoding = &PL_sv_no;
+    SV * content_encoding  = &PL_sv_no;
     av_extend(headers, (num_headers - 1) * 2);
     for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
@@ -64,9 +64,10 @@ PPCODE:
             headers_st[i].value_len,
             SVs_TEMP );
         if (HEADER_CMP_WRAPPER(name, "content-length", name_len)) {
-            content_length = SvIV(valuesv);
+            IV const clen = SvIV(valuesv);
+            content_length = valuesv;
             /* TODO: more strict check using grok_number() */
-            if (content_length == IV_MIN || content_length == IV_MAX) {
+            if (clen == IV_MIN || clen == IV_MAX) {
                 croak("overflow or undeflow is found in Content-Length"
                     "(%"SVf")", valuesv);
             }
@@ -87,7 +88,7 @@ PPCODE:
     mPUSHi(minor_version);
     mPUSHi(status);
     mPUSHp(msg, msg_len);
-    mPUSHi(content_length);
+    PUSHs(content_length);
     PUSHs(connection);
     PUSHs(location);
     PUSHs(transfer_encoding);
