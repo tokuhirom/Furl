@@ -27,4 +27,4 @@
 MYMETA\.yml$
 xs/Furl\.[co]$
 \.online$
-
+^nytprof.out$

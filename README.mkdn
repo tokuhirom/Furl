@@ -115,16 +115,11 @@ Loads proxy settings from `$ENV{HTTP_PROXY}`.
 # INTEGRATE WITH HTTP::Response
 
 Some useful libraries require HTTP::Response instances for their arguments.
-You can easily create its instance from the result of `request()` and other HTTP reqeust methods.
+You can easily create its instance from the result of `request()` and other HTTP request methods.
 
     my $res = HTTP::Response->new($furl->get($url));
 
 # PROJECT POLICY
-
-    - Pure Perl implementation is required
-      (I want to use Furl without compilers)
-    - few dependencies are allowed.
-    - faster than WWW::Curl::Easy
 
 - Why IO::Socket::SSL?
 
