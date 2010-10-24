@@ -745,9 +745,9 @@ Furl - Lightning-fast URL fetcher
 
 Furl is yet another HTTP client library. LWP is the de facto standard HTTP
 client for Perl5, but it is too slow for some critical jobs, and too complex
-for weekend hacking. Furl will resolves these issues. Enjoy it!
+for weekend hacking. Furl resolves these issues. Enjoy it!
 
-This library is an B<alpha> software. Any APIs will change without notice.
+This library is an B<alpha> software. Any API may change without notice.
 
 =head1 INTERFACE
 
@@ -845,20 +845,26 @@ You can easily create its instance from the result of C<request()> and other HTT
 
 Net::SSL is not well documented.
 
-=item Why env_proxy is optional?
+=item Why is env_proxy optional?
 
-Environment variables are highly dependent on users' environments.
-It makes confusing users.
+Environment variables are highly dependent on each users' environment,
+and we think it may confuse users when something doesn't go right.
 
-=item Supported Operating Systems.
+=item What operating systems are supported?
 
 Linux 2.6 or higher, OSX Tiger or higher, Windows XP or higher.
 
 And we can support other operating systems if you send a patch.
 
-=item Why Furl does not support chunked upload?
+=item Why doesn't Furl support chunked upload?
 
-There are reasons why chunked POST/PUTs should not be generally used.  You cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.  However HTTP/1.1 servers disconnect their persistent connection quite quickly (when comparing to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.  The two facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is of high priority.
+There are reasons why chunked POST/PUTs should not be used in general.
+
+First, uou cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.
+
+Second, HTTP/1.1 servers disconnect their persistent connection quite quickly (compared to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.
+
+These facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is NOT of high priority.
 
 =back
 
@@ -866,7 +872,7 @@ There are reasons why chunked POST/PUTs should not be generally used.  You canno
 
 =over 4
 
-=item How to make content body by CodeRef?
+=item How do you build the response content as it arrives?
 
 You can use L<IO::Callback> for this purpose.
 
@@ -881,9 +887,9 @@ You can use L<IO::Callback> for this purpose.
       $furl->put( "http://127.0.0.1:$port/", [ 'Content-Length' => $len ], $fh,
       );
 
-=item How to use cookie_jar?
+=item How do you use cookie_jar?
 
-Furl does not support cookie_jar. You can use L<HTTP::Cookies>, L<HTTP::Request>, L<HTTP::Response> like following.
+Furl does not directly support the cookie_jar option available in LWP. You can use L<HTTP::Cookies>, L<HTTP::Request>, L<HTTP::Response> like following.
 
     my $f = Furl->new();
     my $cookies = HTTP::Cookies->new();
@@ -893,7 +899,7 @@ Furl does not support cookie_jar. You can use L<HTTP::Cookies>, L<HTTP::Request>
     $cookies->extract_cookies($res);
     # and use $res.
 
-=item How to use gzip/deflate compressed communication?
+=item How do you use gzip/deflate compressed communication?
 
 Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently according to the B<Content-Encoding> response header.
 
