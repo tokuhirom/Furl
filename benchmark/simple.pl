@@ -3,6 +3,7 @@ use warnings;
 use Benchmark ':all';
 use LWP::UserAgent;
 use WWW::Curl::Easy;
+use HTTP::Lite;
 use Furl;
 
 my $ua = LWP::UserAgent->new(parse_head => 0, keep_alive => 1);
@@ -14,9 +15,15 @@ my $host = $uri->host;
 my $scheme = $uri->scheme;
 my $port = $uri->port;
 my $path_query = $uri->path_query;
+my $lite = HTTP::Lite->new();
 
 cmpthese(
     -1, {
+        http_lite => sub {
+            my $req = $lite->request($url)
+                or die;
+            $lite->status == 200 or die;
+        },
         lwp => sub {
             my $res = $ua->get($url);
             $res->code == 200 or die;
