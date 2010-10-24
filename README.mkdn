@@ -57,6 +57,8 @@ _%args_ might be:
 
 - proxy :Str
 
+- headers :ArrayRef
+
 ## Instance Methods
 
 ### C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
@@ -109,7 +111,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}`.
 # INTEGRATE WITH HTTP::Response
 
 Some useful libraries require HTTP::Response instances for their arguments.
-You can easily create its instance from the result of `request()` and `get()`.
+You can easily create its instance from the result of `request()` and other HTTP reqeust methods.
 
     my $res = HTTP::Response->new($furl->get($url));
 

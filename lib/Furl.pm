@@ -769,6 +769,8 @@ I<%args> might be:
 
 =item proxy :Str
 
+=item headers :ArrayRef
+
 =back
 
 =head2 Instance Methods
