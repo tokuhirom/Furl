@@ -374,7 +374,7 @@ sub request {
         $res_content = '';
     }
 
-    if ($res_content_encoding eq 'gzip' || $res_content_encoding eq 'deflate') {
+    if ($res_content_encoding =~ /\A(?:x-)?gzip\z/ || $res_content_encoding eq 'deflate') {
         Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
 
         my $inflated        = '';
