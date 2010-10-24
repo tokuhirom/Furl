@@ -26,7 +26,7 @@ XSLoader::load __PACKAGE__, $VERSION;
 #     applications SHOULD consider "x-gzip" and "x-compress" to be
 #     equivalent to "gzip" and "compress" respectively.
 # ("compress" is not supported, though)
-my %COMPRESSED = map { $_ => undef } qw(gzip x-gzip compress);
+my %COMPRESSED = map { $_ => undef } qw(gzip x-gzip deflate);
 
 my $HTTP_TOKEN         = '[^\x00-\x31\x7F]+';
 my $HTTP_QUOTED_STRING = q{"([^"]+|\\.)*"};
