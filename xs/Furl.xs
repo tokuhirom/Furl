@@ -3,6 +3,28 @@
 #include "picohttpparser/picohttpparser.h"
 #include "picohttpparser/picohttpparser.c"
 
+#define HEADER_CMP_WRAPPER(s1, s2, n1) furl_header_cmp(s1, s2, n1, sizeof(s2)-1)
+
+STATIC_INLINE
+char furl_tolower(char c) {
+    return ('A' <= c && c <= 'Z') ? (c - 'A' + 'a') : c;
+}
+
+STATIC_INLINE
+int furl_header_cmp(const char * s1, const char * s2, int n1, int n2) {
+    int i;
+    if (n1!=n2) {
+        return 0;
+    }
+
+    for (i=0; i<n1; i++) {
+        if (furl_tolower(*s1++) != *s2++) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 MODULE = Furl PACKAGE = Furl
 
 PROTOTYPES: DISABLE
@@ -40,21 +62,20 @@ PPCODE:
             headers_st[i].value,
             headers_st[i].value_len,
             SVs_TEMP );
-        /* TODO:strncasecmp is not portable */
-        if (strncasecmp(name, "Content-Length", name_len) == 0) {
+        if (HEADER_CMP_WRAPPER(name, "content-length", name_len)) {
             content_length = SvIV(valuesv);
             /* TODO: more strict check using grok_number() */
             if (content_length == IV_MIN || content_length == IV_MAX) {
                 croak("overflow or undeflow is found in Content-Length"
                     "(%"SVf")", valuesv);
             }
-        } else if (strncasecmp(name, "Connection", name_len) == 0) {
+        } else if (HEADER_CMP_WRAPPER(name, "connection", name_len)) {
             connection = valuesv;
-        } else if (strncasecmp(name, "Location", name_len) == 0) {
+        } else if (HEADER_CMP_WRAPPER(name, "location", name_len)) {
             location = valuesv;
-        } else if (strncasecmp(name, "Transfer-Encoding", name_len) == 0) {
+        } else if (HEADER_CMP_WRAPPER(name, "transfer-encoding", name_len)) {
             transfer_encoding = valuesv;
-        } else if (strncasecmp(name, "Content-Encoding", name_len) == 0) {
+        } else if (HEADER_CMP_WRAPPER(name, "content-encoding", name_len)) {
             content_encoding = valuesv;
         }
         av_push(headers, SvREFCNT_inc_simple_NN(namesv));
