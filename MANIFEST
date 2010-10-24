@@ -57,4 +57,5 @@ xt/01_podspell.t
 xt/02_perlcritic.t
 xt/03_pod.t
 xt/04_leaktrace.t
+xt/05_valgrind.t
 xt/perlcriticrc
