@@ -381,7 +381,7 @@ sub request {
         $res_content = '';
     }
 
-    if (exists $CONTENT_COMPRESSED{ $res_content_encoding }) {
+    if (exists $COMPRESSED{ $res_content_encoding }) {
         Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
 
         my $inflated        = '';
