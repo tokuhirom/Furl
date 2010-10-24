@@ -57,6 +57,8 @@ _%args_ might be:
 
 - proxy :Str
 
+- headers :ArrayRef
+
 ## Instance Methods
 
 ### C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
@@ -102,6 +104,10 @@ This is an easy-to-use alias to `request()`.
 
 This is an easy-to-use alias to `request()`.
 
+### C<< $furl->request_with_http_request($req :HTTP::Request) :List >>
+
+This is an easy-to-use alias to `request()`.
+
 ### C<< $furl->env_proxy() >>
 
 Loads proxy settings from `$ENV{HTTP_PROXY}`.
@@ -109,7 +115,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}`.
 # INTEGRATE WITH HTTP::Response
 
 Some useful libraries require HTTP::Response instances for their arguments.
-You can easily create its instance from the result of `request()` and `get()`.
+You can easily create its instance from the result of `request()` and other HTTP reqeust methods.
 
     my $res = HTTP::Response->new($furl->get($url));
 
@@ -147,7 +153,15 @@ use [Tie::Handle](http://search.cpan.org/perldoc?Tie::Handle). If you have any r
 
 - How to use cookie_jar?
 
-Furl does not support cookie_jar. You can create Furl wrapper to support cookie_jar.
+Furl does not support cookie_jar. You can use [HTTP::Cookies](http://search.cpan.org/perldoc?HTTP::Cookies), [HTTP::Request](http://search.cpan.org/perldoc?HTTP::Request), [HTTP::Response](http://search.cpan.org/perldoc?HTTP::Response) like following.
+
+    my $f = Furl->new();
+    my $cookies = HTTP::Cookies->new();
+    my $req = HTTP::Request->new(...);
+    $cookies->add_cookie_header($req);
+    my $res = HTTP::Response->new($f->request_with_http_request($req));
+    $cookies->extract_cookies($res);
+    # and use $res.
 
 - How to use gzip/deflate compressed communication?
 
@@ -161,7 +175,6 @@ Before First Release
 
 After First Release
 
-    - cookbook for how to use cookie_jar with HTTP::Cookies
     - AnyEvent::Furl?
     - change the parser_http_response args. and backport to HTTP::Response::Parser.
         my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
@@ -179,7 +192,7 @@ This feature requires Net::IDN::Encode.
 
 This feature requires IO::Socket::SSL.
 
-## Content-Encoding(deflate, gzip)
+## Content-Encoding (deflate, gzip)
 
 This feature requires Compress::Raw::Zlib.
 
