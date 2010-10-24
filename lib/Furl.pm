@@ -60,26 +60,6 @@ sub Furl::Util::header_get {
     return undef;
 }
 
-sub Furl::Util::uri_escape {
-    my($s) = @_;
-    utf8::encode($s);
-    # escape unsafe chars (defined by RFC 3986)
-    $s =~ s/ ([^A-Za-z0-9\-\._~]) / sprintf '%%%02X', ord $1 /xmsge;
-    return $s;
-}
-
-sub Furl::Util::make_x_www_form_urlencoded {
-    my($content) = @_;
-    my @params;
-    my @p = ref($content) eq 'HASH'  ? %{$content}
-          : ref($content) eq 'ARRAY' ? @{$content}
-          : Carp::croak("Cannot coerce $content to x-www-form-urlencoded");
-    while ( my ( $k, $v ) = splice @p, 0, 2 ) {
-        push @params,
-            Furl::Util::uri_escape($k) . '=' . Furl::Util::uri_escape($v);
-    }
-    return join( "&", @params );
-}
 
 sub Furl::Util::requires {
     my($file, $feature) = @_;
@@ -136,6 +116,23 @@ sub _parse_url {
         (?: (/ .*)  )? # path_query
     \z}xms or Carp::croak("Passed malformed URL: $url");
     return( $1, $2, $3, $4 );
+}
+
+sub make_x_www_form_urlencoded {
+    my($self, $content) = @_;
+    my @params;
+    my @p = ref($content) eq 'HASH'  ? %{$content}
+          : ref($content) eq 'ARRAY' ? @{$content}
+          : Carp::croak("Cannot coerce $content to x-www-form-urlencoded");
+    while ( my ( $k, $v ) = splice @p, 0, 2 ) {
+        foreach my $s($k, $v) {
+            utf8::downgrade($s); # will die in wide characters
+            # escape unsafe chars (defined by RFC 3986)
+            $s =~ s/ ([^A-Za-z0-9\-\._~]) / sprintf '%%%02X', ord $1 /xmsge;
+        }
+        push @params, "$k=$v";
+    }
+    return join( "&", @params );
 }
 
 sub env_proxy {
@@ -246,13 +243,15 @@ sub request {
         }
     }
 
+    my $buf;
+
     # write request
     my $method = $args{method} || 'GET';
     {
         if($self->{proxy}) {
             $path_query = "$scheme://$host:$port$path_query";
         }
-        my $p = "$method $path_query HTTP/1.1\015\012"
+        my $buf = "$method $path_query HTTP/1.1\015\012"
               . "Host: $host:$port\015\012";
 
         my @headers = @{$self->{headers}};
@@ -265,7 +264,7 @@ sub request {
         if(defined $content) {
             $content_is_fh = Scalar::Util::openhandle($content);
             if(!$content_is_fh && ref $content) {
-                $content = Furl::Util::make_x_www_form_urlencoded($content);
+                $content = $self->make_x_www_form_urlencoded($content);
                 if(!defined Furl::Util::header_get(\@headers, 'Content-Type')) {
                     push @headers, 'Content-Type'
                         => 'application/x-www-form-urlencoded';
@@ -297,11 +296,11 @@ sub request {
             my $val = $headers[ $i + 1 ];
             # the de facto standard way to handle [\015\012](by kazuho-san)
             $val =~ s/[\015\012]/ /g;
-            $p .= $headers[$i] . ": $val\015\012";
+            $buf .= $headers[$i] . ": $val\015\012";
         }
-        $p .= "\015\012";
-        ### $p
-        $self->write_all($sock, $p, $timeout)
+        $buf .= "\015\012";
+
+        $self->write_all($sock, $buf, $timeout)
             or return $self->_r500("Failed to send HTTP request: $!");
         if (defined $content) {
             if ($content_is_fh) {
@@ -324,12 +323,11 @@ sub request {
     }
 
     # read response
-    my $buf = '';
+    $buf = ''; # for reading buffer
     my $last_len = 0;
     my $res_status;
     my $res_msg;
     my $res_headers;
-    my $res_content;
     my $res_connection;
     my $res_minor_version;
     my $res_content_length;
@@ -366,26 +364,27 @@ sub request {
         }
     }
 
+    # $buf for the response content
     if (my $fh = $args{write_file}) {
-        $res_content = Furl::PartialWriter->new(
+        $buf = Furl::PartialWriter->new(
             append => sub { print $fh @_ },
         );
     } elsif (my $coderef = $args{write_code}) {
-        $res_content = Furl::PartialWriter->new(
+        $buf = Furl::PartialWriter->new(
             append => sub {
                 $coderef->($res_status, $res_msg, $res_headers, @_);
             },
         );
     }
     else {
-        $res_content = '';
+        $buf = '';
     }
 
     if (exists $COMPRESSED{ $res_content_encoding }) {
         Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
 
         my $inflated        = '';
-        my $old_res_content = $res_content;
+        my $old_res_content = $buf;
         my $assert_z_ok     = sub {
             $_[0] == Compress::Raw::Zlib::Z_OK()
                 or Carp::croak("Uncompressing error: $_[0]");
@@ -394,7 +393,7 @@ sub request {
             -WindowBits => Compress::Raw::Zlib::WANT_GZIP_OR_ZLIB(),
         );
         $assert_z_ok->($status);
-        $res_content = Furl::PartialWriter->new(
+        $buf = Furl::PartialWriter->new(
             append => sub {
                 $assert_z_ok->( $z->inflate($_[0], \my $deflated) );
                 $old_res_content .= $deflated;
@@ -410,11 +409,11 @@ sub request {
     my @err;
     if ($res_transfer_encoding eq 'chunked') {
         @err = $self->_read_body_chunked($sock,
-            $rest_header, $timeout, \$res_content);
+            $rest_header, $timeout, \$buf);
     } else {
-        $res_content .= $rest_header;
+        $buf .= $rest_header;
         @err = $self->_read_body_normal($sock,
-            \$res_content, length($rest_header), $res_content_length, $timeout);
+            \$buf, length($rest_header), $res_content_length, $timeout);
     }
     if(@err) {
         return @err;
@@ -446,7 +445,7 @@ sub request {
         $self->add_conn_cache($host, $port, $sock);
     }
     return ($res_status, $res_msg, $res_headers,
-            ref($res_content) ? $res_content->finalize() : $res_content);
+            ref($buf) ? $buf->finalize() : $buf);
 }
 
 # connects to $host:$port and returns $socket
@@ -745,9 +744,9 @@ Furl - Lightning-fast URL fetcher
 
 Furl is yet another HTTP client library. LWP is the de facto standard HTTP
 client for Perl5, but it is too slow for some critical jobs, and too complex
-for weekend hacking. Furl will resolves these issues. Enjoy it!
+for weekend hacking. Furl resolves these issues. Enjoy it!
 
-This library is an B<alpha> software. Any APIs will change without notice.
+This library is an B<alpha> software. Any API may change without notice.
 
 =head1 INTERFACE
 
@@ -802,6 +801,9 @@ You can use C<url> instead of C<scheme>, C<host>, C<port> and C<path_query>.
 
 =back
 
+You must encode all the queries or this method will die, saying
+C<Wide character in ...>.
+
 =head3 C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
 
 This is an easy-to-use alias to C<request()>.
@@ -845,20 +847,26 @@ You can easily create its instance from the result of C<request()> and other HTT
 
 Net::SSL is not well documented.
 
-=item Why env_proxy is optional?
+=item Why is env_proxy optional?
 
-Environment variables are highly dependent on users' environments.
-It makes confusing users.
+Environment variables are highly dependent on each users' environment,
+and we think it may confuse users when something doesn't go right.
 
-=item Supported Operating Systems.
+=item What operating systems are supported?
 
 Linux 2.6 or higher, OSX Tiger or higher, Windows XP or higher.
 
 And we can support other operating systems if you send a patch.
 
-=item Why Furl does not support chunked upload?
+=item Why doesn't Furl support chunked upload?
 
-There are reasons why chunked POST/PUTs should not be generally used.  You cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.  However HTTP/1.1 servers disconnect their persistent connection quite quickly (when comparing to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.  The two facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is of high priority.
+There are reasons why chunked POST/PUTs should not be used in general.
+
+First, uou cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.
+
+Second, HTTP/1.1 servers disconnect their persistent connection quite quickly (compared to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.
+
+These facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is NOT of high priority.
 
 =back
 
@@ -866,7 +874,7 @@ There are reasons why chunked POST/PUTs should not be generally used.  You canno
 
 =over 4
 
-=item How to make content body by CodeRef?
+=item How do you build the response content as it arrives?
 
 You can use L<IO::Callback> for this purpose.
 
@@ -881,9 +889,9 @@ You can use L<IO::Callback> for this purpose.
       $furl->put( "http://127.0.0.1:$port/", [ 'Content-Length' => $len ], $fh,
       );
 
-=item How to use cookie_jar?
+=item How do you use cookie_jar?
 
-Furl does not support cookie_jar. You can use L<HTTP::Cookies>, L<HTTP::Request>, L<HTTP::Response> like following.
+Furl does not directly support the cookie_jar option available in LWP. You can use L<HTTP::Cookies>, L<HTTP::Request>, L<HTTP::Response> like following.
 
     my $f = Furl->new();
     my $cookies = HTTP::Cookies->new();
@@ -893,7 +901,7 @@ Furl does not support cookie_jar. You can use L<HTTP::Cookies>, L<HTTP::Request>
     $cookies->extract_cookies($res);
     # and use $res.
 
-=item How to use gzip/deflate compressed communication?
+=item How do you use gzip/deflate compressed communication?
 
 Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently according to the B<Content-Encoding> response header.
 
