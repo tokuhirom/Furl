@@ -618,8 +618,8 @@ sub do_select {
         }
         my $start_at = time;
         my $nfound   = select($rfd, $wfd, $efd, $timeout);
-        $timeout    -= (time - $start_at);
         return 1 if $nfound;
+        $timeout    -= (time - $start_at);
         return 0 if $timeout <= 0;
     }
     die 'not reached';
