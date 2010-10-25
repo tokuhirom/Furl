@@ -1,0 +1,24 @@
+### On tokuhirom's SC440
+
+0.01 3534c7b341136a18bd52449af6e28570ca87a36f
+
+       Rate  lwp furl curl
+       lwp   792/s   -- -88% -90%
+       furl 6461/s 715%   -- -15%
+       curl 7587/s 857%  17%   --
+
+0.02 fbb922531d3236b2da84acd0c22f554e61060446
+
+                Rate       lwp http_lite      furl      curl
+                lwp        823/s        --       -8%      -74%      -89%
+                http_lite  896/s        9%        --      -72%      -88%
+                furl      3170/s      285%      254%        --      -59%
+                curl      7657/s      831%      754%      142%        --
+
+25998b62ae12445ae0a8bdd5329ffe8f9bd71dd2
+
+            Rate       lwp http_lite      furl      curl
+            lwp        792/s        --      -25%      -76%      -91%
+            http_lite 1056/s       33%        --      -68%      -88%
+            furl      3326/s      320%      215%        --      -62%
+            curl      8783/s     1010%      732%      164%        --
