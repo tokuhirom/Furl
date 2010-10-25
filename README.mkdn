@@ -210,6 +210,7 @@ After First Release
 
         my ($content, $content_length, $boundary) = Furl::Util::make_multipart_form_data(
             type => 'coderef',
+            buffer_size => 10*1024,
             parameters => [
                 name => 'foo',
                 init => ['/etc/passwd'],
