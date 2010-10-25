@@ -933,6 +933,18 @@ You can use multipart/form-data with L<HTTP::Request::Common>.
 
 Native multipart/form-data support for L<Furl> is available if you can send a patch for me.
 
+=item How to handle Keep-Alive and HEAD method.
+
+RFC 2616 section 9.4 says
+
+    The HEAD method is identical to GET except that the server MUST NOT return a message-body in the response.
+
+But, a lot of httpd returns content-body when client using HEAD method. It breaks Keep-Alive.
+
+And, HEAD is not useful now a days. Please use GET + If-Modified-Since instead.
+
+L<Furl> closes socket after use HEAD method automatically.
+
 =back
 
 =head1 TODO
