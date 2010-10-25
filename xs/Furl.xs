@@ -1,3 +1,5 @@
+#define NEED_newSVpvn_flags
+#define NEED_sv_2pv_flags
 #include "xshelper.h"
 #include <string.h>
 #include "picohttpparser/picohttpparser.h"
