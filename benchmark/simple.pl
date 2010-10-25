@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Benchmark ':all';
 use LWP::UserAgent;
-use WWW::Curl::Easy;
+use WWW::Curl::Easy 4.14;
 use HTTP::Lite;
 use Furl;
 
