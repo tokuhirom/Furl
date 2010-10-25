@@ -70,6 +70,12 @@ PPCODE:
     mPUSHi(ret);
     for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
+        if (!name) { /* NULL if multiline header value */
+                /* current implementation just ignore multiline header value. */
+                /* TODO: better implementation is required. But it's not my job. */
+                continue;
+        }
+
         size_t const      name_len = headers_st[i].name_len;
         SV* const         namesv   = furl_newSVpvn_lc(aTHX_ name, name_len);
         SV* const         valuesv  = newSVpvn_flags(
