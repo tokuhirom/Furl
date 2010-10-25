@@ -324,16 +324,18 @@ sub request {
     # read response
     my $buf = '';
     my $last_len = 0;
+    my $rest_header;
+    my $res_minor_version;
     my $res_status;
     my $res_msg;
     my $res_headers;
-    my $res_connection;
-    my $res_minor_version;
-    my $res_content_length;
-    my $res_transfer_encoding;
-    my $res_content_encoding;
-    my $res_location;
-    my $rest_header;
+    my %res = (
+        'connection'        => '',
+        'transfer-encoding' => '',
+        'content-encoding'  => '',
+        'location'          => '',
+        'content-length'    => undef,
+    );
   LOOP: while (1) {
         my $n = $self->read_timeout($sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
@@ -345,18 +347,9 @@ sub request {
             );
         }
         else {
-            ( $res_minor_version, $res_status, $res_msg, $res_headers, my $ret,
-                $res_content_length,
-                $res_connection,
-                $res_location,
-                $res_transfer_encoding,
-                $res_content_encoding ) =
-              parse_http_response( $buf, $last_len,
-                qw/Content-Length
-                   Connection
-                   Location
-                   Transfer-Encoding
-                   Content-Encoding/);
+            my $ret;
+            ( $res_minor_version, $res_status, $res_msg, $res_headers, $ret )
+                =  parse_http_response( $buf, $last_len, \%res );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
             }
@@ -389,7 +382,7 @@ sub request {
         $res_content = '';
     }
 
-    if (exists $COMPRESSED{ $res_content_encoding || '' }) {
+    if (exists $COMPRESSED{ $res{'content-encoding'} }) {
         Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
 
         my $old_res_content = $res_content;
@@ -415,20 +408,20 @@ sub request {
     }
 
     my @err;
-    if ($res_transfer_encoding && $res_transfer_encoding eq 'chunked') {
+    if ( $res{'transfer-encoding'} eq 'chunked' ) {
         @err = $self->_read_body_chunked($sock,
             \$res_content, $rest_header, $timeout);
     } else {
         $res_content .= $rest_header;
         @err = $self->_read_body_normal($sock,
-            \$res_content, length($rest_header), $res_content_length, $timeout);
+            \$res_content, length($rest_header), $res{'content-length'}, $timeout);
     }
     if(@err) {
         return @err;
     }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
-    if ($res_location && $max_redirects && $res_status =~ /^30[123]$/) {
+    if ($res{location} && $max_redirects && $res_status =~ /^30[123]$/) {
         # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
         # to change the method on the redirected request.  However, most
         # existing user agent implementations treat 302 as if it were a 303
@@ -439,15 +432,15 @@ sub request {
         return $self->request(
             @_,
             method        => $res_status eq '301' ? $method : 'GET',
-            url           => $res_location,
+            url           => $res{location},
             max_redirects => $max_redirects - 1,
         );
     }
 
     # manage cache
-    if (!defined($res_content_length)
+    if (!defined($res{content_length})
             || $res_minor_version == 0
-            || ($res_connection && lc($res_connection) eq 'close') ) {
+            || lc($res{connection}) eq 'close' ) {
         $self->remove_conn_cache($host, $port);
     } else {
         $self->add_conn_cache($host, $port, $sock);

@@ -10,18 +10,16 @@ char furl_tolower(char c) {
 }
 
 STATIC_INLINE
-int furl_header_cmp(const char * s1, const char * s2, int n1, int n2) {
-    int i;
-    if (n1!=n2) {
-        return 0;
+SV* furl_newSVpvn_lc(aTHX_ const char* const pv, STRLEN const len) {
+    SV* const sv = sv_2mortal(newSV(len));
+    STRLEN i;
+    for(i = 0; i < len; i++) {
+        SvPVX_mutable(sv)[i] = furl_tolower(pv[i]);
     }
-
-    for (i=0; i<n1; i++) {
-        if (furl_tolower(*s1++) != furl_tolower(*s2++)) {
-            return 0;
-        }
-    }
-    return 1;
+    SvPOK_on(sv);
+    SvCUR_set(sv, len);
+    *SvEND(sv) = '\0';
+    return sv;
 }
 
 MODULE = Furl PACKAGE = Furl
@@ -29,7 +27,7 @@ MODULE = Furl PACKAGE = Furl
 PROTOTYPES: DISABLE
 
 void
-parse_http_response(SV *buffer_sv, int last_len, ...)
+parse_http_response(SV *buffer_sv, int last_len, HV* special_headers)
 PPCODE:
 {
     STRLEN len;
@@ -45,36 +43,30 @@ PPCODE:
         &status,
         &msg, &msg_len,
         headers_st, &num_headers, last_len);
-    AV* const headers         = newAV_mortal();
-    AV* const special_headers = newAV_mortal();
+    AV* const headers = newAV_mortal();
     size_t i;
     av_extend(headers, (num_headers - 1) * 2);
-    av_extend(special_headers, items-2);
     for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
         size_t const      name_len = headers_st[i].name_len;
-        SV* const         namesv   = newSVpvn_flags(name, name_len, SVs_TEMP);
+        SV* const         namesv   = furl_newSVpvn_lc(aTHX_ name, name_len);
         SV* const         valuesv  = newSVpvn_flags(
             headers_st[i].value,
             headers_st[i].value_len,
             SVs_TEMP );
-        int j;
+        HE* he;
 
         av_push(headers, SvREFCNT_inc_simple_NN(namesv));
         av_push(headers, SvREFCNT_inc_simple_NN(valuesv));
 
-        /* linear search for special headers */
-        for (j=2; j<items; j++) {
-            STRLEN key_len;
-            const char *const key = SvPV_const(ST(j), key_len);
-            if (furl_header_cmp(name, key, name_len, key_len)) {
-                av_store(special_headers, j-2, SvREFCNT_inc_simple_NN(valuesv));
-                break;
-            }
+        he = hv_fetch_ent(special_headers, namesv, FALSE, 0U);
+        if(he) {
+            SV* const placeholder = hv_iterval(special_headers, he);
+            sv_setsv_mg(placeholder, valuesv);
         }
     }
 
-    EXTEND(SP, 5 + (items-2));
+    EXTEND(SP, 5);
     mPUSHi(minor_version);
     mPUSHi(status);
     mPUSHp(msg, msg_len);
@@ -83,8 +75,4 @@ PPCODE:
      * -2 if request is partial,
      * -1 if failed. */
     mPUSHi(ret);
-    /* special headers are returned as a list */
-    for (i=0; i<(size_t)items-2; i++) {
-        PUSHs( AvARRAY(special_headers)[i] );
-    }
 }
