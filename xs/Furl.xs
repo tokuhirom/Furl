@@ -10,7 +10,8 @@ char furl_tolower(char c) {
 }
 
 STATIC_INLINE
-SV* furl_newSVpvn_lc(aTHX_ const char* const pv, STRLEN const len) {
+SV* furl_newSVpvn_lc(const char* const pv, STRLEN const len) {
+    dTHX;
     SV* const sv  = sv_2mortal(newSV(len));
     char* const d = SvPVX_mutable(sv);
     STRLEN i;
