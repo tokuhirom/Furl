@@ -22,7 +22,7 @@ use Errno ();
     eval {
         $furl->get('http://./');
     };
-    like $@, qr/cannot resolve host name/i, 'missuse';
+    like $@, qr/(cannot resolve host name|cannot connect to)/i, 'missuse';
 
     foreach my $bad_url(qw(
         hogehoge
