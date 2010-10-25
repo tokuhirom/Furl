@@ -3,8 +3,6 @@
 #include "picohttpparser/picohttpparser.h"
 #include "picohttpparser/picohttpparser.c"
 
-#define HEADER_CMP_WRAPPER(s1, s2, n1) furl_header_cmp(s1, s2, n1, sizeof(s2)-1)
-
 /* I don't want to use tolower(3) since HTTP parser should not mention the locale. */
 STATIC_INLINE
 char furl_tolower(char c) {
