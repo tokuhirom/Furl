@@ -43,9 +43,17 @@ PPCODE:
         &status,
         &msg, &msg_len,
         headers_st, &num_headers, last_len);
-    AV* const headers = newAV_mortal();
     size_t i;
-    av_extend(headers, (num_headers - 1) * 2);
+
+    /* NOTE: ret is the number of bytes cosumed if successful,
+     * -2 if request is partial,
+     * -1 if failed. */
+
+    EXTEND(SP, 4);
+    mPUSHi(minor_version);
+    mPUSHi(status);
+    mPUSHp(msg, msg_len);
+    mPUSHi(ret);
     for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
         size_t const      name_len = headers_st[i].name_len;
@@ -56,23 +64,14 @@ PPCODE:
             SVs_TEMP );
         HE* he;
 
-        av_push(headers, SvREFCNT_inc_simple_NN(namesv));
-        av_push(headers, SvREFCNT_inc_simple_NN(valuesv));
+        EXTEND(SP, 2);
+        PUSHs(namesv);
+        PUSHs(valuesv);
 
         he = hv_fetch_ent(special_headers, namesv, FALSE, 0U);
         if(he) {
             SV* const placeholder = hv_iterval(special_headers, he);
-            sv_setsv_mg(placeholder, valuesv);
+            SvSetMagicSV_nosteal(placeholder, valuesv);
         }
     }
-
-    EXTEND(SP, 5);
-    mPUSHi(minor_version);
-    mPUSHi(status);
-    mPUSHp(msg, msg_len);
-    mPUSHs(newRV_inc((SV*)headers));
-    /* ret is the number of bytes cosumed if successful,
-     * -2 if request is partial,
-     * -1 if failed. */
-    mPUSHi(ret);
 }

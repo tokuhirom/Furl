@@ -328,7 +328,7 @@ sub request {
     my $res_minor_version;
     my $res_status;
     my $res_msg;
-    my $res_headers;
+    my @res_headers;
     my %res = (
         'connection'        => '',
         'transfer-encoding' => '',
@@ -348,7 +348,7 @@ sub request {
         }
         else {
             my $ret;
-            ( $res_minor_version, $res_status, $res_msg, $res_headers, $ret )
+            ( $res_minor_version, $res_status, $res_msg, $ret, @res_headers )
                 =  parse_http_response( $buf, $last_len, \%res );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
@@ -374,7 +374,7 @@ sub request {
     } elsif (my $coderef = $args{write_code}) {
         $res_content = Furl::PartialWriter->new(
             append => sub {
-                $coderef->($res_status, $res_msg, $res_headers, @_);
+                $coderef->($res_status, $res_msg, \@res_headers, @_);
             },
         );
     }
@@ -445,7 +445,7 @@ sub request {
     } else {
         $self->add_conn_cache($host, $port, $sock);
     }
-    return ($res_status, $res_msg, $res_headers,
+    return ($res_status, $res_msg, \@res_headers,
             ref($res_content) ? $res_content->finalize() : $res_content);
 }
 

@@ -3,7 +3,14 @@ use warnings;
 use Test::More;
 use Furl;
 
-my ($minor_version, $status, $msg, $headers, $ret, $content_length, $connection, $location, $transfer_encoding, $content_encoding, ) = Furl::parse_http_response(
+my %res = (
+    'content-length'    => undef,
+    'connection'        => '',
+    'location'          => '',
+    'transfer-encoding' => '',
+    'content-encoding'  => '',
+);
+my ($minor_version, $status, $msg, $ret, @headers) = Furl::parse_http_response(
     join( '',
         "HTTP/1.0 200 OK\015\012",
         "Content-Length: 1234\015\012",
@@ -11,25 +18,24 @@ my ($minor_version, $status, $msg, $headers, $ret, $content_length, $connection,
         "Location: http://mixi.jp/\015\012",
         "Transfer-Encoding: chunked\015\012",
         "Content-Encoding: gzip\015\012",
-        "X-Foo: bar\015\012",
-        "\015\012" ), 0, qw/Content-Length Connection Location Transfer-Encoding Content-Encoding/
-  );
+        "X-Foo: Bar\015\012",
+        "\015\012" ), 0, \%res);
 is $minor_version, 0;
 is $status, '200';
 is $msg, 'OK';
-is $content_length, 1234;
-is $connection, 'close';
-is $location, 'http://mixi.jp/';
-is $transfer_encoding, 'chunked';
-is $content_encoding, 'gzip';
-is_deeply $headers,
+is $res{'content-length'}, 1234;
+is $res{'connection'}, 'close';
+is $res{'location'}, 'http://mixi.jp/';
+is $res{'transfer-encoding'}, 'chunked';
+is $res{'content-encoding'}, 'gzip';
+is_deeply \@headers,
   [
-    'Content-Length',    1234,
-    'Connection',        'close',
-    'Location',          'http://mixi.jp/',
-    'Transfer-Encoding', 'chunked',
-    'Content-Encoding',  'gzip',
-    'X-Foo',             'bar'
+    'content-length',    1234,
+    'connection',        'close',
+    'location',          'http://mixi.jp/',
+    'transfer-encoding', 'chunked',
+    'content-encoding',  'gzip',
+    'x-foo',             'Bar'
   ];
 cmp_ok $ret,'>',0;
 
