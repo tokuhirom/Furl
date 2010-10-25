@@ -38,8 +38,8 @@ cmpthese(
                 push @headers, @_;
                 length($_[0]);
             });
-            open my $fh, '>', \my $content;
-            $curl->setopt(CURLOPT_WRITEDATA, $fh);
+            my $content = '';
+            $curl->setopt(CURLOPT_WRITEDATA, \$content);
             my $ret = $curl->perform();
             $ret == 0 or die "$ret : " . $curl->strerror($ret);
             my $code = $curl->getinfo(CURLINFO_HTTP_CODE);
