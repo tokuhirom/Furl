@@ -2,9 +2,8 @@ package Furl;
 use strict;
 use warnings;
 use 5.008;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
-#use Smart::Comments;
 use Carp ();
 use XSLoader;
 
@@ -298,7 +297,6 @@ sub request {
             $p .= $headers[$i] . ": $val\015\012";
         }
         $p .= "\015\012";
-        ### $p
         $self->write_all($sock, $p, $timeout)
             or return $self->_r500("Failed to send HTTP request: $!");
         if (defined $content) {
@@ -912,6 +910,26 @@ Furl does not directly support the cookie_jar option available in LWP. You can u
 
 Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently according to the B<Content-Encoding> response header.
 
+=item How do you use mutipart/form-data?
+
+You can use multipart/form-data with L<HTTP::Request::Common>.
+
+    use HTTP::Request::Common;
+
+    my $furl = Furl->new();
+    $req = POST 'http://www.perl.org/survey.cgi',
+      Content_Type => 'form-data',
+      Content      => [
+        name   => 'Hiromu Tokunaga',
+        email  => 'tokuhirom@example.com',
+        gender => 'F',
+        born   => '1978',
+        init   => ["$ENV{HOME}/.profile"],
+      ];
+    $furl->request_with_http_request($req);
+
+Native multipart/form-data support for L<Furl> is available if you can send a patch for me.
+
 =back
 
 =head1 TODO
@@ -925,33 +943,6 @@ After First Release
     - AnyEvent::Furl?
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
-    - multipart/form-data support
-
-        my ($content, $content_length, $boundary) = Furl::Util::make_multipart_form_data(
-            parameters => [
-                name => 'foo',
-                init => ['/etc/passwd'],
-            ],
-        );
-
-        my ($content, $content_length, $boundary) = Furl::Util::make_multipart_form_data(
-            type => 'coderef',
-            buffer_size => 10*1024,
-            parameters => [
-                name => 'foo',
-                init => ['/etc/passwd'],
-            ],
-        );
-        $content = IO::Callback->new('<', $content);
-        Furl->new()->put(
-            $url,
-            [
-                'Content-Length' => $content_length,
-                "Content-Type" => qq{multipart/form-data; boundary="$boundary"}
-            ],
-            $content
-        );
-
     - ipv6 support
 
 =head1 OPTIONAL FEATURES
