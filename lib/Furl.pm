@@ -405,17 +405,20 @@ sub request {
         );
     }
 
-    my @err;
-    if ( $res{'transfer-encoding'} eq 'chunked' ) {
-        @err = $self->_read_body_chunked($sock,
-            \$res_content, $rest_header, $timeout);
-    } else {
-        $res_content .= $rest_header;
-        @err = $self->_read_body_normal($sock,
-            \$res_content, length($rest_header), $res{'content-length'}, $timeout);
-    }
-    if(@err) {
-        return @err;
+    if($method ne 'HEAD') {
+        my @err;
+        if ( $res{'transfer-encoding'} eq 'chunked' ) {
+            @err = $self->_read_body_chunked($sock,
+                \$res_content, $rest_header, $timeout);
+        } else {
+            $res_content .= $rest_header;
+            @err = $self->_read_body_normal($sock,
+                \$res_content, length($rest_header),
+                $res{'content-length'}, $timeout);
+        }
+        if(@err) {
+            return @err;
+        }
     }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
