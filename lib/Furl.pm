@@ -974,6 +974,26 @@ This feature requires IO::Socket::SSL.
 
 This feature requires Compress::Raw::Zlib.
 
+=head1 DEVELOPMENT
+
+To setup your environment:
+
+    $ git clone http://github.com/tokuhirom/p5-Furl.git
+    $ cd p5-Furl
+
+To get picohttpparser:
+
+    $ git submodule init
+    $ git submodule update
+
+    $ perl Makefile.PL
+    $ make 
+    $ sudo make install
+
+=head2 HOW TO CONTRIBUTE
+
+Please send the pull-req on github.com.
+
 =head1 AUTHOR
 
 Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>

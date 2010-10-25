@@ -115,6 +115,12 @@ This is an easy-to-use alias to `request()`.
 
 Loads proxy settings from `$ENV{HTTP_PROXY}`.
 
+## Utilities
+
+### C<< Furl::Util::header_get(\@headers, $name :Str) :Maybe[Str] >>
+
+This is equivalent to `Plack::Util::header_get()`.
+
 # INTEGRATE WITH HTTP::Response
 
 Some useful libraries require HTTP::Response instances for their arguments.
@@ -191,11 +197,34 @@ Before First Release
 After First Release
 
     - AnyEvent::Furl?
-    - change the parser_http_response args. and backport to HTTP::Response::Parser.
-        my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
     - multipart/form-data support
+
+        my ($content, $content_length, $boundary) = Furl::Util::make_multipart_form_data(
+            parameters => [
+                name => 'foo',
+                init => ['/etc/passwd'],
+            ],
+        );
+
+        my ($content, $content_length, $boundary) = Furl::Util::make_multipart_form_data(
+            type => 'coderef',
+            parameters => [
+                name => 'foo',
+                init => ['/etc/passwd'],
+            ],
+        );
+        $content = IO::Callback->new('<', $content);
+        Furl->new()->put(
+            $url,
+            [
+                'Content-Length' => $content_length,
+                "Content-Type" => qq{multipart/form-data; boundary="$boundary"}
+            ],
+            $content
+        );
+
     - ipv6 support
 
 # OPTIONAL FEATURES
@@ -211,6 +240,26 @@ This feature requires IO::Socket::SSL.
 ## Content-Encoding (deflate, gzip)
 
 This feature requires Compress::Raw::Zlib.
+
+# DEVELOPMENT
+
+To setup your environment:
+
+    $ git clone http://github.com/tokuhirom/p5-Furl.git
+    $ cd p5-Furl
+
+To get picohttpparser:
+
+    $ git submodule init
+    $ git submodule update
+
+    $ perl Makefile.PL
+    $ make 
+    $ sudo make install
+
+## HOW TO CONTRIBUTE
+
+Please send the pull-req on github.com.
 
 # AUTHOR
 
