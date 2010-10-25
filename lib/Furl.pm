@@ -48,6 +48,7 @@ sub new {
         bufsize       => 10*1024, # no mmap
         headers       => \@headers,
         proxy         => '',
+        sock_cache    => $class->new_conn_cache(),
         %args
     }, $class;
 }
@@ -503,11 +504,15 @@ sub connect_ssl_over_proxy {
 
 # following three connections are related to connection cache for keep-alive.
 # If you want to change the cache strategy, you can override in child classs.
+sub new_conn_cache {
+    return [''];
+}
+
 sub get_conn_cache {
     my ( $self, $host, $port ) = @_;
 
     my $cache = $self->{sock_cache};
-    if ($cache && $cache->[0] eq "$host:$port") {
+    if ($cache->[0] eq "$host:$port") {
         return $cache->[1];
     } else {
         return undef;
@@ -517,13 +522,15 @@ sub get_conn_cache {
 sub remove_conn_cache {
     my ($self, $host, $port) = @_;
 
-    delete $self->{sock_cache};
+    @{ $self->{sock_cache} } = ('');
+    return;
 }
 
 sub add_conn_cache {
     my ($self, $host, $port, $sock) = @_;
 
-    $self->{sock_cache} = ["$host:$port" => $sock];
+    @{ $self->{sock_cache} } = ("$host:$port" => $sock);
+    return;
 }
 
 sub _read_body_chunked {
