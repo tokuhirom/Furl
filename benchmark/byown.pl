@@ -24,7 +24,7 @@ my $child = Child->new(
     sub {
         Plack::Loader->load( 'Starman', port => $port )
           ->run(
-            sub { exit if $_[0]->{REQUEST_METHOD} eq 'DIE';[ 200, [], ['Hi'] ] } );
+            sub { [ 200, ['Content-Length' => length('Hi')], ['Hi'] ] } );
     }
 );
 my $proc = $child->start();
