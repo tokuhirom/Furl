@@ -64,7 +64,7 @@ PPCODE:
             STRLEN key_len;
             const char *const key = SvPV_const(ST(j), key_len);
             if (furl_header_cmp(name, key, name_len, key_len)) {
-                av_store(special_headers, j-2, valuesv);
+                av_store(special_headers, j-2, SvREFCNT_inc_simple_NN(valuesv));
                 break;
             }
         }
@@ -81,7 +81,7 @@ PPCODE:
     for (i=0; i<(size_t)items-2; i++) {
         SV **s = av_fetch(special_headers, i, 0);
         if (s) {
-            PUSHs(SvREFCNT_inc_simple_NN(*s));
+            mPUSHs(SvREFCNT_inc_simple_NN(*s));
         } else {
             PUSHs(&PL_sv_no);
         }
