@@ -70,19 +70,36 @@ _%args_ might be:
 
 - scheme :Str = "http"
 
+Protocol scheme. May be `http` or `https`.
+
 - host :Str
+
+Server host to connect.
+
+You must specify at least `host` or `url`.
 
 - port :Int = 80
 
+Server port to connect. The default is 80 on `scheme => 'http'`,
+or 443 on `scheme => 'https'`.
+
 - path_query :Str = "/"
 
+Path and query to request.
+
 - url :Str
+
+URL to request.
 
 You can use `url` instead of `scheme`, `host`, `port` and `path_query`.
 
 - headers :ArrayRef
 
+HTTP request headers. e.g. `headers => [ 'Accept-Encoding' => 'gzip' ]`.
+
 - content : Str | ArrayRef[Str] | HashRef[Str] | FileHandle
+
+Content to request.
 
 You must encode all the queries or this method will die, saying
 `Wide character in ...`.
@@ -143,7 +160,7 @@ and we think it may confuse users when something doesn't go right.
 
 Linux 2.6 or higher, OSX Tiger or higher, Windows XP or higher.
 
-And we can support other operating systems if you send a patch.
+And other operating systems will be supported if you send a patch.
 
 - Why doesn't Furl support chunked upload?
 
@@ -208,25 +225,24 @@ You can use multipart/form-data with [HTTP::Request::Common](http://search.cpan.
 
 Native multipart/form-data support for [Furl](http://search.cpan.org/perldoc?Furl) is available if you can send a patch for me.
 
-- How to handle Keep-Alive and HEAD method.
+- How do you use Keep-Alive and what happens on the HEAD method?
 
-RFC 2616 section 9.4 says
+Furl supports HTTP/1.1, hence `Keep-Alive`. However, if you use the HEAD
+method, the connection is closed immediately.
 
-    The HEAD method is identical to GET except that the server MUST NOT return a message-body in the response.
+RFC 2616 section 9.4 says:
 
-But, a lot of httpd returns content-body when client using HEAD method. It breaks Keep-Alive.
+    The HEAD method is identical to GET except that the server MUST NOT
+    return a message-body in the response.
 
-And, HEAD is not useful now a days. Please use GET + If-Modified-Since instead.
+Some web applications, however, returns message bodies on the HEAD method,
+which might confuse `Keep-Alive` processes, so Furl closes connection in
+such cases.
 
-[Furl](http://search.cpan.org/perldoc?Furl) closes socket after use HEAD method automatically.
+Anyway, the HEAD method is not so useful nowadays. The GET method and
+`If-Modified-Sinse` are more suitable to cache HTTP contents.
 
 # TODO
-
-Before First Release
-
-    - Docs, docs, docs!
-
-After First Release
 
     - AnyEvent::Furl?
     - use HTTP::Response::Parser
@@ -260,18 +276,18 @@ To get picohttpparser:
     $ git submodule update
 
     $ perl Makefile.PL
-    $ make 
+    $ make
     $ sudo make install
 
 ## HOW TO CONTRIBUTE
 
-Please send the pull-req on github.com.
+Please send the pull-req via <http://github.com/tokuhirom/p5-Furl/>.
 
 # AUTHOR
 
 Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>
 
-gfx
+Fuji, Goro (gfx)
 
 # THANKS TO
 
@@ -280,6 +296,8 @@ Kazuho Oku
 mala
 
 mattn
+
+lestrrat
 
 # SEE ALSO
 
@@ -291,7 +309,7 @@ HTTP specs:
 
 # LICENSE
 
-Copyright (C) Tokuhiro Matsuno
+Copyright (C) Tokuhiro Matsuno.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
