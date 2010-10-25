@@ -10,7 +10,7 @@ char furl_tolower(char c) {
 }
 
 STATIC_INLINE
-SV* furl_newSVpvn_lc(aTHX_ const char* const pv, STRLEN const len) {
+SV* furl_newSVpvn_lc(pTHX_ const char* const pv, STRLEN const len) {
     SV* const sv  = sv_2mortal(newSV(len));
     char* const d = SvPVX_mutable(sv);
     STRLEN i;
@@ -69,7 +69,7 @@ PPCODE:
     for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
         size_t const      name_len = headers_st[i].name_len;
-        SV* const         namesv   = furl_newSVpvn_lc(name, name_len);
+        SV* const         namesv   = furl_newSVpvn_lc(aTHX_ name, name_len);
         SV* const         valuesv  = newSVpvn_flags(
             headers_st[i].value,
             headers_st[i].value_len,
