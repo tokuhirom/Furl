@@ -10,7 +10,8 @@ my %res = (
     'transfer-encoding' => '',
     'content-encoding'  => '',
 );
-my ($minor_version, $status, $msg, $ret, @headers) = Furl::parse_http_response(
+my @headers;
+my ($minor_version, $status, $msg, $ret) = Furl::parse_http_response(
     join( '',
         "HTTP/1.0 200 OK\015\012",
         "Content-Length: 1234\015\012",
@@ -19,7 +20,7 @@ my ($minor_version, $status, $msg, $ret, @headers) = Furl::parse_http_response(
         "Transfer-Encoding: chunked\015\012",
         "Content-Encoding: gzip\015\012",
         "X-Foo: Bar\015\012",
-        "\015\012" ), 0, \%res);
+        "\015\012" ), 0, \@headers, \%res);
 is $minor_version, 0;
 is $status, '200';
 is $msg, 'OK';

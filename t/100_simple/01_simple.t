@@ -21,7 +21,7 @@ test_tcp(
                 );
             is $code, 200, "request()/$_";
             is $msg, "OK";
-            is Furl::Util::header_get($headers, 'Content-Length'), 4
+            is Furl::Util::header_get($headers, 'Content-Length'), 4, 'header'
                 or diag(explain($headers));
             is $content, '/foo'
                 or do{ require Devel::Peek; Devel::Peek::Dump($content) };
@@ -34,7 +34,7 @@ test_tcp(
             is $code, 200, "get()/$_";
             is $msg, "OK";
             is Furl::Util::header_get($headers, 'Content-Length'),
-                length($path_query);
+                length($path_query), 'header';
             is $content, $path_query;
         }
         done_testing;

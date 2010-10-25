@@ -348,8 +348,8 @@ sub request {
         }
         else {
             my $ret;
-            ( $res_minor_version, $res_status, $res_msg, $ret, @res_headers )
-                =  parse_http_response( $buf, $last_len, \%res );
+            ( $res_minor_version, $res_status, $res_msg, $ret )
+                =  parse_http_response( $buf, $last_len, \@res_headers, \%res );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
             }
