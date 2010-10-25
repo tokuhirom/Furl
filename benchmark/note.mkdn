@@ -22,3 +22,14 @@
             http_lite 1056/s       33%        --      -68%      -88%
             furl      3326/s      320%      215%        --      -62%
             curl      8783/s     1010%      732%      164%        --
+
+496a941ca1fd8cfcc8925c91fab501d516fdfa8e
+
+fixed bug.
+
+            Rate       lwp http_lite      furl      curl
+            lwp        767/s        --      -27%      -88%      -91%
+            http_lite 1046/s       36%        --      -84%      -88%
+            furl      6461/s      742%      518%        --      -26%
+            curl      8783/s     1045%      740%       36%        --
+
