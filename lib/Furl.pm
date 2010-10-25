@@ -345,8 +345,18 @@ sub request {
             );
         }
         else {
-            ( $res_minor_version, $res_status, $res_msg, $res_headers, my $ret, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_content_encoding ) =
-              parse_http_response( $buf, $last_len, qw/Content-Length Connection Location Transfer-Encoding Content-Encoding/);
+            ( $res_minor_version, $res_status, $res_msg, $res_headers, my $ret,
+                $res_content_length,
+                $res_connection,
+                $res_location,
+                $res_transfer_encoding,
+                $res_content_encoding ) =
+              parse_http_response( $buf, $last_len,
+                qw/Content-Length
+                   Connection
+                   Location
+                   Transfer-Encoding
+                   Content-Encoding/);
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
             }
@@ -379,7 +389,7 @@ sub request {
         $res_content = '';
     }
 
-    if (exists $COMPRESSED{ $res_content_encoding }) {
+    if (exists $COMPRESSED{ $res_content_encoding || '' }) {
         Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
 
         my $old_res_content = $res_content;
@@ -405,7 +415,7 @@ sub request {
     }
 
     my @err;
-    if ($res_transfer_encoding eq 'chunked') {
+    if ($res_transfer_encoding && $res_transfer_encoding eq 'chunked') {
         @err = $self->_read_body_chunked($sock,
             \$res_content, $rest_header, $timeout);
     } else {
@@ -437,7 +447,7 @@ sub request {
     # manage cache
     if (!defined($res_content_length)
             || $res_minor_version == 0
-            || lc($res_connection) eq 'close') {
+            || ($res_connection && lc($res_connection) eq 'close') ) {
         $self->remove_conn_cache($host, $port);
     } else {
         $self->add_conn_cache($host, $port, $sock);

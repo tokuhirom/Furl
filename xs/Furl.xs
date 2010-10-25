@@ -45,10 +45,10 @@ PPCODE:
         &status,
         &msg, &msg_len,
         headers_st, &num_headers, last_len);
-    AV* const headers = newAV_mortal();
+    AV* const headers         = newAV_mortal();
+    AV* const special_headers = newAV_mortal();
     size_t i;
     av_extend(headers, (num_headers - 1) * 2);
-    AV * const special_headers = newAV_mortal();
     av_extend(special_headers, items-2);
     for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
@@ -60,6 +60,10 @@ PPCODE:
             SVs_TEMP );
         int j;
 
+        av_push(headers, SvREFCNT_inc_simple_NN(namesv));
+        av_push(headers, SvREFCNT_inc_simple_NN(valuesv));
+
+        /* linear search for special headers */
         for (j=2; j<items; j++) {
             STRLEN key_len;
             const char *const key = SvPV_const(ST(j), key_len);
@@ -68,8 +72,6 @@ PPCODE:
                 break;
             }
         }
-        av_push(headers, SvREFCNT_inc_simple_NN(namesv));
-        av_push(headers, SvREFCNT_inc_simple_NN(valuesv));
     }
 
     EXTEND(SP, 5 + (items-2));
@@ -77,15 +79,12 @@ PPCODE:
     mPUSHi(status);
     mPUSHp(msg, msg_len);
     mPUSHs(newRV_inc((SV*)headers));
+    /* ret is the number of bytes cosumed if successful,
+     * -2 if request is partial,
+     * -1 if failed. */
     mPUSHi(ret);
+    /* special headers are returned as a list */
     for (i=0; i<(size_t)items-2; i++) {
-        SV **s = av_fetch(special_headers, i, 0);
-        if (s) {
-            mPUSHs(SvREFCNT_inc_simple_NN(*s));
-        } else {
-            PUSHs(&PL_sv_no);
-        }
+        PUSHs( AvARRAY(special_headers)[i] );
     }
-    /* returns number of bytes cosumed if successful, -2 if request is partial,
-     * -1 if failed */
 }
