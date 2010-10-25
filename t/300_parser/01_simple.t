@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use Furl;
 
-my ($minor_version, $status, $msg, $content_length, $connection, $location, $transfer_encoding, $content_encoding, $headers, $ret) = Furl::parse_http_response(
+my ($minor_version, $status, $msg, $headers, $ret, $content_length, $connection, $location, $transfer_encoding, $content_encoding, ) = Furl::parse_http_response(
     join( '',
         "HTTP/1.0 200 OK\015\012",
         "Content-Length: 1234\015\012",
@@ -12,7 +12,7 @@ my ($minor_version, $status, $msg, $content_length, $connection, $location, $tra
         "Transfer-Encoding: chunked\015\012",
         "Content-Encoding: gzip\015\012",
         "X-Foo: bar\015\012",
-        "\015\012" ), 0
+        "\015\012" ), 0, qw/Content-Length Connection Location Transfer-Encoding Content-Encoding/
   );
 is $minor_version, 0;
 is $status, '200';

@@ -345,8 +345,8 @@ sub request {
             );
         }
         else {
-            ( $res_minor_version, $res_status, $res_msg, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_content_encoding, $res_headers, my $ret ) =
-              parse_http_response( $buf, $last_len );
+            ( $res_minor_version, $res_status, $res_msg, $res_headers, my $ret, $res_content_length, $res_connection, $res_location, $res_transfer_encoding, $res_content_encoding ) =
+              parse_http_response( $buf, $last_len, qw/Content-Length Connection Location Transfer-Encoding Content-Encoding/);
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
             }
@@ -830,7 +830,7 @@ This is an easy-to-use alias to C<request()>.
 
 Loads proxy settings from C<< $ENV{HTTP_PROXY} >>.
 
-=head2 Utilitis
+=head2 Utilities
 
 =head3 C<< Furl::Util::header_get(\@headers, $name :Str) :Maybe[Str] >>
 
@@ -920,8 +920,6 @@ Before First Release
 After First Release
 
     - AnyEvent::Furl?
-    - change the parser_http_response args. and backport to HTTP::Response::Parser.
-        my($headers, $retcode, ...) = parse_http_response($buf, $last_len, @specific_headers)
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
     - multipart/form-data support

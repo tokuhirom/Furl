@@ -19,7 +19,7 @@ int furl_header_cmp(const char * s1, const char * s2, int n1, int n2) {
     }
 
     for (i=0; i<n1; i++) {
-        if (furl_tolower(*s1++) != *s2++) {
+        if (furl_tolower(*s1++) != furl_tolower(*s2++)) {
             return 0;
         }
     }
@@ -31,7 +31,7 @@ MODULE = Furl PACKAGE = Furl
 PROTOTYPES: DISABLE
 
 void
-parse_http_response(SV *buffer_sv, int last_len)
+parse_http_response(SV *buffer_sv, int last_len, ...)
 PPCODE:
 {
     STRLEN len;
@@ -49,12 +49,9 @@ PPCODE:
         headers_st, &num_headers, last_len);
     AV* const headers = newAV_mortal();
     size_t i;
-    SV * content_length    = &PL_sv_undef;
-    SV * connection        = &PL_sv_no; // as an empty string
-    SV * location          = &PL_sv_no;
-    SV * transfer_encoding = &PL_sv_no;
-    SV * content_encoding  = &PL_sv_no;
     av_extend(headers, (num_headers - 1) * 2);
+    AV * const special_headers = newAV_mortal();
+    av_extend(special_headers, items-2);
     for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
         size_t const      name_len = headers_st[i].name_len;
@@ -63,38 +60,34 @@ PPCODE:
             headers_st[i].value,
             headers_st[i].value_len,
             SVs_TEMP );
-        if (HEADER_CMP_WRAPPER(name, "content-length", name_len)) {
-            IV const clen = SvIV(valuesv);
-            content_length = valuesv;
-            /* TODO: more strict check using grok_number() */
-            if (clen == IV_MIN || clen == IV_MAX) {
-                croak("overflow or undeflow is found in Content-Length"
-                    "(%"SVf")", valuesv);
+        int j;
+
+        for (j=2; j<items; j++) {
+            STRLEN key_len;
+            const char *const key = SvPV_const(ST(j), key_len);
+            if (furl_header_cmp(name, key, name_len, key_len)) {
+                av_store(special_headers, j-2, valuesv);
+                break;
             }
-        } else if (HEADER_CMP_WRAPPER(name, "connection", name_len)) {
-            connection = valuesv;
-        } else if (HEADER_CMP_WRAPPER(name, "location", name_len)) {
-            location = valuesv;
-        } else if (HEADER_CMP_WRAPPER(name, "transfer-encoding", name_len)) {
-            transfer_encoding = valuesv;
-        } else if (HEADER_CMP_WRAPPER(name, "content-encoding", name_len)) {
-            content_encoding = valuesv;
         }
         av_push(headers, SvREFCNT_inc_simple_NN(namesv));
         av_push(headers, SvREFCNT_inc_simple_NN(valuesv));
     }
 
-    EXTEND(SP, 10);
+    EXTEND(SP, 5 + (items-2));
     mPUSHi(minor_version);
     mPUSHi(status);
     mPUSHp(msg, msg_len);
-    PUSHs(content_length);
-    PUSHs(connection);
-    PUSHs(location);
-    PUSHs(transfer_encoding);
-    PUSHs(content_encoding);
     mPUSHs(newRV_inc((SV*)headers));
     mPUSHi(ret);
+    for (i=0; i<(size_t)items-2; i++) {
+        SV **s = av_fetch(special_headers, i, 0);
+        if (s) {
+            PUSHs(SvREFCNT_inc_simple_NN(*s));
+        } else {
+            PUSHs(&PL_sv_no);
+        }
+    }
     /* returns number of bytes cosumed if successful, -2 if request is partial,
      * -1 if failed */
 }
