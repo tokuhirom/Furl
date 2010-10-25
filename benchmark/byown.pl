@@ -3,7 +3,7 @@ use warnings;
 use autodie;
 use Benchmark ':all';
 use LWP::UserAgent;
-use WWW::Curl::Easy;
+use WWW::Curl::Easy 4.14;
 use Furl;
 use Child;
 use Test::TCP qw/empty_port/;
@@ -23,7 +23,7 @@ my $child = Child->new(
     sub {
         Plack::Loader->auto( port => $port )
           ->run(
-            sub { exit if $_[0]->{REQUEST_METHOD} eq 'DIE'; [ 200, [], [] ] } );
+            sub { exit if $_[0]->{REQUEST_METHOD} eq 'DIE';[ 200, [], ['Hi'] ] } );
     }
 );
 my $proc = $child->start();
@@ -43,8 +43,8 @@ cmpthese(
                 push @headers, @_;
                 length($_[0]);
             });
-            open my $fh, '<', \my $content;
-            $curl->setopt(CURLOPT_WRITEDATA, $fh);
+            my $content = '';
+            $curl->setopt(CURLOPT_WRITEDATA, \$content);
             $curl->perform();
             my $code = $curl->getinfo(CURLINFO_HTTP_CODE);
         },
