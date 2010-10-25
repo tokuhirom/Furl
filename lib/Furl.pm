@@ -421,6 +421,10 @@ sub request {
             return @err;
         }
     }
+    else {
+        # HEAD could confuse keep-alive, so we simply close connection.
+        $res{'connection'} = 'close';
+    }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
     if ($res{location} && $max_redirects && $res_status =~ /^30[123]$/) {

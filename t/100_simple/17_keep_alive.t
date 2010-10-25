@@ -9,40 +9,60 @@ use Test::More;
 use Plack::Request;
 use t::SilentStarman;
 
+my($add_conn_cache, $remove_conn_cache) = (0, 0);
+{
+    package Test::Furl;
+    our @ISA = qw(Furl);
+
+    sub add_conn_cache    { $add_conn_cache++ }
+    sub remove_conn_cache { $remove_conn_cache++ }
+}
+
 test_tcp(
-    port => 1119,
     client => sub {
         my $port = shift;
-        my $furl = Furl->new(bufsize => 80);
-        for (1..3) {
+        my $furl = Test::Furl->new();
+        for (1 .. 3) {
             note "-- TEST $_";
             my ( $code, $msg, $headers, $content ) =
             $furl->request(
                 port => $port,
                 path => '/',
                 host => '127.0.0.1',
-                headers => [ "X-Foo" => "ppp" ]
             );
             is $code, 200;
-            is $content, 'OK' x 140;
+            is $content, 'OK' x 100;
         }
+        is $add_conn_cache,    3;
+        is $remove_conn_cache, 0;
+
+        $add_conn_cache    = 0;
+        $remove_conn_cache = 0;
+
+        $furl->request(
+            method => 'HEAD',
+            port => $port,
+            path => '/',
+            host => '127.0.0.1',
+        );
+        is $add_conn_cache,    0, 'HEAD forces to close connections';
+        is $remove_conn_cache, 1;
         done_testing;
     },
     server => sub {
         my $port = shift;
-        Plack::Loader->load( 'Starman',
+        my $starmn = Plack::Loader->load( 'Starman',
             host          => '127.0.0.1',
             port          => $port,
+            log_level     => 0,
             'max-workers' => 1,
         )->run(
             sub {
                 my $env = shift;
-                my $req = Plack::Request->new($env);
-                is $req->header('X-Foo'), "ppp";
                 return [
                     200,
                     [ 'Transfer-Encoding' => 'chunked' ],
-                    [ 'OK'x100, 'OK'x40 ]
+                    [ 'OK'x100 ]
                 ];
             }
           );
