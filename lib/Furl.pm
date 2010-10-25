@@ -4,7 +4,6 @@ use warnings;
 use 5.008;
 our $VERSION = '0.01';
 
-#use Smart::Comments;
 use Carp ();
 use XSLoader;
 
@@ -298,7 +297,6 @@ sub request {
             $p .= $headers[$i] . ": $val\015\012";
         }
         $p .= "\015\012";
-        ### $p
         $self->write_all($sock, $p, $timeout)
             or return $self->_r500("Failed to send HTTP request: $!");
         if (defined $content) {
