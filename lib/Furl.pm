@@ -439,7 +439,7 @@ sub request {
     }
 
     # manage cache
-    if (!defined($res{content_length})
+    if (!defined($res{'content-length'})
             || $res_minor_version == 0
             || lc($res{connection}) eq 'close' ) {
         $self->remove_conn_cache($host, $port);
