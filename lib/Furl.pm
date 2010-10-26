@@ -809,6 +809,8 @@ I<%args> might be:
 
 =item proxy :Str
 
+=item no_proxy :Str
+
 =item headers :ArrayRef
 
 =back
@@ -888,7 +890,7 @@ This is an easy-to-use alias to C<request()>.
 
 =head3 C<< $furl->env_proxy() >>
 
-Loads proxy settings from C<< $ENV{HTTP_PROXY} >>.
+Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
 
 =head2 Utilities
 
@@ -1014,7 +1016,7 @@ C<If-Modified-Sinse> are more suitable to cache HTTP contents.
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
     - ipv6 support
-    - docs for NO_PROXY
+    - better docs for NO_PROXY
 
 =head1 OPTIONAL FEATURES
 
