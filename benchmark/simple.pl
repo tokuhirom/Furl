@@ -7,7 +7,7 @@ use HTTP::Lite;
 use Furl;
 use Config;
 
-printf `git log |head -n 1`;
+printf `git rev-parse HEAD`;
 printf "Perl/%vd on %s\n", $^V, $Config{archname};
 printf "Furl/$Furl::VERSION, LWP/$LWP::VERSION, WWW::Curl/$WWW::Curl::VERSION, HTTP::Lite/$HTTP::Lite::VERSION\n";
 
