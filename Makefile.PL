@@ -11,7 +11,7 @@ cc_src_paths qw(xs);
 cc_warnings;
 
 test_requires 'Test::More' => 0.96; # done_testing, subtest
-test_requires 'Test::TCP';
+test_requires 'Test::TCP' => 1.06;
 test_requires 'Plack' =>  0.9949;
 test_requires 'IO::Socket::INET';
 test_requires 'HTTP::Request';
