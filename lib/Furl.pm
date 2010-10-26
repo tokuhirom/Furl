@@ -208,14 +208,25 @@ sub request {
         $host = Net::IDN::Encode::domain_to_ascii($host);
     }
 
+    my $proxy = $self->{proxy};
+    if ($proxy) {
+        for my $pat (split /,/, lc $ENV{NO_PROXY}) {
+            $pat =~ s!([\\+\.?{}\(\)\[\]^\$\-|/])!\\$1!g;
+            $pat =~ s!\*!.*!;
+            if (uc $host =~ /^$pat$/) {
+                $proxy = '';
+                last;
+            }
+        }
+    }
 
     local $SIG{PIPE} = 'IGNORE';
     my $sock = $self->get_conn_cache($host, $port);
     if(not defined $sock) {
         my ($_host, $_port);
-        if ($self->{proxy}) {
+        if ($proxy) {
             (undef, $_host, $_port, undef)
-                = $self->_parse_url($self->{proxy});
+                = $self->_parse_url($proxy);
         }
         else {
             $_host = $host;
@@ -225,7 +236,7 @@ sub request {
         if ($scheme eq 'http') {
             $sock = $self->connect($_host, $_port);
         } else {
-            $sock = $self->{proxy}
+            $sock = $proxy
                 ? $self->connect_ssl_over_proxy(
                     $_host, $_port, $host, $port, $timeout)
                 : $self->connect_ssl($_host, $_port);
@@ -254,7 +265,7 @@ sub request {
     # write request
     my $method = $args{method} || 'GET';
     {
-        if($self->{proxy}) {
+        if($proxy) {
             $path_query = "$scheme://$host:$port$path_query";
         }
         my $p = "$method $path_query HTTP/1.1\015\012"
