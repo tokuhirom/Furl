@@ -11,7 +11,7 @@ use File::Temp;
 use t::Slowloris;
 
 my $n = 10;
-my $CONTENT = 'OK! YAY!' x 10;
+my $CONTENT = 'OK! YAY!' x 100;
 test_tcp(
     client => sub {
         my $port = shift;
