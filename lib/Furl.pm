@@ -423,21 +423,23 @@ sub request {
         }
     }
 
-    my $max_redirects = $args{max_redirects} || $self->{max_redirects};
-    if ($res{location} && $max_redirects && $res_status =~ /^30[123]$/) {
-        # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
-        # to change the method on the redirected request.  However, most
-        # existing user agent implementations treat 302 as if it were a 303
-        # response, performing a GET on the Location field-value regardless
-        # of the original request method. The status codes 303 and 307 have
-        # been added for servers that wish to make unambiguously clear which
-        # kind of reaction is expected of the client.
-        return $self->request(
-            @_,
-            method        => $res_status eq '301' ? $method : 'GET',
-            url           => $res{location},
-            max_redirects => $max_redirects - 1,
-        );
+    if ($res{location}) {
+        my $max_redirects = $args{max_redirects} || $self->{max_redirects};
+        if ($max_redirects && $res_status =~ /^30[123]$/) {
+            # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
+            # to change the method on the redirected request.  However, most
+            # existing user agent implementations treat 302 as if it were a 303
+            # response, performing a GET on the Location field-value regardless
+            # of the original request method. The status codes 303 and 307 have
+            # been added for servers that wish to make unambiguously clear which
+            # kind of reaction is expected of the client.
+            return $self->request(
+                @_,
+                method        => $res_status eq '301' ? $method : 'GET',
+                url           => $res{location},
+                max_redirects => $max_redirects - 1,
+            );
+        }
     }
 
     # manage cache
