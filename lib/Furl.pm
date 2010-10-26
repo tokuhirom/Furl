@@ -213,12 +213,17 @@ sub request {
     my $proxy = $self->{proxy};
     my $no_proxy = $self->{no_proxy};
     if ($proxy && $no_proxy) {
-        for my $pat (split /,/, lc $no_proxy) {
-            $pat =~ s!([\\+\.?{}\(\)\[\]^\$\-|/])!\\$1!g;
-            $pat =~ s!\*!.*!;
-            if (uc $host =~ /^$pat$/) {
-                $proxy = '';
-                last;
+        # list of host names that shouldn't go through any proxy. If set to a asterisk '*' only, it matches all hosts.
+        # ref. curl.1
+        if ($no_proxy eq '*') {
+            undef $proxy;
+        } else {
+            NO_PROXY: for my $pat (split /,/, lc $no_proxy) {
+                $pat =~ s/\s//g;
+                if ($pat eq $host) {
+                    undef $proxy;
+                    last NO_PROXY;
+                }
             }
         }
     }
