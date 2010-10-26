@@ -258,6 +258,8 @@ sub request {
             select($sock); $|=1;
             select($orig);
         }
+
+        binmode $sock;
     }
 
     # write request
