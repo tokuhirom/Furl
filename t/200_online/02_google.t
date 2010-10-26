@@ -10,9 +10,10 @@ skip_if_offline();
 my $url = 'http://www.google.co.jp/';
 
 my $furl = Furl->new();
-note "getting";
-my ($code, $msg, $headers, $content) = $furl->get($url);
-note "done";
-is($code, 200);
-
+for(1 .. 2) {
+    note "getting";
+    my ($code, $msg, $headers, $content) = $furl->get($url);
+    note "done";
+    is($code, 200);
+}
 done_testing;

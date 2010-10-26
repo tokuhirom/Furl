@@ -609,14 +609,14 @@ sub _read_body_normal {
 sub do_select {
     my($self, $is_write, $sock, $timeout) = @_;
     # wait for data
-    my($rfd, $wfd, $efd);
     while (1) {
-        $efd = '';
+        my($rfd, $wfd);
+        my $efd = '';
         vec($efd, fileno($sock), 1) = 1;
         if ($is_write) {
-            ($rfd, $wfd) = ('', $efd);
+            $wfd = $efd;
         } else {
-            ($rfd, $wfd) = ($efd, '');
+            $rfd = $efd;
         }
         my $start_at = time;
         my $nfound   = select($rfd, $wfd, $efd, $timeout);
