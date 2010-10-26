@@ -1014,7 +1014,6 @@ C<If-Modified-Sinse> are more suitable to cache HTTP contents.
     - use HTTP::Response::Parser
     - PP version(by HTTP::Respones::Parser)
     - ipv6 support
-    - test case for match_no_proxy
     - docs for NO_PROXY
 
 =head1 OPTIONAL FEATURES
