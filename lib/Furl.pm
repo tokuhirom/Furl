@@ -48,6 +48,7 @@ sub new {
         bufsize       => 10*1024, # no mmap
         headers       => \@headers,
         proxy         => '',
+        no_proxy      => '',
         sock_cache    => $class->new_conn_cache(),
         %args
     }, $class;
@@ -147,6 +148,7 @@ sub make_x_www_form_urlencoded {
 sub env_proxy {
     my $self = shift;
     $self->{proxy} = $ENV{HTTP_PROXY} || '';
+    $self->{no_proxy} = $ENV{NO_PROXY} || '';
     $self;
 }
 
@@ -209,8 +211,9 @@ sub request {
     }
 
     my $proxy = $self->{proxy};
-    if ($proxy) {
-        for my $pat (split /,/, lc $ENV{NO_PROXY}) {
+    my $no_proxy = $self->{no_proxy};
+    if ($proxy && $no_proxy) {
+        for my $pat (split /,/, lc $no_proxy) {
             $pat =~ s!([\\+\.?{}\(\)\[\]^\$\-|/])!\\$1!g;
             $pat =~ s!\*!.*!;
             if (uc $host =~ /^$pat$/) {
