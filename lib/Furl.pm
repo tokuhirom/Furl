@@ -294,8 +294,8 @@ sub request {
         for (my $i = 0; $i < @headers; $i += 2) {
             my $val = $headers[ $i + 1 ];
             # the de facto standard way to handle [\015\012](by kazuho-san)
-            $val =~ s/[\015\012]/ /g;
-            $p .= $headers[$i] . ": $val\015\012";
+            $val =~ tr/\015\012/ /;
+            $p .= "$headers[$i]: $val\015\012";
         }
         $p .= "\015\012";
         $self->write_all($sock, $p, $timeout)
@@ -303,11 +303,12 @@ sub request {
         if (defined $content) {
             if ($content_is_fh) {
                 my $ret;
+                my $buf;
                 SENDFILE: while (1) {
-                    $ret = read($content, my $buf, $self->{bufsize});
+                    $ret = read($content, $buf, $self->{bufsize});
                     if (not defined $ret) {
                         Carp::croak("Failed to read request content: $!");
-                    } elsif ($ret == 0) {
+                    } elsif ($ret == 0) { # EOF
                         last SENDFILE;
                     }
                     $self->write_all($sock, $buf, $timeout)
