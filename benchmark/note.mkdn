@@ -47,3 +47,17 @@ fixed bug.
             furl      6587/s      723%      536%        --      -24%
             curl      8650/s      981%      735%       31%        --
 
+#### 0.04
+
+    0065f2144c7636fc79ae1b30ae01c8e5f25de178
+    Perl/5.12.1 on x86_64-linux
+    Furl/0.04, LWP/5.837, WWW::Curl/4.14, HTTP::Lite/2.2
+    Server: nginx/0.8.48
+    --
+
+            Rate       lwp http_lite      furl      curl
+            lwp        807/s        --      -23%      -88%      -91%
+            http_lite 1046/s       30%        --      -84%      -88%
+            furl      6698/s      730%      540%        --      -22%
+            curl      8615/s      968%      724%       29%        --
+
