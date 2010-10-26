@@ -1,48 +1,45 @@
 use strict;
 use warnings;
-use Test::Requires 'Starman';
-use Furl;
 use Test::TCP;
-use Plack::Loader;
 use Test::More;
+use Plack::Loader;
+use Furl;
 
-use Plack::Request;
-use t::SilentStarman;
+my $s = q{The quick brown fox jumps over the lazy dog.\n};
+
+my $chunk = sprintf qq{%x;foo=bar;baz="qux"\015\012%s\015\012},
+    length($s), $s;
 
 test_tcp(
-    port => 1119,
     client => sub {
         my $port = shift;
         my $furl = Furl->new(bufsize => 80);
-        for (1..3) {
-            note "-- TEST $_";
-            my ( $code, $msg, $headers, $content ) =
-            $furl->request(
+        for my $i(1, 3, 1024) {
+            note "-- TEST (packets: $i)";
+            my ( $code, $msg, $headers, $content ) = $furl->request(
                 port => $port,
                 path => '/',
                 host => '127.0.0.1',
-                headers => [ "X-Foo" => "ppp" ]
+                headers => ['X-Packet-Size', $i],
             );
-            is $code, 200;
-            is $content, 'OK' x 140;
+            is $code, 200, 'status';
+            is $content, $s x $i, 'content';
         }
         done_testing;
     },
     server => sub {
         my $port = shift;
-        Plack::Loader->load( 'Starman',
-            host          => '127.0.0.1',
+
+        Plack::Loader->auto(
             port          => $port,
-            'max-workers' => 1,
         )->run(
             sub {
                 my $env = shift;
-                my $req = Plack::Request->new($env);
-                is $req->header('X-Foo'), "ppp";
+                my $size = $env->{HTTP_X_PACKET_SIZE} or die '???';
                 return [
                     200,
                     [ 'Transfer-Encoding' => 'chunked' ],
-                    [ 'OK'x100, 'OK'x40 ]
+                    [ $chunk x $size, "0", "\015\012" x 2 ]
                 ];
             }
           );
