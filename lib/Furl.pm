@@ -421,10 +421,6 @@ sub request {
             return @err;
         }
     }
-    else {
-        # HEAD could confuse keep-alive, so we simply close connection.
-        $res{'connection'} = 'close';
-    }
 
     my $max_redirects = $args{max_redirects} || $self->{max_redirects};
     if ($res{location} && $max_redirects && $res_status =~ /^30[123]$/) {
@@ -447,7 +443,8 @@ sub request {
     if (   $res_minor_version == 0
         || lc($res{'connection'}) eq 'close'
         || !(    defined($res{'content-length'})
-              || $res{'transfer-encoding'} eq 'chunked' ) ) {
+              || $res{'transfer-encoding'} eq 'chunked' )
+        || $method eq 'HEAD') {
         $self->remove_conn_cache($host, $port);
     } else {
         $self->add_conn_cache($host, $port, $sock);
