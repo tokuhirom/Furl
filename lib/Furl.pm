@@ -64,16 +64,23 @@ sub Furl::Util::header_get {
 
 
 sub Furl::Util::requires {
-    my($file, $feature) = @_;
+    my($file, $feature, $library) = @_;
     return if exists $INC{$file};
     unless(eval { require $file }) {
-        $file =~ s/ \.pm \z//xms;
-        $file =~ s{/}{::}g;
-        Carp::croak(
-            "$feature requires $file, but it is not available."
-            . " Please install $file using your prefer CPAN client"
-            . " (App::cpanminus is recommended)"
-        );
+        if ($@ =~ /^Can't locate/) {
+            $library ||= do {
+                local $_ = $file;
+                s/ \.pm \z//xms;
+                s{/}{::}g;
+                $_;
+            };
+            Carp::croak(
+                "$feature requires $library, but it is not available."
+                . " Please install $library using your prefer CPAN client"
+            );
+        } else {
+            die $@;
+        }
     }
 }
 
@@ -368,14 +375,10 @@ sub request {
 
     my $res_content;
     if (my $fh = $args{write_file}) {
-        $res_content = Furl::PartialWriter->new(
-            append => sub { print $fh @_ },
-        );
+        $res_content = Furl::FileStream->new( $fh );
     } elsif (my $coderef = $args{write_code}) {
-        $res_content = Furl::PartialWriter->new(
-            append => sub {
-                $coderef->($res_status, $res_msg, \@res_headers, @_);
-            },
+        $res_content = Furl::CallbackStream->new(
+            sub { $coderef->($res_status, $res_msg, \@res_headers, @_) }
         );
     }
     else {
@@ -383,28 +386,9 @@ sub request {
     }
 
     if (exists $COMPRESSED{ $res{'content-encoding'} }) {
-        Furl::Util::requires('Compress/Raw/Zlib.pm', 'Content-Encoding');
+        Furl::Util::requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib');
 
-        my $old_res_content = $res_content;
-        my $assert_z_ok     = sub {
-            $_[0] == Compress::Raw::Zlib::Z_OK()
-                or Carp::croak("Uncompressing error: $_[0]");
-        };
-        my($z, $status) = Compress::Raw::Zlib::Inflate->new(
-            -WindowBits => Compress::Raw::Zlib::WANT_GZIP_OR_ZLIB(),
-        );
-        $assert_z_ok->($status);
-        $res_content = Furl::PartialWriter->new(
-            append => sub {
-                $assert_z_ok->( $z->inflate($_[0], \my $deflated) );
-                $old_res_content .= $deflated;
-            },
-            finalize => sub {
-                return ref($old_res_content)
-                    ? $old_res_content->finalize
-                    : $old_res_content;
-            },
-        );
+        $res_content = Furl::ZlibStream->new($res_content);
     }
 
     if($method ne 'HEAD') {
@@ -455,8 +439,7 @@ sub request {
 
     # return response.
     if (ref $res_content) {
-        $res_content->finalize();
-        return ($res_status, $res_msg, \@res_headers);
+        return ($res_status, $res_msg, \@res_headers, $res_content->get_response_string);
     } else {
         return ($res_status, $res_msg, \@res_headers, $res_content);
     }
@@ -702,24 +685,33 @@ sub _r500 {
 
 # utility class
 {
-    package Furl::PartialWriter;
+    package Furl::FileStream;
     use overload '.=' => 'append', fallback => 1;
     sub new {
-        my ($class, %args) = @_;
-        bless \%args, $class;
+        my ($class, $fh) = @_;
+        bless {fh => $fh}, $class;
     }
     sub append {
         my($self, $partial) = @_;
-        $self->{append}->($partial);
+        print {$self->{fh}} $partial;
         return $self;
     }
-    sub finalize {
-        my($self) = @_;
-        if($self->{finalize}) {
-            return $self->{finalize}->();
-        }
-        return undef;
+    sub get_response_string { undef }
+}
+
+{
+    package Furl::CallbackStream;
+    use overload '.=' => 'append', fallback => 1;
+    sub new {
+        my ($class, $cb) = @_;
+        bless {cb => $cb}, $class;
     }
+    sub append {
+        my($self, $partial) = @_;
+        $self->{cb}->($partial);
+        return $self;
+    }
+    sub get_response_string { undef }
 }
 
 1;
