@@ -29,3 +29,4 @@ xs/Furl\.[co]$
 \.online$
 cover_db
 nytprof
+perltidy.ERR$
