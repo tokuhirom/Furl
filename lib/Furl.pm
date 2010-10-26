@@ -452,8 +452,14 @@ sub request {
     } else {
         $self->add_conn_cache($host, $port, $sock);
     }
-    return ($res_status, $res_msg, \@res_headers,
-            ref($res_content) ? $res_content->finalize() : $res_content);
+
+    # return response.
+    if (ref $res_content) {
+        $res_content->finalize();
+        return ($res_status, $res_msg, \@res_headers);
+    } else {
+        return ($res_status, $res_msg, \@res_headers, $res_content);
+    }
 }
 
 # connects to $host:$port and returns $socket
