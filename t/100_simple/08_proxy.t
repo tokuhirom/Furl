@@ -19,8 +19,6 @@ my $verbose = 1;
     }
 }
 
-local $ENV{HTTP_PROXY} = "";
-local $ENV{NO_PROXY} = "";
 my $via = "VIA!VIA!VIA!";
 
 test_tcp(
