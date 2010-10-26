@@ -213,18 +213,8 @@ sub request {
     my $proxy = $self->{proxy};
     my $no_proxy = $self->{no_proxy};
     if ($proxy && $no_proxy) {
-        # list of host names that shouldn't go through any proxy. If set to a asterisk '*' only, it matches all hosts.
-        # ref. curl.1
-        if ($no_proxy eq '*') {
+        if ($self->match_no_proxy($no_proxy, $host)) {
             undef $proxy;
-        } else {
-            NO_PROXY: for my $pat (split /,/, lc $no_proxy) {
-                $pat =~ s/\s//g;
-                if ($pat eq $host) {
-                    undef $proxy;
-                    last NO_PROXY;
-                }
-            }
         }
     }
 
@@ -700,6 +690,26 @@ sub _r500 {
     $message = Carp::shortmess($message); # add lineno and filename
     return(500, 'Internal Server Error',
         ['Content-Length' => length($message)], $message);
+}
+
+# You can override this method if you want to use more powerful matcher.
+sub match_no_proxy {
+    my ( $self, $no_proxy, $host ) = @_;
+
+    # ref. curl1.
+    #   list of host names that shouldn't go through any proxy.
+    #   If set to a asterisk '*' only, it matches all hosts.
+    if ( $no_proxy eq '*' ) {
+        return 1;
+    }
+    else {
+        for my $pat ( split /\s*,\s*/, lc $no_proxy ) {
+            if ( $host =~ /\Q$pat\E$/ ) { # suffix match(same behavior with LWP)
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 # utility class
