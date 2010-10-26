@@ -5,17 +5,27 @@ use LWP::UserAgent;
 use WWW::Curl::Easy 4.14;
 use HTTP::Lite;
 use Furl;
+use Config;
+
+printf `git log |head -n 1`;
+printf "Perl/%vd on %s\n", $^V, $Config{archname};
+printf "Furl/$Furl::VERSION, LWP/$LWP::VERSION, WWW::Curl/$WWW::Curl::VERSION, HTTP::Lite/$HTTP::Lite::VERSION\n";
+
+my $url = shift @ARGV || 'http://192.168.1.3:80/';
 
 my $ua = LWP::UserAgent->new(parse_head => 0, keep_alive => 1);
 my $curl = WWW::Curl::Easy->new();
 my $furl = Furl->new(parse_header => 0);
-my $url = shift @ARGV || 'http://192.168.1.3:80/';
 my $uri = URI->new($url);
 my $host = $uri->host;
 my $scheme = $uri->scheme;
 my $port = $uri->port;
 my $path_query = $uri->path_query;
 my $lite = HTTP::Lite->new();
+
+my $server = $ua->get($url)->header('Server');
+printf "Server: %s\n", $server || 'unknown';
+print "--\n\n";
 
 cmpthese(
     -1, {

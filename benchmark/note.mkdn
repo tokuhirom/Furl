@@ -33,3 +33,17 @@ fixed bug.
             furl      6461/s      742%      518%        --      -26%
             curl      8783/s     1045%      740%       36%        --
 
+#### micro optimization
+
+    commit c8f4c4655966ecb1b2fef98769a72e437dd467fe
+    Perl/5.12.1 on x86_64-linux
+    Furl/0.02, LWP/5.837, WWW::Curl/4.14, HTTP::Lite/2.2
+    Server: nginx/0.8.48
+    --
+
+            Rate       lwp http_lite      furl      curl
+            lwp        800/s        --      -23%      -88%      -91%
+            http_lite 1036/s       30%        --      -84%      -88%
+            furl      6587/s      723%      536%        --      -24%
+            curl      8650/s      981%      735%       31%        --
+

@@ -294,8 +294,8 @@ sub request {
         for (my $i = 0; $i < @headers; $i += 2) {
             my $val = $headers[ $i + 1 ];
             # the de facto standard way to handle [\015\012](by kazuho-san)
-            $val =~ s/[\015\012]/ /g;
-            $p .= $headers[$i] . ": $val\015\012";
+            $val =~ tr/\015\012/ /;
+            $p .= "$headers[$i]: $val\015\012";
         }
         $p .= "\015\012";
         $self->write_all($sock, $p, $timeout)
@@ -303,11 +303,12 @@ sub request {
         if (defined $content) {
             if ($content_is_fh) {
                 my $ret;
+                my $buf;
                 SENDFILE: while (1) {
-                    $ret = read($content, my $buf, $self->{bufsize});
+                    $ret = read($content, $buf, $self->{bufsize});
                     if (not defined $ret) {
                         Carp::croak("Failed to read request content: $!");
-                    } elsif ($ret == 0) {
+                    } elsif ($ret == 0) { # EOF
                         last SENDFILE;
                     }
                     $self->write_all($sock, $buf, $timeout)
@@ -421,39 +422,44 @@ sub request {
             return @err;
         }
     }
-    else {
-        # HEAD could confuse keep-alive, so we simply close connection.
-        $res{'connection'} = 'close';
-    }
 
-    my $max_redirects = $args{max_redirects} || $self->{max_redirects};
-    if ($res{location} && $max_redirects && $res_status =~ /^30[123]$/) {
-        # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
-        # to change the method on the redirected request.  However, most
-        # existing user agent implementations treat 302 as if it were a 303
-        # response, performing a GET on the Location field-value regardless
-        # of the original request method. The status codes 303 and 307 have
-        # been added for servers that wish to make unambiguously clear which
-        # kind of reaction is expected of the client.
-        return $self->request(
-            @_,
-            method        => $res_status eq '301' ? $method : 'GET',
-            url           => $res{location},
-            max_redirects => $max_redirects - 1,
-        );
+    if ($res{location}) {
+        my $max_redirects = $args{max_redirects} || $self->{max_redirects};
+        if ($max_redirects && $res_status =~ /^30[123]$/) {
+            # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
+            # to change the method on the redirected request.  However, most
+            # existing user agent implementations treat 302 as if it were a 303
+            # response, performing a GET on the Location field-value regardless
+            # of the original request method. The status codes 303 and 307 have
+            # been added for servers that wish to make unambiguously clear which
+            # kind of reaction is expected of the client.
+            return $self->request(
+                @_,
+                method        => $res_status eq '301' ? $method : 'GET',
+                url           => $res{location},
+                max_redirects => $max_redirects - 1,
+            );
+        }
     }
 
     # manage cache
     if (   $res_minor_version == 0
         || lc($res{'connection'}) eq 'close'
         || !(    defined($res{'content-length'})
-              || $res{'transfer-encoding'} eq 'chunked' ) ) {
+              || $res{'transfer-encoding'} eq 'chunked' )
+        || $method eq 'HEAD') {
         $self->remove_conn_cache($host, $port);
     } else {
         $self->add_conn_cache($host, $port, $sock);
     }
-    return ($res_status, $res_msg, \@res_headers,
-            ref($res_content) ? $res_content->finalize() : $res_content);
+
+    # return response.
+    if (ref $res_content) {
+        $res_content->finalize();
+        return ($res_status, $res_msg, \@res_headers);
+    } else {
+        return ($res_status, $res_msg, \@res_headers, $res_content);
+    }
 }
 
 # connects to $host:$port and returns $socket
