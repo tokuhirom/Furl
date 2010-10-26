@@ -19,12 +19,13 @@ my $verbose = 1;
     }
 }
 
-my $furl = Furl->new;
-ok $furl->match_no_proxy(".google.com", "www.google.com");
-ok $furl->match_no_proxy("google.com", "www.google.com");
-ok $furl->match_no_proxy("google.com,.yahoo.com", "mail.yahoo.com");
-ok $furl->match_no_proxy(",twitter.com , facebook.com", "www.twitter.com");
-undef $furl;
+{
+    my $furl = Furl->new;
+    ok $furl->match_no_proxy(".google.com", "www.google.com");
+    ok $furl->match_no_proxy("google.com", "www.google.com");
+    ok $furl->match_no_proxy("google.com,.yahoo.com", "mail.yahoo.com");
+    ok $furl->match_no_proxy(",twitter.com , facebook.com", "www.twitter.com");
+}
 
 my $via = "VIA!VIA!VIA!";
 
