@@ -432,7 +432,7 @@ sub request {
     }
 
     if ($special_headers{location}) {
-        my $max_redirects = $args{max_redirects} || $self->{max_redirects};
+        my $max_redirects = defined($args{max_redirects}) ? $args{max_redirects} : $self->{max_redirects};
         if ($max_redirects && $res_status =~ /^30[123]$/) {
             # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
             # to change the method on the redirected request.  However, most
