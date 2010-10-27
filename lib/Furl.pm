@@ -2,7 +2,7 @@ package Furl;
 use strict;
 use warnings;
 use 5.008;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Carp ();
 use XSLoader;
@@ -19,8 +19,21 @@ use Socket qw(
 );
 
 use constant WIN32 => $^O eq 'MSWin32';
+our $BACKEND;
 
-XSLoader::load __PACKAGE__, $VERSION;
+if (not exists $INC{"Furl/PP.pm"}) {
+    $BACKEND = $ENV{PERL_FURL} || ($ENV{PERL_ONLY} ? 'pp' : '');
+    if ($BACKEND =~ /\b pp \b/xms) {
+        eval {
+            require XSLoader;
+            XSLoader::load __PACKAGE__, $VERSION;
+        };
+        die $@ if $@ && $BACKEND =~ /\bxs\b/;
+    }
+    if (not __PACKAGE__->can('parse_http_response')) {
+        require Furl::PP;
+    }
+}
 
 # ref. RFC 2616, 3.5 Content Codings:
 #     For compatibility with previous implementations of HTTP,
@@ -366,7 +379,7 @@ sub request {
         }
         else {
             my $ret;
-            ( $res_minor_version, $res_status, $res_msg, $ret )
+            ( $ret, $res_minor_version, $res_status, $res_msg )
                 =  parse_http_response( $buf, $last_len, \@res_headers, \%res );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
@@ -1016,7 +1029,6 @@ C<If-Modified-Sinse> are more suitable to cache HTTP contents.
 
     - AnyEvent::Furl?
     - use HTTP::Response::Parser
-    - PP version(by HTTP::Respones::Parser)
     - ipv6 support
     - better docs for NO_PROXY
 

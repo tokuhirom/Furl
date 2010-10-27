@@ -1,5 +1,11 @@
 Revision history for Perl extension Furl
 
+0.04
+
+        - fixed retval handling around Compress::Raw::Zlib(gfx)
+        - Change chuked tests not to use Starman(gfx)
+        - use binmode() for fucking win32(gfx)
+
 0.03
 
         - support no_proxy
