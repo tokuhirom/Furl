@@ -366,7 +366,7 @@ sub request {
         }
         else {
             my $ret;
-            ( $ret, $res_minor_version, $res_status, $res_msg , $ret)
+            ( $ret, $res_minor_version, $res_status, $res_msg )
                 =  parse_http_response( $buf, $last_len, \@res_headers, \%res );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
