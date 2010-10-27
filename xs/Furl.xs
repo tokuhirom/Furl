@@ -64,10 +64,10 @@ PPCODE:
     sv_setpvn(TARG, msg, msg_len);
 
     EXTEND(SP, 4);
+    mPUSHi(ret);
     mPUSHi(minor_version);
     mPUSHi(status);
     PUSHs(TARG); /* message */
-    mPUSHi(ret);
     for (i=0; i < num_headers; i++) {
         const char* const name     = headers_st[i].name;
         if (!name) { /* NULL if multiline header value */

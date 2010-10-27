@@ -4,7 +4,7 @@ use Test::More;
 use Furl;
 
 my @headers;
-my ($minor_version, $status, $msg, $ret) = Furl::parse_http_response(
+my ($ret, $minor_version, $status, $msg) = Furl::parse_http_response(
     join( '',
         "HTTP/1.0 200 OK\015\012",
         "X-Foo: Bar\015\012",
