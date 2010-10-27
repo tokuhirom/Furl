@@ -248,7 +248,6 @@ Anyway, the HEAD method is not so useful nowadays. The GET method and
 
     - AnyEvent::Furl?
     - use HTTP::Response::Parser
-    - PP version(by HTTP::Respones::Parser)
     - ipv6 support
     - better docs for NO_PROXY
 

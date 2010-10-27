@@ -9,7 +9,7 @@ use Config;
 
 printf `git rev-parse HEAD`;
 printf "Perl/%vd on %s\n", $^V, $Config{archname};
-printf "Furl/$Furl::VERSION, LWP/$LWP::VERSION, WWW::Curl/$WWW::Curl::VERSION, HTTP::Lite/$HTTP::Lite::VERSION\n";
+printf "Furl/$Furl::VERSION, LWP/$LWP::VERSION, WWW::Curl/$WWW::Curl::VERSION, HTTP::Lite/$HTTP::Lite::VERSION, libcurl[@{[ WWW::Curl::Easy::version() ]}]\n";
 
 my $url = shift @ARGV || 'http://192.168.1.3:80/';
 
