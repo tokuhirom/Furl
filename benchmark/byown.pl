@@ -10,8 +10,10 @@ use Child;
 use Test::TCP qw/empty_port/;
 use Plack::Loader;
 use Config;
+use HTTP::Lite;
+
 printf "Perl/%vd on %s\n", $^V, $Config{archname};
-printf "Furl/$Furl::VERSION, LWP/$LWP::VERSION, WWW::Curl/$WWW::Curl::VERSION\n";
+printf "Furl/$Furl::VERSION, LWP/$LWP::VERSION, WWW::Curl/$WWW::Curl::VERSION, HTTP::Lite/$HTTP::Lite::VERSION, libcurl[@{[ WWW::Curl::Easy::version() ]}]\n";
 
 my $port = empty_port();
 
