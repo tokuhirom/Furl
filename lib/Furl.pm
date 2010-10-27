@@ -23,7 +23,7 @@ our $BACKEND;
 
 if (not exists $INC{"Furl/PP.pm"}) {
     $BACKEND = $ENV{PERL_FURL} || ($ENV{PERL_ONLY} ? 'pp' : '');
-    if ($BACKEND =~ /\b pp \b/xms) {
+    if ($BACKEND !~ /\b pp \b/xms) {
         eval {
             require XSLoader;
             XSLoader::load __PACKAGE__, $VERSION;
