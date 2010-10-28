@@ -1,11 +1,13 @@
 package Furl;
 use strict;
 use warnings;
+use base qw/Exporter/;
 use 5.008;
 our $VERSION = '0.04';
 
+our @EXPORT_OK = qw/FORMAT_NONE FORMAT_ARRAYREF/;
+
 use Carp ();
-use XSLoader;
 
 use Scalar::Util ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK);
@@ -19,7 +21,7 @@ use Socket qw(
 );
 
 use constant WIN32 => $^O eq 'MSWin32';
-use HTTP::Parser::XS ();
+use HTTP::Parser::XS qw/FORMAT_NONE FORMAT_ARRAYREF/;
 
 # ref. RFC 2616, 3.5 Content Codings:
 #     For compatibility with previous implementations of HTTP,
@@ -49,6 +51,7 @@ sub new {
         proxy         => '',
         no_proxy      => '',
         sock_cache    => $class->new_conn_cache(),
+        header_format => HTTP::Parser::XS::FORMAT_ARRAYREF(),
         %args
     }, $class;
 }
@@ -365,7 +368,7 @@ sub request {
         else {
             my $ret;
             ( $ret, $res_minor_version, $res_status, $res_msg, $res_headers )
-                =  HTTP::Parser::XS::parse_http_response( $buf, HTTP::Parser::XS::FORMAT_ARRAYREF(), $special_headers );
+                =  HTTP::Parser::XS::parse_http_response( $buf, $self->{header_format}, $special_headers );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
             }
@@ -812,6 +815,16 @@ I<%args> might be:
 =item no_proxy :Str
 
 =item headers :ArrayRef
+
+=item header_format :Int = FORMAT_ARRAYREF
+
+This option determins return value of C<< $furl->request >>.
+
+This option allows FORMAT_NONE or FORMAT_ARRAYREF.
+
+B<FORMAT_ARRAYREF> is a default value. This makes B<$headers> as ArrayRef.
+
+B<FORMAT_NONE> makes B<$headers> as undef. Furl does not return parsing result of headers. You should take needed headers from B<special_headers>.
 
 =back
 
