@@ -19,21 +19,7 @@ use Socket qw(
 );
 
 use constant WIN32 => $^O eq 'MSWin32';
-our $BACKEND;
-
-if (not exists $INC{"Furl/PP.pm"}) {
-    $BACKEND = $ENV{PERL_FURL} || ($ENV{PERL_ONLY} ? 'pp' : '');
-    if ($BACKEND !~ /\b pp \b/xms) {
-        eval {
-            require XSLoader;
-            XSLoader::load __PACKAGE__, $VERSION;
-        };
-        die $@ if $@ && $BACKEND =~ /\bxs\b/;
-    }
-    if (not __PACKAGE__->can('parse_http_response')) {
-        require Furl::PP;
-    }
-}
+use HTTP::Parser::XS ();
 
 # ref. RFC 2616, 3.5 Content Codings:
 #     For compatibility with previous implementations of HTTP,
@@ -359,7 +345,7 @@ sub request {
     my $res_minor_version;
     my $res_status;
     my $res_msg;
-    my @res_headers;
+    my $res_headers;
     my $special_headers = $args{special_headers} || +{};
     $special_headers->{'connection'}        = '';
     $special_headers->{'content-length'}    = undef;
@@ -378,8 +364,8 @@ sub request {
         }
         else {
             my $ret;
-            ( $ret, $res_minor_version, $res_status, $res_msg )
-                =  parse_http_response( $buf, $last_len, \@res_headers, $special_headers );
+            ( $ret, $res_minor_version, $res_status, $res_msg, $res_headers )
+                =  HTTP::Parser::XS::parse_http_response( $buf, HTTP::Parser::XS::FORMAT_ARRAYREF(), $special_headers );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
             }
@@ -401,7 +387,7 @@ sub request {
         $res_content = Furl::FileStream->new( $fh );
     } elsif (my $coderef = $args{write_code}) {
         $res_content = Furl::CallbackStream->new(
-            sub { $coderef->($res_status, $res_msg, \@res_headers, @_) }
+            sub { $coderef->($res_status, $res_msg, $res_headers, @_) }
         );
     }
     else {
@@ -462,9 +448,9 @@ sub request {
 
     # return response.
     if (ref $res_content) {
-        return ($res_status, $res_msg, \@res_headers, $res_content->get_response_string);
+        return ($res_status, $res_msg, $res_headers, $res_content->get_response_string);
     } else {
-        return ($res_status, $res_msg, \@res_headers, $res_content);
+        return ($res_status, $res_msg, $res_headers, $res_content);
     }
 }
 
