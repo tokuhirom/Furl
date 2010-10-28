@@ -4,7 +4,7 @@ use Benchmark ':all';
 use LWP::UserAgent;
 use WWW::Curl::Easy 4.14;
 use HTTP::Lite;
-use Furl;
+use Furl qw/HEADER_NONE HEADERS_AS_ARRAYREF/;
 use Config;
 
 printf `git rev-parse HEAD`;
@@ -15,7 +15,7 @@ my $url = shift @ARGV || 'http://192.168.1.3:80/';
 
 my $ua = LWP::UserAgent->new(parse_head => 0, keep_alive => 1);
 my $curl = WWW::Curl::Easy->new();
-my $furl = Furl->new(parse_header => 0);
+my $furl = Furl->new(header_format => HEADER_NONE);
 my $uri = URI->new($url);
 my $host = $uri->host;
 my $scheme = $uri->scheme;

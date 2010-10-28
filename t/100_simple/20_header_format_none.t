@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl qw/FORMAT_NONE/;
+use Furl qw/HEADER_NONE/;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -12,7 +12,7 @@ test_tcp(
         my $port = shift;
         my $furl = Furl->new(
             bufsize       => 10,
-            header_format => FORMAT_NONE,
+            header_format => HEADER_NONE,
         );
         for (1 .. $n) {
             my %special_headers = (
@@ -33,7 +33,7 @@ test_tcp(
             is $special_headers{'x-bar'}, 10;
             is $content, '/foo'
                 or do{ require Devel::Peek; Devel::Peek::Dump($content) };
-            is_deeply $headers, undef;
+            is $headers, undef;
         }
 
         done_testing;

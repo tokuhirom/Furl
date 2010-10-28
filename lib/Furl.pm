@@ -5,8 +5,6 @@ use base qw/Exporter/;
 use 5.008;
 our $VERSION = '0.04';
 
-our @EXPORT_OK = qw/FORMAT_NONE FORMAT_ARRAYREF/;
-
 use Carp ();
 
 use Scalar::Util ();
@@ -22,6 +20,14 @@ use Socket qw(
 
 use constant WIN32 => $^O eq 'MSWin32';
 use HTTP::Parser::XS qw/FORMAT_NONE FORMAT_ARRAYREF/;
+
+use constant {
+    HEADER_NONE     => FORMAT_NONE(),
+    HEADERS_AS_ARRAYREF => FORMAT_ARRAYREF(),
+};
+
+our @EXPORT_OK = qw/HEADER_NONE HEADERS_AS_ARRAYREF/;
+
 
 # ref. RFC 2616, 3.5 Content Codings:
 #     For compatibility with previous implementations of HTTP,
@@ -51,7 +57,7 @@ sub new {
         proxy         => '',
         no_proxy      => '',
         sock_cache    => $class->new_conn_cache(),
-        header_format => HTTP::Parser::XS::FORMAT_ARRAYREF(),
+        header_format => HEADERS_AS_ARRAYREF,
         %args
     }, $class;
 }
@@ -816,15 +822,15 @@ I<%args> might be:
 
 =item headers :ArrayRef
 
-=item header_format :Int = FORMAT_ARRAYREF
+=item header_format :Int = HEADERS_AS_ARRAYREF
 
-This option determins return value of C<< $furl->request >>.
+This option choose return value format of C<< $furl->request >>.
 
-This option allows FORMAT_NONE or FORMAT_ARRAYREF.
+This option allows HEADER_NONE or HEADERS_AS_ARRAYREF.
 
-B<FORMAT_ARRAYREF> is a default value. This makes B<$headers> as ArrayRef.
+B<HEADERS_AS_ARRAYREF> is a default value. This makes B<$headers> as ArrayRef.
 
-B<FORMAT_NONE> makes B<$headers> as undef. Furl does not return parsing result of headers. You should take needed headers from B<special_headers>.
+B<HEADER_NONE> makes B<$headers> as undef. Furl does not return parsing result of headers. You should take needed headers from B<special_headers>.
 
 =back
 
