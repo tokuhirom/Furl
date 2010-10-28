@@ -76,27 +76,29 @@ PPCODE:
                 continue;
         }
 
-        size_t const      name_len = headers_st[i].name_len;
-        SV* const         namesv   = furl_newSVpvn_lc(aTHX_ name, name_len);
-        SV* const         valuesv  = newSVpvn_flags(
-            headers_st[i].value,
-            headers_st[i].value_len,
-            SVs_TEMP );
-        HE* he;
+        {
+            size_t const      name_len = headers_st[i].name_len;
+            SV* const         namesv   = furl_newSVpvn_lc(aTHX_ name, name_len);
+            SV* const         valuesv  = newSVpvn_flags(
+                headers_st[i].value,
+                headers_st[i].value_len,
+                SVs_TEMP );
+            HE* he;
 
-        he = hv_fetch_ent(special_headers, namesv, FALSE, 0U);
-        if(he) {
-            SV* const placeholder = hv_iterval(special_headers, he);
-            SvSetMagicSV_nosteal(placeholder, valuesv);
-        }
+            he = hv_fetch_ent(special_headers, namesv, FALSE, 0U);
+            if(he) {
+                SV* const placeholder = hv_iterval(special_headers, he);
+                SvSetMagicSV_nosteal(placeholder, valuesv);
+            }
 
-        if(SvTYPE(headers) == SVt_PVAV) {
-            av_push((AV*)headers, SvREFCNT_inc_simple_NN(namesv));
-            av_push((AV*)headers, SvREFCNT_inc_simple_NN(valuesv));
-        }
-        else {
-            (void)hv_store_ent((HV*)headers, namesv,
-                SvREFCNT_inc_simple_NN(valuesv), 0U);
+            if(SvTYPE(headers) == SVt_PVAV) {
+                av_push((AV*)headers, SvREFCNT_inc_simple_NN(namesv));
+                av_push((AV*)headers, SvREFCNT_inc_simple_NN(valuesv));
+            }
+            else {
+                (void)hv_store_ent((HV*)headers, namesv,
+                    SvREFCNT_inc_simple_NN(valuesv), 0U);
+            }
         }
     }
 }
