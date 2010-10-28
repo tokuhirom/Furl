@@ -22,7 +22,6 @@ inc/Module/Install/WriteAll.pm
 inc/Module/Install/XSUtil.pm
 inc/Pod/Markdown.pm
 lib/Furl.pm
-lib/Furl/PP.pm
 lib/Furl/ZlibStream.pm
 Makefile.PL
 MANIFEST			This list of files
@@ -54,6 +53,7 @@ t/100_simple/15_multiline_header.t
 t/100_simple/16_read_callback.t
 t/100_simple/17_keep_alive.t
 t/100_simple/18_no_proxy.t
+t/100_simple/19_special_headers.t
 t/200_online/01_idn.t
 t/200_online/02_google.t
 t/200_online/03_yahoo_com.t
