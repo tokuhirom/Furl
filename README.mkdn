@@ -134,12 +134,6 @@ This is an easy-to-use alias to `request()`.
 
 Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
-## Utilities
-
-### C<< Furl::Util::header_get(\@headers, $name :Str) :Maybe[Str] >>
-
-This is equivalent to `Plack::Util::header_get()`.
-
 # INTEGRATE WITH HTTP::Response
 
 Some useful libraries require HTTP::Response instances for their arguments.
@@ -300,6 +294,8 @@ mala
 mattn
 
 lestrrat
+
+walf443
 
 # SEE ALSO
 
