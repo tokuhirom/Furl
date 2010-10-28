@@ -360,13 +360,12 @@ sub request {
     my $res_status;
     my $res_msg;
     my @res_headers;
-    my %special_headers = (
-        'connection'        => '',
-        'transfer-encoding' => '',
-        'content-encoding'  => '',
-        'location'          => '',
-        'content-length'    => undef,
-    );
+    my $special_headers = $args{special_headers} || +{};
+    $special_headers->{'connection'}        = '';
+    $special_headers->{'content-length'}    = undef;
+    $special_headers->{'location'}          = '';
+    $special_headers->{'content-encoding'}  = '';
+    $special_headers->{'transfer-encoding'} = '';
   LOOP: while (1) {
         my $n = $self->read_timeout($sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
@@ -380,7 +379,7 @@ sub request {
         else {
             my $ret;
             ( $ret, $res_minor_version, $res_status, $res_msg )
-                =  parse_http_response( $buf, $last_len, \@res_headers, \%special_headers );
+                =  parse_http_response( $buf, $last_len, \@res_headers, $special_headers );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
             }
@@ -409,7 +408,7 @@ sub request {
         $res_content = '';
     }
 
-    if (exists $COMPRESSED{ $special_headers{'content-encoding'} }) {
+    if (exists $COMPRESSED{ $special_headers->{'content-encoding'} }) {
         Furl::Util::requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib');
 
         $res_content = Furl::ZlibStream->new($res_content);
@@ -417,21 +416,21 @@ sub request {
 
     if($method ne 'HEAD') {
         my @err;
-        if ( $special_headers{'transfer-encoding'} eq 'chunked' ) {
+        if ( $special_headers->{'transfer-encoding'} eq 'chunked' ) {
             @err = $self->_read_body_chunked($sock,
                 \$res_content, $rest_header, $timeout);
         } else {
             $res_content .= $rest_header;
             @err = $self->_read_body_normal($sock,
                 \$res_content, length($rest_header),
-                $special_headers{'content-length'}, $timeout);
+                $special_headers->{'content-length'}, $timeout);
         }
         if(@err) {
             return @err;
         }
     }
 
-    if ($special_headers{location}) {
+    if ($special_headers->{location}) {
         my $max_redirects = defined($args{max_redirects}) ? $args{max_redirects} : $self->{max_redirects};
         if ($max_redirects && $res_status =~ /^30[123]$/) {
             # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
@@ -444,7 +443,7 @@ sub request {
             return $self->request(
                 @_,
                 method        => $res_status eq '301' ? $method : 'GET',
-                url           => $special_headers{location},
+                url           => $special_headers->{location},
                 max_redirects => $max_redirects - 1,
             );
         }
@@ -452,9 +451,9 @@ sub request {
 
     # manage cache
     if (   $res_minor_version == 0
-        || lc($special_headers{'connection'}) eq 'close'
-        || !(    defined($special_headers{'content-length'})
-              || $special_headers{'transfer-encoding'} eq 'chunked' )
+        || lc($special_headers->{'connection'}) eq 'close'
+        || !(    defined($special_headers->{'content-length'})
+              || $special_headers->{'transfer-encoding'} eq 'chunked' )
         || $method eq 'HEAD') {
         $self->remove_conn_cache($host, $port);
     } else {
