@@ -61,3 +61,31 @@ fixed bug.
             furl      6698/s      730%      540%        --      -22%
             curl      8615/s      968%      724%       29%        --
 
+#### http-parser-xs
+
+    9cf2a06ee9aed52232effdeb432f5a6668f42636
+    Perl/5.12.1 on x86_64-linux
+    Furl/0.04, LWP/5.837, WWW::Curl/4.14, HTTP::Lite/2.2, libcurl[libcurl/7.21.0 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.18]
+    Server: nginx/0.8.48
+    --
+
+                Rate       lwp http_lite      furl      curl
+    lwp        800/s        --      -24%      -88%      -91%
+    http_lite 1047/s       31%        --      -84%      -88%
+    furl      6575/s      722%      528%        --      -25%
+    curl      8727/s      991%      734%       33%        --
+
+##### same revsion, but access to real server
+
+            9cf2a06ee9aed52232effdeb432f5a6668f42636
+            Perl/5.12.1 on x86_64-linux
+            Furl/0.04, LWP/5.837, WWW::Curl/4.14, HTTP::Lite/2.2, libcurl[libcurl/7.21.0 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.18]
+            Server: Apache
+            --
+
+            Rate       lwp http_lite      furl      curl
+           lwp       111/s        --      -61%      -62%      -81%
+           http_lite 288/s      159%        --       -3%      -50%
+           furl      296/s      166%        3%        --      -49%
+           curl      581/s      422%      102%       96%        --
+
