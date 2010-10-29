@@ -411,9 +411,16 @@ sub request {
                 \$res_content, $rest_header, $timeout);
         } else {
             $res_content .= $rest_header;
-            @err = $self->_read_body_normal($sock,
-                \$res_content, length($rest_header),
-                $special_headers->{'content-length'}, $timeout);
+            my $content_length = $special_headers->{'content-length'};
+            if (ref $res_content || !defined($content_length)) {
+                @err = $self->_read_body_normal($sock,
+                    \$res_content, length($rest_header),
+                    $content_length, $timeout);
+            } else {
+                @err = $self->_read_body_normal_to_string_buffer($sock,
+                    \$res_content, length($rest_header),
+                    $content_length, $timeout);
+            }
         }
         if(@err) {
             return @err;
@@ -600,7 +607,7 @@ sub _read_body_chunked {
 
 sub _read_body_normal {
     my ($self, $sock, $res_content, $nread, $res_content_length, $timeout) = @_;
-  READ_LOOP: while (!defined($res_content_length) || $res_content_length != $nread) {
+    while (!defined($res_content_length) || $res_content_length != $nread) {
         my $n = $self->read_timeout( $sock,
             \my $buf, $self->{bufsize}, 0, $timeout );
         if (!$n) {
@@ -616,6 +623,24 @@ sub _read_body_normal {
     return;
 }
 
+# This function loads all content at once if it's possible. Since $res_content is just a plain scalar.
+# Buffering is not needed.
+sub _read_body_normal_to_string_buffer {
+    my ($self, $sock, $res_content, $nread, $res_content_length, $timeout) = @_;
+    while ($res_content_length != $nread) {
+        my $n = $self->read_timeout( $sock,
+            $res_content, $res_content_length, $nread, $timeout );
+        if (!$n) {
+            return $self->_r500(
+                !defined($n)
+                    ? "Cannot read content body: $!"
+                    : "Unexpected EOF while reading content body"
+            );
+        }
+        $nread += $n;
+    }
+    return;
+}
 
 # I/O with tmeout (stolen from Starlet/kazuho++)
 
