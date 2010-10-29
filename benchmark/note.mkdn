@@ -67,6 +67,7 @@ fixed bug.
     Perl/5.12.1 on x86_64-linux
     Furl/0.04, LWP/5.837, WWW::Curl/4.14, HTTP::Lite/2.2, libcurl[libcurl/7.21.0 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.18]
     Server: nginx/0.8.48
+    Content-Length: 2947
     --
 
                 Rate       lwp http_lite      furl      curl
@@ -88,4 +89,24 @@ fixed bug.
            http_lite 288/s      159%        --       -3%      -50%
            furl      296/s      166%        3%        --      -49%
            curl      581/s      422%      102%       96%        --
+
+##### 1MB response
+
+    7389e930aa93b20a56eb2e7a9408c4b2ff056c8d
+    Perl/5.12.1 on x86_64-linux
+    Furl/0.04, LWP/5.837, WWW::Curl/4.14, HTTP::Lite/2.2, libcurl[libcurl/7.21.0 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.18]
+
+    Date: Fri, 29 Oct 2010 11:43:37 GMT
+    Server: KyotoTycoon/0.8.1
+    Content-Length: 1000000
+    Client-Date: Fri, 29 Oct 2010 11:43:37 GMT
+    Client-Peer: 127.0.0.1:1978
+    Client-Response-Num: 1
+    --
+
+    Rate       lwp http_lite      furl      curl
+    lwp       74.1/s        --      -62%      -72%      -90%
+    http_lite  196/s      165%        --      -26%      -74%
+    furl       265/s      258%       35%        --      -65%
+    curl       760/s      926%      287%      187%        --
 
