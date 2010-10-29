@@ -32,6 +32,8 @@ sub push_header {
     push @{$self->{lc $key}}, @values;
 }
 
+sub remove_header {
+    my ($self, $key) = @_;
     delete $self->{lc $key};
 }
 
@@ -50,6 +52,7 @@ sub keys {
     my $self = shift;
     keys %$self;
 }
+sub header_field_names { shift->keys }
 
 sub as_string {
     my $self = shift;
