@@ -22,9 +22,11 @@ my $scheme = $uri->scheme;
 my $port = $uri->port;
 my $path_query = $uri->path_query;
 my $lite = HTTP::Lite->new();
+$lite->http11_mode(1);
 
-my $server = $ua->get($url)->header('Server');
-printf "Server: %s\n", $server || 'unknown';
+my $res = $ua->get($url);
+print "\n";
+print $res->headers_as_string;
 print "--\n\n";
 
 cmpthese(
