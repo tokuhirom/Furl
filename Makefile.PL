@@ -6,6 +6,7 @@ name 'Furl';
 reference_module 'lib/Furl.pm'; # all_from, readme_from, readme_markdown_from
 
 requires 'HTTP::Parser::XS';
+requires 'Class::Accessor::Fast';
 
 test_requires 'Test::More' => 0.96; # done_testing, subtest
 test_requires 'Test::TCP' => 1.06;
@@ -13,6 +14,7 @@ test_requires 'Plack' =>  0.9949;
 test_requires 'IO::Socket::INET';
 test_requires 'HTTP::Request';
 test_requires 'HTTP::Response';
+
 
 recommends 'Net::IDN::Encode';    # for International Domain Name
 recommends 'IO::Socket::SSL';     # for SSL
