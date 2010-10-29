@@ -21,11 +21,6 @@ use Socket qw(
 use constant WIN32 => $^O eq 'MSWin32';
 use HTTP::Parser::XS qw/HEADER_NONE HEADERS_AS_ARRAYREF/;
 
-use constant {
-    HEADER_NONE         => HEADER_NONE(),
-    HEADERS_AS_ARRAYREF => HEADERS_AS_ARRAYREF(),
-};
-
 our @EXPORT_OK = qw/HEADER_NONE HEADERS_AS_ARRAYREF/;
 
 
