@@ -9,7 +9,7 @@ my $host       = $uri->host;
 my $port       = $uri->port;
 my $path_query = $uri->path_query;
 
-my $furl = Furl->new(header_format => HEADER_NONE);
+my $furl = Furl->new(header_format => HEADER_NONE, bufsize => 10_000_000);
 for (1..1000) {
     my ( $code, $headers, $content ) = $furl->request(
         method     => 'GET',
