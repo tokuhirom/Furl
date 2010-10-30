@@ -72,7 +72,7 @@ cmpthese(
             length($content) == $body_content_length or die;
         },
         furl => sub {
-            my ( $code, $msg, $headers, $content ) = $furl->request(
+            my ( $version, $code, $msg, $headers, $content ) = $furl->request(
                 method     => 'GET',
                 host       => $host,
                 port       => $port,
