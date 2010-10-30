@@ -3,7 +3,7 @@ use warnings;
 use Test::TCP;
 use Test::More;
 use Plack::Loader;
-use Furl;
+use Furl::HTTP;
 
 my $s = q{The quick brown fox jumps over the lazy dog.\n};
 
@@ -13,10 +13,10 @@ my $chunk = sprintf qq{%x;foo=bar;baz="qux"\015\012%s\015\012},
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new(bufsize => 80);
+        my $furl = Furl::HTTP->new(bufsize => 80);
         for my $i(1, 3, 1024) {
             note "-- TEST (packets: $i)";
-            my ( $code, $msg, $headers, $content ) = $furl->request(
+            my ( undef, $code, $msg, $headers, $content ) = $furl->request(
                 port => $port,
                 path => '/',
                 host => '127.0.0.1',

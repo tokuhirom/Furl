@@ -23,13 +23,14 @@ sub header {
         return;
     } else {
         my $val = $self->{lc $key};
-        return wantarray ? @$val : $val->[0];
+        return unless $val;
+        return wantarray ? @$val : join(", ", @$val);
     }
 }
 
 sub push_header {
-    my ($self, $key, @values) = @_;
-    push @{$self->{lc $key}}, @values;
+    my ($self, $key) = (shift, shift);
+    push @{$self->{lc $key}}, @_;
 }
 
 sub remove_header {
@@ -59,7 +60,7 @@ sub as_string {
     my $ret = '';
     while (my ($k, $v) = each %$self) {
         for my $e (@$v) {
-            $ret .= "$k: $v\015\012";
+            $ret .= "$k: $e\015\012";
         }
     }
     return $ret;
@@ -68,14 +69,16 @@ sub as_string {
 sub as_http_headers {
     my ($self, $key) = @_;
     require HTTP::Headers;
-    return HTTP::Headers->new([$self->flatten]);
+    return HTTP::Headers->new($self->flatten);
 }
 
 # shortcut for popular headers.
-sub expires           { shift->header( 'Expires'           => @_ ) }
-sub last_modified     { shift->header( 'Last-Modified'     => @_ ) }
-sub if_modified_since { shift->header( 'If-Modified-Since' => @_ ) }
-sub content_type      { shift->header( 'Content-Type'      => @_ ) }
-sub content_length    { shift->header( 'Content-Length'    => @_ ) }
+sub referer           { [ shift->header( 'Referer'           => @_ ) ]->[0] }
+sub expires           { [ shift->header( 'Expires'           => @_ ) ]->[0] }
+sub last_modified     { [ shift->header( 'Last-Modified'     => @_ ) ]->[0] }
+sub if_modified_since { [ shift->header( 'If-Modified-Since' => @_ ) ]->[0] }
+sub content_type      { [ shift->header( 'Content-Type'      => @_ ) ]->[0] }
+sub content_length    { [ shift->header( 'Content-Length'    => @_ ) ]->[0] }
+sub content_encoding  { [ shift->header( 'Content-Encoding'  => @_ ) ]->[0] }
 
 1;

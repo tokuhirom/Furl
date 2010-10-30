@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -13,11 +13,11 @@ test_tcp(
         my $port = shift;
         my $furl = Furl->new();
         my $req = HTTP::Request->new(POST => "http://127.0.0.1:$port/foo", ['X-Foo' => 'ppp', 'Content-Length' => 3], 'yay');
-        my ( $code, $msg, $headers, $content ) =
+        my $res = 
             $furl->request_with_http_request(
                 $req
             );
-        is $code, 200, "request()";
+        is $res->code, 200, "request()";
 
         done_testing;
     },

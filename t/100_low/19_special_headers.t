@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl qw/HEADER_NONE/;
+use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -10,15 +10,12 @@ my $n = shift(@ARGV) || 3;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new(
-            bufsize       => 10,
-            header_format => HEADER_NONE,
-        );
+        my $furl = Furl::HTTP->new(bufsize => 10);
         for (1 .. $n) {
             my %special_headers = (
                 'x-bar' => '',
             );
-            my ( $code, $msg, $headers, $content ) =
+            my ( undef, $code, $msg, $headers, $content ) =
                 $furl->request(
                     port       => $port,
                     path_query => '/foo',
@@ -33,7 +30,6 @@ test_tcp(
             is $special_headers{'x-bar'}, 10;
             is $content, '/foo'
                 or do{ require Devel::Peek; Devel::Peek::Dump($content) };
-            is $headers, undef;
         }
 
         done_testing;
@@ -45,7 +41,7 @@ test_tcp(
             #note explain $env;
             my $req = Plack::Request->new($env);
             is $req->header('X-Foo'), "ppp" if $env->{REQUEST_URI} eq '/foo';
-            like $req->header('User-Agent'), qr/\A Furl /xms;
+            like $req->header('User-Agent'), qr/\A Furl::HTTP /xms;
             return [ 200,
                 [ 'Content-Length' => length($env->{REQUEST_URI}), 'X-Bar' => 10 ],
                 [$env->{REQUEST_URI}]

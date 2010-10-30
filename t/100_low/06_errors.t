@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Test::More;
 
@@ -8,19 +8,19 @@ use Plack::Request;
 use Errno ();
 
 {
-    my $furl = Furl->new();
+    my $furl = Furl::HTTP->new();
     eval {
         $furl->request();
     };
     like $@, qr/missing host name/i, 'missuse';
 
     eval {
-        $furl->get('ftp://ftp.example.com/');
+        $furl->request(url => 'ftp://ftp.example.com/', method => 'GET');
     };
     like $@, qr/unsupported scheme/i, 'missuse';
 
     eval {
-        $furl->get('http://./');
+        $furl->request(url => 'http://./', method => 'GET');
     };
     like $@, qr/(cannot resolve host name|cannot connect to)/i, 'missuse';
 
@@ -30,7 +30,7 @@ use Errno ();
         http://example.com:
     )) {
         eval {
-            $furl->get($bad_url);
+            $furl->request(url => $bad_url, method => 'GET');
         };
         like $@, qr/malformed URL/, "malformed URL: $bad_url";
     }
@@ -65,9 +65,9 @@ my $fail_on_syswrite = 1;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new();
+        my $furl = Furl::HTTP->new();
         for (1..$n) {
-            my ( $code, $msg, $headers, $content ) =
+            my ( undef, $code, $msg, $headers, $content ) =
                 $furl->request(
                     port       => $port,
                     path_query => '/foo',

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -12,9 +12,9 @@ use Fcntl qw/:seek/;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new();
+        my $furl = Furl::HTTP->new();
         my $content;
-        my ( $code, $msg, $headers,  ) =
+        my ( undef, $code, $msg, $headers,  ) =
             $furl->request(
                 port       => $port,
                 path_query => '/foo',
