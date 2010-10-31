@@ -65,11 +65,11 @@ _%args_ might be:
 
 This option choose return value format of `$furl->request`.
 
-This option allows HEADER_NONE or HEADERS_AS_ARRAYREF.
+This option allows HEADERS_NONE or HEADERS_AS_ARRAYREF.
 
 __HEADERS_AS_ARRAYREF__ is a default value. This makes __$headers__ as ArrayRef.
 
-__HEADER_NONE__ makes __$headers__ as undef. Furl does not return parsing result of headers. You should take needed headers from __special_headers__.
+__HEADERS_NONE__ makes __$headers__ as undef. Furl does not return parsing result of headers. You should take needed headers from __special_headers__.
 
 ## Instance Methods
 
