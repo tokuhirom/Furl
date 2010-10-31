@@ -732,7 +732,7 @@ __END__
 
 =head1 NAME
 
-Furl - Lightning-fast URL fetcher
+Furl::HTTP - Lightning-fast URL fetcher
 
 =head1 SYNOPSIS
 
