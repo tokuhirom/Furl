@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl::HTTP qw/HEADER_NONE/;
+use Furl::HTTP qw/HEADERS_NONE/;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -12,7 +12,7 @@ test_tcp(
         my $port = shift;
         my $furl = Furl::HTTP->new(
             bufsize       => 10,
-            header_format => HEADER_NONE,
+            header_format => HEADERS_NONE,
         );
         for (1 .. $n) {
             my %special_headers = (

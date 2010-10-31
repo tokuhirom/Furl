@@ -19,9 +19,9 @@ use Socket qw(
 );
 
 use constant WIN32 => $^O eq 'MSWin32';
-use HTTP::Parser::XS qw/HEADER_NONE HEADERS_AS_ARRAYREF HEADERS_AS_HASHREF/;
+use HTTP::Parser::XS qw/HEADERS_NONE HEADERS_AS_ARRAYREF HEADERS_AS_HASHREF/;
 
-our @EXPORT_OK = qw/HEADER_NONE HEADERS_AS_ARRAYREF HEADERS_AS_HASHREF/;
+our @EXPORT_OK = qw/HEADERS_NONE HEADERS_AS_ARRAYREF HEADERS_AS_HASHREF/;
 
 
 # ref. RFC 2616, 3.5 Content Codings:
@@ -799,11 +799,11 @@ I<%args> might be:
 
 This option choose return value format of C<< $furl->request >>.
 
-This option allows HEADER_NONE or HEADERS_AS_ARRAYREF.
+This option allows HEADERS_NONE or HEADERS_AS_ARRAYREF.
 
 B<HEADERS_AS_ARRAYREF> is a default value. This makes B<$headers> as ArrayRef.
 
-B<HEADER_NONE> makes B<$headers> as undef. Furl does not return parsing result of headers. You should take needed headers from B<special_headers>.
+B<HEADERS_NONE> makes B<$headers> as undef. Furl does not return parsing result of headers. You should take needed headers from B<special_headers>.
 
 =back
 
