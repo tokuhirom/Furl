@@ -18,10 +18,11 @@ test_tcp(
           IO::Callback->new( '<',
             sub { my $x = shift @data; $x ? "-$x" : undef } );
         my ( undef, $code, $msg, $headers, $content ) =
-            $furl->put(
-                "http://127.0.0.1:$port/",
-                ['Content-Length' => length(join('', map { "-$_" } @data)) ],
-                $fh,
+            $furl->request(
+                method  => 'PUT',
+                url     => "http://127.0.0.1:$port/",
+                headers => ['Content-Length' => length(join('', map { "-$_" } @data)) ],
+                content => $fh,
             );
         is $code, 200, "request()";
 

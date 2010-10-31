@@ -14,63 +14,62 @@ sub new {
 
 sub request {
     my $self = shift;
-    Furl::Response->new( $self->SUPER::request(@_) );
+    my @res = $self->SUPER::request(@_);
+    if(@res == 1) {
+        # the response is already Furl::Response
+        # because of retrying requests (e.g. by redirect)
+        return $res[0];
+    }
+    else {
+        # the response is that of Furl::HTTP->request
+        return Furl::Response->new( @res );
+    }
 }
 
 sub get {
     my ( $self, $url, $headers ) = @_;
-    Furl::Response->new(
-        $self->SUPER::request(
-            method  => 'GET',
-            url     => $url,
-            headers => $headers
-        )
+    $self->request(
+        method  => 'GET',
+        url     => $url,
+        headers => $headers
     );
 }
 
 sub head {
     my ( $self, $url, $headers ) = @_;
-    Furl::Response->new(
-        $self->SUPER::request(
-            method  => 'HEAD',
-            url     => $url,
-            headers => $headers
-        )
+    $self->request(
+        method  => 'HEAD',
+        url     => $url,
+        headers => $headers
     );
 }
 
 sub post {
     my ( $self, $url, $headers, $content ) = @_;
-    Furl::Response->new(
-        $self->SUPER::request(
-            method  => 'POST',
-            url     => $url,
-            headers => $headers,
-            content => $content
-        )
+    $self->request(
+        method  => 'POST',
+        url     => $url,
+        headers => $headers,
+        content => $content
     );
 }
 
 sub put {
     my ( $self, $url, $headers, $content ) = @_;
-    Furl::Response->new(
-        $self->SUPER::request(
-            method  => 'PUT',
-            url     => $url,
-            headers => $headers,
-            content => $content
-        )
+    $self->request(
+        method  => 'PUT',
+        url     => $url,
+        headers => $headers,
+        content => $content
     );
 }
 
 sub delete {
     my ( $self, $url, $headers ) = @_;
-    Furl::Response->new(
-        $self->SUPER::request(
-            method  => 'DELETE',
-            url     => $url,
-            headers => $headers
-        )
+    $self->request(
+        method  => 'DELETE',
+        url     => $url,
+        headers => $headers
     );
 }
 
