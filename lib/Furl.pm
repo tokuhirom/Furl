@@ -447,14 +447,25 @@ sub request {
     }
 
     # manage cache
-    if (   $res_minor_version == 0
-        || lc($special_headers->{'connection'}) eq 'close'
-        || !(    defined($special_headers->{'content-length'})
-              || $special_headers->{'transfer-encoding'} eq 'chunked' )
-        || $method eq 'HEAD') {
-        $self->remove_conn_cache($host, $port);
-    } else {
+    my $can_keep_alive = undef;
+    if ($res_minor_version == 0) {
+        if (lc($special_headers->{'connection'}) eq 'keep-alive'
+            && defined($special_headers->{'content-length'})) {
+            $can_keep_alive = 1;
+        }
+    } elsif (
+        lc($special_headers->{'connection'}) ne 'close'
+        && (defined($special_headers->{'content-length'})
+            || $special_headers->{'transfer-encoding'} eq 'chunked')) {
+        $can_keep_alive = 1;
+    }
+    if ($method eq 'HEAD') {
+        $can_keep_alive = undef;
+    }
+    if ($can_keep_alive) {
         $self->add_conn_cache($host, $port, $sock);
+    } else {
+        $self->remove_conn_cache($host, $port);
     }
 
     # return response.
