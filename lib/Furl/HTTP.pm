@@ -363,14 +363,16 @@ sub request {
         $res_content = Furl::ZlibStream->new($res_content);
     }
 
+    my $chunked        = ($special_headers->{'transfer-encoding'} eq 'chunked');
+    my $content_length =  $special_headers->{'content-length'};
+
     if($method ne 'HEAD') {
         my @err;
-        if ( $special_headers->{'transfer-encoding'} eq 'chunked' ) {
+        if ( $chunked ) {
             @err = $self->_read_body_chunked($sock,
                 \$res_content, $rest_header, $timeout);
         } else {
             $res_content .= $rest_header;
-            my $content_length = $special_headers->{'content-length'};
             if (ref $res_content || !defined($content_length)) {
                 @err = $self->_read_body_normal($sock,
                     \$res_content, length($rest_header),
@@ -405,15 +407,16 @@ sub request {
         }
     }
 
-    # manage cache
-    if (   $res_minor_version == 0
-        || lc($special_headers->{'connection'}) eq 'close'
-        || !(    defined($special_headers->{'content-length'})
-              || $special_headers->{'transfer-encoding'} eq 'chunked' )
-        || $method eq 'HEAD') {
-        $self->remove_conn_cache($host, $port);
-    } else {
+    # manage connection cache (i.e. keep-alive)
+    my $connection = lc $special_headers->{'connection'};
+    if( ($res_minor_version == 0
+            ? $connection eq 'keep-alive' # HTTP/1.0 needs explicit keep-alive
+            : $connection ne 'close' )    # HTTP/1.1 can keep alive by default
+          && ( defined $content_length or $chunked )
+          && $method ne 'HEAD' ) {
         $self->add_conn_cache($host, $port, $sock);
+    } else {
+        $self->remove_conn_cache($host, $port);
     }
 
     # return response.
