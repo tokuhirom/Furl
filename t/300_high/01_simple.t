@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl::HTTP;
+use Furl;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;

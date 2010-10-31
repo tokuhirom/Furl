@@ -3,19 +3,19 @@ use warnings;
 use utf8;
 use t::Util;
 use Test::More;
-use Furl::HTTP;
+use Furl;
 use Test::Requires 'Net::IDN::Encode';
 
 skip_if_offline();
 
 my $url = 'http://例え.テスト/';
 
-my $furl = Furl::HTTP->new();
-my ($code, $msg, $headers, $content) = $furl->get($url);
-is $code, 200;
+my $furl = Furl->new();
+my $res  = $furl->get($url);
+ok $res->is_success or $res->status_line;
 
 utf8::decode($url);
-($code, $msg, $headers, $content) = $furl->get($url);
-is $code, 200;
+$res = $furl->get($url);
+ok $res->is_success or $res->status_line;
 
 done_testing;

@@ -2,17 +2,27 @@ package Furl::Headers;
 use strict;
 use warnings;
 use utf8;
+use Carp ();
 
 sub new {
     my ($class, $headers) = @_; # $headers is HashRef or ArrayRef
+    my $self = {};
     if (ref $headers eq 'ARRAY') {
         my @h = @$headers; # copy
-        $headers = {};
         while (my ($k, $v) = splice @h, 0, 2) {
-            push @{$headers->{$k}}, $v;
+            push @{$self->{$k}}, $v;
         }
     }
-    bless $headers, $class;
+    elsif(ref $headers eq 'HASH') {
+        while (my ($k, $v) = each %$headers) {
+            push @{$self->{$k}}, ref($v) eq 'ARRAY' ? @$v : $v;
+        }
+    }
+    else {
+        Carp::confess($class . ': $headers must be an ARRAY or HASH reference');
+    }
+
+    bless $self, $class;
 }
 
 sub header {
