@@ -298,7 +298,6 @@ sub request {
 
     # read response
     my $buf = '';
-    my $last_len = 0;
     my $rest_header;
     my $res_minor_version;
     my $res_status;
@@ -328,13 +327,13 @@ sub request {
         else {
             my $ret;
             ( $ret, $res_minor_version, $res_status, $res_msg, $res_headers )
-                =  HTTP::Parser::XS::parse_http_response( $buf, $self->{header_format}, $special_headers );
+                =  HTTP::Parser::XS::parse_http_response( $buf,
+                       $self->{header_format}, $special_headers );
             if ( $ret == -1 ) {
                 return $self->_r500("Invalid HTTP response");
             }
             elsif ( $ret == -2 ) {
                 # partial response
-                $last_len = length($buf);
                 next LOOP;
             }
             else {
