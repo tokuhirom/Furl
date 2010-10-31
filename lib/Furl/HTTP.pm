@@ -175,8 +175,9 @@ sub request {
     }
 
     local $SIG{PIPE} = 'IGNORE';
-    my $sock = $self->get_conn_cache($host, $port);
-    if(not defined $sock) {
+    my $sock         = $self->get_conn_cache($host, $port);
+    my $in_keepalive = defined $sock;
+    if(!$in_keepalive) {
         my ($_host, $_port);
         if ($proxy) {
             (undef, $_host, $_port, undef)
@@ -313,6 +314,11 @@ sub request {
         my $n = $self->read_timeout($sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
         if(!$n) { # error or eof
+            if($in_keepalive && defined $n) {
+                # the server closes the connection (maybe because of timeout)
+                $self->remove_conn_cache($host, $port);
+                return $self->request(%args);
+            }
             return $self->_r500(
                 !defined($n)
                     ? "Cannot read response header: $!"
