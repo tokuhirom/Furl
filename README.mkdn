@@ -1,3 +1,167 @@
 # NAME
 
 Furl - Lightning-fast URL fetcher
+
+# SYNOPSIS
+
+    use Furl;
+
+    my $furl = Furl->new(
+        agent   => 'MyGreatUA/2.0',
+        timeout => 10,
+    );
+
+    my $res = $furl->get('http://example.com/');
+    die $res->status_line unless $res->is_success;
+    print $res->content;
+
+    my $res = $furl->post(
+        'http://example.com/', # URL
+        [...],                 # headers
+        [ foo => 'bar' ],      # form data (HashRef/FileHandle are also okay)
+    );
+
+    # Accept-Encoding is supported but optional
+    $furl = Furl->new(
+        headers => [ 'Accept-Encoding' => 'gzip' ],
+    );
+    my $body = $furl->get('http://example.com/some/compressed');
+
+# DESCRIPTION
+
+Furl is yet another HTTP client library. LWP is the de facto standard HTTP
+client for Perl5, but it is too slow for some critical jobs, and too complex
+for weekend hacking. Furl resolves these issues. Enjoy it!
+
+This library is an __alpha__ software. Any API may change without notice.
+
+# INTERFACE
+
+## Class Methods
+
+### C<< Furl->new(%args | \%args) :Furl >>
+
+Creates and returns a new Furl client with _%args_. Dies on errors.
+
+_%args_ might be:
+
+- agent :Str = "Furl/$VERSION"
+
+- timeout :Int = 10
+
+- max_redirects :Int = 7
+
+- proxy :Str
+
+- no_proxy :Str
+
+- headers :ArrayRef
+
+## Instance Methods
+
+### C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
+
+Sends an HTTP request to a specified URL and returns a instance of [Furl::Response](http://search.cpan.org/perldoc?Furl::Response).
+
+_%args_ might be:
+
+- scheme :Str = "http"
+
+Protocol scheme. May be `http` or `https`.
+
+- host :Str
+
+Server host to connect.
+
+You must specify at least `host` or `url`.
+
+- port :Int = 80
+
+Server port to connect. The default is 80 on `scheme => 'http'`,
+or 443 on `scheme => 'https'`.
+
+- path_query :Str = "/"
+
+Path and query to request.
+
+- url :Str
+
+URL to request.
+
+You can use `url` instead of `scheme`, `host`, `port` and `path_query`.
+
+- headers :ArrayRef
+
+HTTP request headers. e.g. `headers => [ 'Accept-Encoding' => 'gzip' ]`.
+
+- content : Str | ArrayRef[Str] | HashRef[Str] | FileHandle
+
+Content to request.
+
+You must encode all the queries or this method will die, saying
+`Wide character in ...`.
+
+### C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
+
+This is an easy-to-use alias to `request()`.
+
+### C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) :List >>
+
+This is an easy-to-use alias to `request()`.
+
+### C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+
+This is an easy-to-use alias to `request()`.
+
+### C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+
+This is an easy-to-use alias to `request()`.
+
+### C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) :List >>
+
+This is an easy-to-use alias to `request()`.
+
+### C<< $furl->request_with_http_request($req :HTTP::Request) :List >>
+
+This is an easy-to-use alias to `request()`.
+
+### C<< $furl->env_proxy() >>
+
+Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
+
+# FAQ
+
+- I need more speed.
+
+See [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP), it is low level interface of [Furl](http://search.cpan.org/perldoc?Furl). It is faster than Furl.pm since [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP) does not create objects.
+
+# AUTHOR
+
+Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>
+
+Fuji, Goro (gfx)
+
+# THANKS TO
+
+Kazuho Oku
+
+mala
+
+mattn
+
+lestrrat
+
+walf443
+
+
+
+# SEE ALSO
+
+[LWP](http://search.cpan.org/perldoc?LWP)
+
+# LICENSE
+
+Copyright (C) Tokuhiro Matsuno.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.

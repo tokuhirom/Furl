@@ -732,13 +732,13 @@ __END__
 
 =head1 NAME
 
-Furl::HTTP - Lightning-fast URL fetcher
+Furl::HTTP - Low level interface of Furl
 
 =head1 SYNOPSIS
 
     use Furl;
 
-    my $furl = Furl->new(
+    my $furl = Furl::HTTP->new(
         agent   => 'MyGreatUA/2.0',
         timeout => 10,
     );
@@ -750,12 +750,6 @@ Furl::HTTP - Lightning-fast URL fetcher
         path   => '/'
     );
     # or
-    my ($minor_version, $code, $msg, $headers, $body) = $furl->get('http://example.com/');
-    my ($minor_version, $code, $msg, $headers, $body) = $furl->post(
-        'http://example.com/', # URL
-        [...],                 # headers
-        [ foo => 'bar' ],      # form data (HashRef/FileHandle are also okay)
-    );
 
     # Accept-Encoding is supported but optional
     $furl = Furl->new(
@@ -811,8 +805,8 @@ B<HEADERS_NONE> makes B<$headers> as undef. Furl does not return parsing result 
 
 =head3 C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
 
-Sends an HTTP request to a specified URL and returns a status code,
-status message, response headers, response body respectively.
+Sends an HTTP request to a specified URL and returns a protocol minor version,
+status code, status message, response headers, response body respectively.
 
 I<%args> might be:
 
@@ -856,43 +850,7 @@ Content to request.
 You must encode all the queries or this method will die, saying
 C<Wide character in ...>.
 
-=head3 C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
-
-This is an easy-to-use alias to C<request()>.
-
-=head3 C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) :List >>
-
-This is an easy-to-use alias to C<request()>.
-
-=head3 C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
-
-This is an easy-to-use alias to C<request()>.
-
-=head3 C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
-
-This is an easy-to-use alias to C<request()>.
-
-=head3 C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) :List >>
-
-This is an easy-to-use alias to C<request()>.
-
-=head3 C<< $furl->request_with_http_request($req :HTTP::Request) :List >>
-
-This is an easy-to-use alias to C<request()>.
-
-=head3 C<< $furl->env_proxy() >>
-
-Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
-
-=head1 INTEGRATE WITH HTTP::Response
-
-TODO: rewrite this section
-
-Some useful libraries require HTTP::Response instances for their arguments.
-You can easily create its instance from the result of C<request()> and other HTTP request methods.
-
-
-=head1 PROJECT POLICY
+=head1 FAQ
 
 =over 4
 
@@ -920,12 +878,6 @@ First, you cannot send chunked requests unless the peer server at the other end 
 Second, HTTP/1.1 servers disconnect their persistent connection quite quickly (compared to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.
 
 These facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is NOT of high priority.
-
-=back
-
-=head1 FAQ
-
-=over 4
 
 =item How do you build the response content as it arrives?
 
@@ -1000,7 +952,6 @@ C<If-Modified-Sinse> are more suitable to cache HTTP contents.
 =head1 TODO
 
     - AnyEvent::Furl?
-    - use HTTP::Response::Parser
     - ipv6 support
     - better docs for NO_PROXY
 
@@ -1037,24 +988,6 @@ To get picohttpparser:
 =head2 HOW TO CONTRIBUTE
 
 Please send the pull-req via L<http://github.com/tokuhirom/p5-Furl/>.
-
-=head1 AUTHOR
-
-Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>
-
-Fuji, Goro (gfx)
-
-=head1 THANKS TO
-
-Kazuho Oku
-
-mala
-
-mattn
-
-lestrrat
-
-walf443
 
 =head1 SEE ALSO
 
