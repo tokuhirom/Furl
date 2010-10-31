@@ -19,3 +19,4 @@ xs/Furl.o
 xs/Furl.c
 nytprof*
 core
+perltidy.ERR
