@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Test::More;
 
@@ -13,9 +13,9 @@ my $n = shift(@ARGV) || 3;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new();
+        my $furl = Furl::HTTP->new();
         for (1..$n) {
-            my ( $code, $msg, $headers, $content ) =
+            my ( undef, $code, $msg, $headers, $content ) =
                 $furl->request(
                     port       => $port,
                     path_query => '/foo',
@@ -29,8 +29,8 @@ test_tcp(
         }
         for (1..3) {
             my $path_query = '/bar?a=b;c=d&e=f';
-            my ( $code, $msg, $headers, $content ) =
-                $furl->get("http://127.0.0.1:$port$path_query");
+            my ( undef, $code, $msg, $headers, $content ) =
+                $furl->request(url => "http://127.0.0.1:$port$path_query", method => 'GET');
             is $code, 200, "get()/$_";
             is $msg, "OK";
             is Furl::Util::header_get($headers, 'Content-Length'),

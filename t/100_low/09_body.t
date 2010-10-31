@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -11,13 +11,13 @@ use Plack::Request;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new(bufsize => 80);
+        my $furl = Furl::HTTP->new(bufsize => 80);
 
         for my $x(1, 1000) {
             my $req_content = "WOWOW!" x $x;
             note 'request content length: ', length $req_content;
             open my $req_content_fh, '<', \$req_content or die "oops";
-            my ( $code, $msg, $headers, $content ) =
+            my ( undef, $code, $msg, $headers, $content ) =
                 $furl->request(
                     method     => 'POST',
                     port       => $port,
@@ -39,7 +39,7 @@ test_tcp(
             note 'request $0: ', -s $req_content_fh;
             my $req_content = do{ local $/; <$req_content_fh> };
             seek $req_content_fh, 0, SEEK_SET;
-            my ( $code, $msg, $headers, $content ) =
+            my ( undef, $code, $msg, $headers, $content ) =
                 $furl->request(
                     method     => 'POST',
                     port       => $port,
@@ -65,7 +65,7 @@ test_tcp(
             #note explain $env;
             my $req = Plack::Request->new($env);
             is $req->header('X-Foo'), "ppp" if $env->{REQUEST_URI} eq '/foo';
-            like $req->header('User-Agent'), qr/\A Furl /xms;
+            like $req->header('User-Agent'), qr/\A Furl::HTTP /xms;
             return [ 200,
                 [ 'Content-Length' => length($req->content) ],
                 [$req->content]

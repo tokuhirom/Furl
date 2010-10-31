@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base qw/Exporter/;
 use Test::More;
-use Furl;
+use Furl::HTTP;
 use Fcntl qw(O_CREAT O_RDWR SEEK_SET);
 
 our @EXPORT = qw/online skip_if_offline/;
@@ -41,7 +41,7 @@ sub online () {
         return $online; # cache
     }
 
-    my $furl = Furl->new(timeout => 5);
+    my $furl = Furl::HTTP->new(timeout => 5);
     my $good = 0;
     my $bad  = 0;
     note 'checking if online';
@@ -49,7 +49,8 @@ sub online () {
         for (my $i=0; $i<@RELIABLE_HTTP; $i+=2) {
             my ($url, $check) = @RELIABLE_HTTP[$i, $i+1];
             note "getting $url";
-            my ($code, $msg, $headers, $content) = $furl->get($url);
+            my ($version, $code, $msg, $headers, $content)
+                = $furl->request(url => $url);
             note "$code $msg";
             local $_ = $content;
             if ($code == 200 && $check->()) {

@@ -12,8 +12,8 @@ my $url = 'http://www.google.co.jp/';
 my $furl = Furl->new();
 for(1 .. 2) {
     note "getting";
-    my ($code, $msg, $headers, $content) = $furl->get($url);
+    my $res = $furl->get($url);
     note "done";
-    is($code, 200);
+    ok $res->is_success or diag $res->status_line
 }
 done_testing;

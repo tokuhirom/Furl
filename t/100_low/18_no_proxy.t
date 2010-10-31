@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -20,7 +20,7 @@ my $verbose = 1;
 }
 
 {
-    my $furl = Furl->new;
+    my $furl = Furl::HTTP->new;
     ok $furl->match_no_proxy(".google.com", "www.google.com");
     ok $furl->match_no_proxy("google.com", "www.google.com");
     ok $furl->match_no_proxy("google.com,.yahoo.com", "mail.yahoo.com");
@@ -36,8 +36,8 @@ test_tcp(
             client => sub { # http client
                 my $httpd_port = shift;
                 for (1..3) { # run some times for testing keep-alive.
-                    my $furl = Furl->new(proxy => "http://127.0.0.1:$proxy_port", no_proxy => "127.0.0.1");
-                    my ( $code, $msg, $headers, $content ) =
+                    my $furl = Furl::HTTP->new(proxy => "http://127.0.0.1:$proxy_port", no_proxy => "127.0.0.1");
+                    my (  undef,$code, $msg, $headers, $content ) =
                         $furl->request(
                             url     => "http://127.0.0.1:$httpd_port/foo",
                             headers => [ "X-Foo" => "ppp" ]
@@ -57,7 +57,7 @@ test_tcp(
 
                     my $req = Plack::Request->new($env);
                     is $req->header('X-Foo'), "ppp" if $env->{REQUEST_URI} eq '/foo';
-                    like $req->header('User-Agent'), qr/\A Furl /xms;
+                    like $req->header('User-Agent'), qr/\A Furl::HTTP /xms;
                     my $content = "Hello, foo";
                     return [ 200,
                         [ 'Content-Length' => length($content) ],

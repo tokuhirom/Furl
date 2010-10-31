@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -12,8 +12,8 @@ test_tcp(
         my $port = shift;
 
         subtest 'redirect' => sub {
-            my $furl = Furl->new();
-            my ( $code, $msg, $headers, $content ) =
+            my $furl = Furl::HTTP->new();
+            my ( undef, $code, $msg, $headers, $content ) =
             $furl->request( url => "http://127.0.0.1:$port/1", );
             is $code, 200;
             is $msg, "OK";
@@ -22,8 +22,8 @@ test_tcp(
         };
 
         subtest 'not enough redirect' => sub {
-            my $furl = Furl->new(max_redirects => 0);
-            my ( $code, $msg, $headers, $content ) =
+            my $furl = Furl::HTTP->new(max_redirects => 0);
+            my ( undef, $code, $msg, $headers, $content ) =
             $furl->request( url => "http://127.0.0.1:$port/1", );
             is $code, 302;
             is $msg, 'Found';
@@ -34,9 +34,9 @@ test_tcp(
 
         subtest 'over max redirect' => sub {
             my $max_redirects = 7;
-            my $furl = Furl->new(max_redirects => $max_redirects);
+            my $furl = Furl::HTTP->new(max_redirects => $max_redirects);
             my $start_num = 4;
-            my ( $code, $msg, $headers, $content ) =
+            my ( undef, $code, $msg, $headers, $content ) =
             $furl->request( url => "http://127.0.0.1:$port/$start_num");
             is $code, 302, 'code ok';
             is $msg, 'Found', 'msg ok';

@@ -1,94 +1,131 @@
-use utf8;
-use base qw/Furl::HTTP/;
-use Furl::Response;
-our $VERSION = '0.04';
+package Furl::HTTP;
+use strict;
+use warnings;
+use base qw/Exporter/;
+use 5.008;
 
->>>>>>> useragent
+use Carp ();
+use Furl;
+
+use Scalar::Util ();
+use Errno qw(EAGAIN EINTR EWOULDBLOCK);
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK SEEK_SET SEEK_END);
+use Socket qw(
+    PF_INET SOCK_STREAM
+    IPPROTO_TCP
+    TCP_NODELAY
+    inet_aton
+    pack_sockaddr_in
+);
+
+use constant WIN32 => $^O eq 'MSWin32';
+use HTTP::Parser::XS qw/HEADERS_NONE HEADERS_AS_ARRAYREF HEADERS_AS_HASHREF/;
+
+our @EXPORT_OK = qw/HEADERS_NONE HEADERS_AS_ARRAYREF HEADERS_AS_HASHREF/;
+
+
+# ref. RFC 2616, 3.5 Content Codings:
+#     For compatibility with previous implementations of HTTP,
+#     applications SHOULD consider "x-gzip" and "x-compress" to be
+#     equivalent to "gzip" and "compress" respectively.
+# ("compress" is not supported, though)
+my %COMPRESSED = map { $_ => undef } qw(gzip x-gzip deflate);
+
+my $HTTP_TOKEN         = '[^\x00-\x31\x7F]+';
+my $HTTP_QUOTED_STRING = q{"([^"]+|\\.)*"};
+
 sub new {
     my $class = shift;
-    return $class->SUPER::new( header_format => Furl::HTTP::HEADERS_AS_HASHREF(),
-        @_ );
-}
+    my %args = @_ == 1 ? %{$_[0]} : @_;
 
-sub request {
-    my $self = shift;
-    my @res = $self->SUPER::request(@_);
-    if(@res == 1) {
-        # the response is already Furl::Response
-        # because of retrying requests (e.g. by redirect)
-        return $res[0];
+    my @headers = (
+        'User-Agent' => (delete($args{agent}) || __PACKAGE__ . '/' . $Furl::VERSION),
+    );
+    if(defined $args{headers}) {
+        push @headers, @{delete $args{headers}};
     }
-    else {
-        # the response is that of Furl::HTTP->request
-        return Furl::Response->new( @res );
-    }
-}
-
-sub get {
-    my ( $self, $url, $headers ) = @_;
-    $self->request(
-        method  => 'GET',
-        url     => $url,
-        headers => $headers
-    );
-}
-
-sub head {
-    my ( $self, $url, $headers ) = @_;
-    $self->request(
-        method  => 'HEAD',
-        url     => $url,
-        headers => $headers
-    );
-}
-
-sub post {
-    my ( $self, $url, $headers, $content ) = @_;
-    $self->request(
-        method  => 'POST',
-        url     => $url,
-        headers => $headers,
-        content => $content
-    );
-}
-
-sub put {
-    my ( $self, $url, $headers, $content ) = @_;
-    $self->request(
-        method  => 'PUT',
-        url     => $url,
-        headers => $headers,
-        content => $content
-    );
-}
-
-sub delete {
-    my ( $self, $url, $headers ) = @_;
-    $self->request(
-        method  => 'DELETE',
-        url     => $url,
-        headers => $headers
-    );
-}
-
-sub request_with_http_request {
-    my ($self, $req, %args) = @_;
-    my $headers = +[
-        map {
-            my $k = $_;
-            map { ( $k => $_ ) } $req->headers->header($_);
-          } $req->headers->header_field_names
-    ];
-    $self->request(
-        url     => $req->uri,
-        method  => $req->method,
-        content => $req->content,
-        headers => $headers,
+    bless {
+        timeout       => 10,
+        max_redirects => 7,
+        bufsize       => 10*1024, # no mmap
+        headers       => \@headers,
+        proxy         => '',
+        no_proxy      => '',
+        sock_cache    => $class->new_conn_cache(),
+        header_format => HEADERS_AS_ARRAYREF,
         %args
-    );
+    }, $class;
 }
 
-<<<<<<< HEAD
+
+sub Furl::Util::header_get {
+    my ($headers, $key) = (shift, lc shift);
+    for (my $i=0; $i<@$headers; $i+=2) {
+        return $headers->[$i+1] if lc($headers->[$i]) eq $key;
+    }
+    return undef;
+}
+
+
+sub Furl::Util::requires {
+    my($file, $feature, $library) = @_;
+    return if exists $INC{$file};
+    unless(eval { require $file }) {
+        if ($@ =~ /^Can't locate/) {
+            $library ||= do {
+                local $_ = $file;
+                s/ \.pm \z//xms;
+                s{/}{::}g;
+                $_;
+            };
+            Carp::croak(
+                "$feature requires $library, but it is not available."
+                . " Please install $library using your prefer CPAN client"
+            );
+        } else {
+            die $@;
+        }
+    }
+}
+
+# returns $scheme, $host, $port, $path_query
+sub _parse_url {
+    my($self, $url) = @_;
+    $url =~ m{\A
+        ([a-z]+)       # scheme
+        ://
+        ([^/:]+)       # host
+        (?: : (\d+) )? # port
+        (?: (/ .*)  )? # path_query
+    \z}xms or Carp::croak("Passed malformed URL: $url");
+    return( $1, $2, $3, $4 );
+}
+
+sub make_x_www_form_urlencoded {
+    my($self, $content) = @_;
+    my @params;
+    my @p = ref($content) eq 'HASH'  ? %{$content}
+          : ref($content) eq 'ARRAY' ? @{$content}
+          : Carp::croak("Cannot coerce $content to x-www-form-urlencoded");
+    while ( my ( $k, $v ) = splice @p, 0, 2 ) {
+        foreach my $s($k, $v) {
+            utf8::downgrade($s); # will die in wide characters
+            # escape unsafe chars (defined by RFC 3986)
+            $s =~ s/ ([^A-Za-z0-9\-\._~]) / sprintf '%%%02X', ord $1 /xmsge;
+        }
+        push @params, "$k=$v";
+    }
+    return join( "&", @params );
+}
+
+sub env_proxy {
+    my $self = shift;
+    $self->{proxy} = $ENV{HTTP_PROXY} || '';
+    $self->{no_proxy} = $ENV{NO_PROXY} || '';
+    $self;
+}
+
+
 sub request {
     my $self = shift;
     my %args = @_;
@@ -138,8 +175,9 @@ sub request {
     }
 
     local $SIG{PIPE} = 'IGNORE';
-    my $sock = $self->get_conn_cache($host, $port);
-    if(not defined $sock) {
+    my $sock         = $self->get_conn_cache($host, $port);
+    my $in_keepalive = defined $sock;
+    if(!$in_keepalive) {
         my ($_host, $_port);
         if ($proxy) {
             (undef, $_host, $_port, undef)
@@ -276,6 +314,11 @@ sub request {
         my $n = $self->read_timeout($sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
         if(!$n) { # error or eof
+            if($in_keepalive && defined $n) {
+                # the server closes the connection (maybe because of timeout)
+                $self->remove_conn_cache($host, $port);
+                return $self->request(%args);
+            }
             return $self->_r500(
                 !defined($n)
                     ? "Cannot read response header: $!"
@@ -363,32 +406,21 @@ sub request {
     }
 
     # manage cache
-    my $can_keep_alive = undef;
-    if ($res_minor_version == 0) {
-        if (lc($special_headers->{'connection'}) eq 'keep-alive'
-            && defined($special_headers->{'content-length'})) {
-            $can_keep_alive = 1;
-        }
-    } elsif (
-        lc($special_headers->{'connection'}) ne 'close'
-        && (defined($special_headers->{'content-length'})
-            || $special_headers->{'transfer-encoding'} eq 'chunked')) {
-        $can_keep_alive = 1;
-    }
-    if ($method eq 'HEAD') {
-        $can_keep_alive = undef;
-    }
-    if ($can_keep_alive) {
-        $self->add_conn_cache($host, $port, $sock);
-    } else {
+    if (   $res_minor_version == 0
+        || lc($special_headers->{'connection'}) eq 'close'
+        || !(    defined($special_headers->{'content-length'})
+              || $special_headers->{'transfer-encoding'} eq 'chunked' )
+        || $method eq 'HEAD') {
         $self->remove_conn_cache($host, $port);
+    } else {
+        $self->add_conn_cache($host, $port, $sock);
     }
 
     # return response.
     if (ref $res_content) {
-        return ($res_status, $res_msg, $res_headers, $res_content->get_response_string);
+        return ($res_minor_version, $res_status, $res_msg, $res_headers, $res_content->get_response_string);
     } else {
-        return ($res_status, $res_msg, $res_headers, $res_content);
+        return ($res_minor_version, $res_status, $res_msg, $res_headers, $res_content);
     }
 }
 
@@ -640,12 +672,11 @@ sub write_all {
 }
 
 
-
 sub _r500 {
     my($self, $message) = @_;
     $self->remove_conn_cache();
     $message = Carp::shortmess($message); # add lineno and filename
-    return(500, 'Internal Server Error',
+    return(0, 500, 'Internal Server Error',
         ['Content-Length' => length($message)], $message);
 }
 
@@ -700,16 +731,16 @@ sub match_no_proxy {
     sub get_response_string { undef }
 }
 
->>>>>>> useragent
 1;
 __END__
 
-# NAME
+=encoding utf8
 
-Furl - Lightning-fast URL fetcher
-<<<<<<< HEAD
+=head1 NAME
 
-# SYNOPSIS
+Furl::HTTP - Lightning-fast URL fetcher
+
+=head1 SYNOPSIS
 
     use Furl;
 
@@ -718,15 +749,15 @@ Furl - Lightning-fast URL fetcher
         timeout => 10,
     );
 
-    my ($code, $msg, $headers, $body) = $furl->request(
+    my ($minor_version, $code, $msg, $headers, $body) = $furl->request(
         method => 'GET',
         host   => 'example.com',
         port   => 80,
         path   => '/'
     );
     # or
-    my ($code, $msg, $headers, $body) = $furl->get('http://example.com/');
-    my ($code, $msg, $headers, $body) = $furl->post(
+    my ($minor_version, $code, $msg, $headers, $body) = $furl->get('http://example.com/');
+    my ($minor_version, $code, $msg, $headers, $body) = $furl->post(
         'http://example.com/', # URL
         [...],                 # headers
         [ foo => 'bar' ],      # form data (HashRef/FileHandle are also okay)
@@ -738,144 +769,155 @@ Furl - Lightning-fast URL fetcher
     );
     my $body = $furl->get('http://example.com/some/compressed');
 
-# DESCRIPTION
+=head1 DESCRIPTION
 
 Furl is yet another HTTP client library. LWP is the de facto standard HTTP
 client for Perl5, but it is too slow for some critical jobs, and too complex
 for weekend hacking. Furl resolves these issues. Enjoy it!
 
-This library is an __alpha__ software. Any API may change without notice.
+This library is an B<alpha> software. Any API may change without notice.
 
-# INTERFACE
+=head1 INTERFACE
 
-## Class Methods
+=head2 Class Methods
 
-### C<< Furl->new(%args | \%args) :Furl >>
+=head3 C<< Furl->new(%args | \%args) :Furl >>
 
-Creates and returns a new Furl client with _%args_. Dies on errors.
+Creates and returns a new Furl client with I<%args>. Dies on errors.
 
-_%args_ might be:
+I<%args> might be:
 
-- agent :Str = "Furl/$VERSION"
+=over
 
-- timeout :Int = 10
+=item agent :Str = "Furl/$VERSION"
 
-- max_redirects :Int = 7
+=item timeout :Int = 10
 
-- proxy :Str
+=item max_redirects :Int = 7
 
-- no_proxy :Str
+=item proxy :Str
 
-- headers :ArrayRef
+=item no_proxy :Str
 
-- header_format :Int = HEADERS_AS_ARRAYREF
+=item headers :ArrayRef
 
-This option choose return value format of `$furl->request`.
+=item header_format :Int = HEADERS_AS_ARRAYREF
+
+This option choose return value format of C<< $furl->request >>.
 
 This option allows HEADERS_NONE or HEADERS_AS_ARRAYREF.
 
-__HEADERS_AS_ARRAYREF__ is a default value. This makes __$headers__ as ArrayRef.
+B<HEADERS_AS_ARRAYREF> is a default value. This makes B<$headers> as ArrayRef.
 
-__HEADERS_NONE__ makes __$headers__ as undef. Furl does not return parsing result of headers. You should take needed headers from __special_headers__.
+B<HEADERS_NONE> makes B<$headers> as undef. Furl does not return parsing result of headers. You should take needed headers from B<special_headers>.
 
-## Instance Methods
+=back
 
-### C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
+=head2 Instance Methods
+
+=head3 C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
 
 Sends an HTTP request to a specified URL and returns a status code,
 status message, response headers, response body respectively.
 
-_%args_ might be:
+I<%args> might be:
 
-- scheme :Str = "http"
+=over
 
-Protocol scheme. May be `http` or `https`.
+=item scheme :Str = "http"
 
-- host :Str
+Protocol scheme. May be C<http> or C<https>.
+
+=item host :Str
 
 Server host to connect.
 
-You must specify at least `host` or `url`.
+You must specify at least C<host> or C<url>.
 
-- port :Int = 80
+=item port :Int = 80
 
-Server port to connect. The default is 80 on `scheme => 'http'`,
-or 443 on `scheme => 'https'`.
+Server port to connect. The default is 80 on C<< scheme => 'http' >>,
+or 443 on C<< scheme => 'https' >>.
 
-- path_query :Str = "/"
+=item path_query :Str = "/"
 
 Path and query to request.
 
-- url :Str
+=item url :Str
 
 URL to request.
 
-You can use `url` instead of `scheme`, `host`, `port` and `path_query`.
+You can use C<url> instead of C<scheme>, C<host>, C<port> and C<path_query>.
 
-- headers :ArrayRef
+=item headers :ArrayRef
 
-HTTP request headers. e.g. `headers => [ 'Accept-Encoding' => 'gzip' ]`.
+HTTP request headers. e.g. C<< headers => [ 'Accept-Encoding' => 'gzip' ] >>.
 
-- content : Str | ArrayRef[Str] | HashRef[Str] | FileHandle
+=item content : Str | ArrayRef[Str] | HashRef[Str] | FileHandle
 
 Content to request.
 
+=back
+
 You must encode all the queries or this method will die, saying
-`Wide character in ...`.
+C<Wide character in ...>.
 
-### C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
+=head3 C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to C<request()>.
 
-### C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) :List >>
+=head3 C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) :List >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to C<request()>.
 
-### C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+=head3 C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to C<request()>.
 
-### C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+=head3 C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to C<request()>.
 
-### C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) :List >>
+=head3 C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) :List >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to C<request()>.
 
-### C<< $furl->request_with_http_request($req :HTTP::Request) :List >>
+=head3 C<< $furl->request_with_http_request($req :HTTP::Request) :List >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to C<request()>.
 
-### C<< $furl->env_proxy() >>
+=head3 C<< $furl->env_proxy() >>
 
-Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
+Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
 
-# INTEGRATE WITH HTTP::Response
+=head1 INTEGRATE WITH HTTP::Response
+
+TODO: rewrite this section
 
 Some useful libraries require HTTP::Response instances for their arguments.
-You can easily create its instance from the result of `request()` and other HTTP request methods.
+You can easily create its instance from the result of C<request()> and other HTTP request methods.
 
-    my $res = HTTP::Response->new($furl->get($url));
 
-# PROJECT POLICY
+=head1 PROJECT POLICY
 
-- Why IO::Socket::SSL?
+=over 4
+
+=item Why IO::Socket::SSL?
 
 Net::SSL is not well documented.
 
-- Why is env_proxy optional?
+=item Why is env_proxy optional?
 
 Environment variables are highly dependent on each users' environment,
 and we think it may confuse users when something doesn't go right.
 
-- What operating systems are supported?
+=item What operating systems are supported?
 
 Linux 2.6 or higher, OSX Tiger or higher, Windows XP or higher.
 
 And other operating systems will be supported if you send a patch.
 
-- Why doesn't Furl support chunked upload?
+=item Why doesn't Furl support chunked upload?
 
 There are reasons why chunked POST/PUTs should not be used in general.
 
@@ -885,11 +927,15 @@ Second, HTTP/1.1 servers disconnect their persistent connection quite quickly (c
 
 These facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is NOT of high priority.
 
-# FAQ
+=back
 
-- How do you build the response content as it arrives?
+=head1 FAQ
 
-You can use [IO::Callback](http://search.cpan.org/perldoc?IO::Callback) for this purpose.
+=over 4
+
+=item How do you build the response content as it arrives?
+
+You can use L<IO::Callback> for this purpose.
 
     my $fh = IO::Callback->new(
         '<',
@@ -902,9 +948,9 @@ You can use [IO::Callback](http://search.cpan.org/perldoc?IO::Callback) for this
       $furl->put( "http://127.0.0.1:$port/", [ 'Content-Length' => $len ], $fh,
       );
 
-- How do you use cookie_jar?
+=item How do you use cookie_jar?
 
-Furl does not directly support the cookie_jar option available in LWP. You can use [HTTP::Cookies](http://search.cpan.org/perldoc?HTTP::Cookies), [HTTP::Request](http://search.cpan.org/perldoc?HTTP::Request), [HTTP::Response](http://search.cpan.org/perldoc?HTTP::Response) like following.
+Furl does not directly support the cookie_jar option available in LWP. You can use L<HTTP::Cookies>, L<HTTP::Request>, L<HTTP::Response> like following.
 
     my $f = Furl->new();
     my $cookies = HTTP::Cookies->new();
@@ -914,13 +960,13 @@ Furl does not directly support the cookie_jar option available in LWP. You can u
     $cookies->extract_cookies($res);
     # and use $res.
 
-- How do you use gzip/deflate compressed communication?
+=item How do you use gzip/deflate compressed communication?
 
-Add an __Accept-Encoding__ header to your request. Furl inflates response bodies transparently according to the __Content-Encoding__ response header.
+Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently according to the B<Content-Encoding> response header.
 
-- How do you use mutipart/form-data?
+=item How do you use mutipart/form-data?
 
-You can use multipart/form-data with [HTTP::Request::Common](http://search.cpan.org/perldoc?HTTP::Request::Common).
+You can use multipart/form-data with L<HTTP::Request::Common>.
 
     use HTTP::Request::Common;
 
@@ -936,11 +982,11 @@ You can use multipart/form-data with [HTTP::Request::Common](http://search.cpan.
       ];
     $furl->request_with_http_request($req);
 
-Native multipart/form-data support for [Furl](http://search.cpan.org/perldoc?Furl) is available if you can send a patch for me.
+Native multipart/form-data support for L<Furl> is available if you can send a patch for me.
 
-- How do you use Keep-Alive and what happens on the HEAD method?
+=item How do you use Keep-Alive and what happens on the HEAD method?
 
-Furl supports HTTP/1.1, hence `Keep-Alive`. However, if you use the HEAD
+Furl supports HTTP/1.1, hence C<Keep-Alive>. However, if you use the HEAD
 method, the connection is closed immediately.
 
 RFC 2616 section 9.4 says:
@@ -949,34 +995,36 @@ RFC 2616 section 9.4 says:
     return a message-body in the response.
 
 Some web applications, however, returns message bodies on the HEAD method,
-which might confuse `Keep-Alive` processes, so Furl closes connection in
+which might confuse C<Keep-Alive> processes, so Furl closes connection in
 such cases.
 
 Anyway, the HEAD method is not so useful nowadays. The GET method and
-`If-Modified-Sinse` are more suitable to cache HTTP contents.
+C<If-Modified-Sinse> are more suitable to cache HTTP contents.
 
-# TODO
+=back
+
+=head1 TODO
 
     - AnyEvent::Furl?
     - use HTTP::Response::Parser
     - ipv6 support
     - better docs for NO_PROXY
 
-# OPTIONAL FEATURES
+=head1 OPTIONAL FEATURES
 
-## Internationalized Domain Name (IDN)
+=head2 Internationalized Domain Name (IDN)
 
 This feature requires Net::IDN::Encode.
 
-## SSL
+=head2 SSL
 
 This feature requires IO::Socket::SSL.
 
-## Content-Encoding (deflate, gzip)
+=head2 Content-Encoding (deflate, gzip)
 
 This feature requires Compress::Raw::Zlib.
 
-# DEVELOPMENT
+=head1 DEVELOPMENT
 
 To setup your environment:
 
@@ -992,17 +1040,17 @@ To get picohttpparser:
     $ make
     $ sudo make install
 
-## HOW TO CONTRIBUTE
+=head2 HOW TO CONTRIBUTE
 
-Please send the pull-req via <http://github.com/tokuhirom/p5-Furl/>.
+Please send the pull-req via L<http://github.com/tokuhirom/p5-Furl/>.
 
-# AUTHOR
+=head1 AUTHOR
 
-Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>
+Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>
 
 Fuji, Goro (gfx)
 
-# THANKS TO
+=head1 THANKS TO
 
 Kazuho Oku
 
@@ -1014,17 +1062,19 @@ lestrrat
 
 walf443
 
-# SEE ALSO
+=head1 SEE ALSO
 
-[LWP](http://search.cpan.org/perldoc?LWP)
+L<LWP>
 
 HTTP specs:
-<http://www.w3.org/Protocols/HTTP/1.0/spec.html>
-<http://www.w3.org/Protocols/HTTP/1.1/spec.html>
+L<http://www.w3.org/Protocols/HTTP/1.0/spec.html>
+L<http://www.w3.org/Protocols/HTTP/1.1/spec.html>
 
-# LICENSE
+=head1 LICENSE
 
 Copyright (C) Tokuhiro Matsuno.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
+
+=cut

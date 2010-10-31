@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::Requires 'Plack::Middleware::Deflater', 'Compress::Raw::Zlib';
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Test::More;
 
@@ -16,12 +16,12 @@ test_tcp(
     client => sub {
         my $port = shift;
         for my $encoding (qw/gzip deflate/) {
-            my $furl = Furl->new(
+            my $furl = Furl::HTTP->new(
                 headers => ['Accept-Encoding' => $encoding],
             );
             for(1 .. $n) {
                 note "normal $_ $encoding";
-                my ( $code, $msg, $headers, $content ) =
+                my ( undef, $code, $msg, $headers, $content ) =
                     $furl->request(
                         url        => "http://127.0.0.1:$port/",
                     );
@@ -33,7 +33,7 @@ test_tcp(
             for(1 .. $n) {
                 note "to filehandle $_ $encoding";
                 open my $fh, '>', \my $content;
-                my ( $code, $msg, $headers ) =
+                my ( undef, $code, $msg, $headers ) =
                     $furl->request(
                         url        => "http://127.0.0.1:$port/",
                         write_file => $fh,
@@ -46,7 +46,7 @@ test_tcp(
             for(1 .. $n){
                 note "to callback $_ $encoding";
                 my $content = '';
-                my ( $code, $msg, $headers ) =
+                my ( undef, $code, $msg, $headers ) =
                     $furl->request(
                         url        => "http://127.0.0.1:$port/",
                         write_code => sub { $content .= $_[3] },
@@ -65,7 +65,7 @@ test_tcp(
             Plack::Middleware::Deflater->wrap(
                 sub {
                     my $env = shift;
-                    like $env->{HTTP_USER_AGENT}, qr/\A Furl/xms;
+                    like $env->{HTTP_USER_AGENT}, qr/\A Furl::HTTP/xms;
                     return [
                         200,
                         [ 'Content-Length' => length($CONTENT) ],

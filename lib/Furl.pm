@@ -1,6 +1,7 @@
 package Furl;
 use strict;
 use warnings;
+<<<<<<< HEAD
 use base qw/Exporter/;
 use 5.008;
 our $VERSION = '0.05';
@@ -34,128 +35,80 @@ my %COMPRESSED = map { $_ => undef } qw(gzip x-gzip deflate);
 my $HTTP_TOKEN         = '[^\x00-\x31\x7F]+';
 my $HTTP_QUOTED_STRING = q{"([^"]+|\\.)*"};
 
+=======
+use utf8;
+use base qw/Furl::HTTP/;
+use Furl::Response;
+our $VERSION = '0.04';
+
+>>>>>>> useragent
 sub new {
     my $class = shift;
-    my %args = @_ == 1 ? %{$_[0]} : @_;
-
-    my @headers = (
-        'User-Agent' => (delete($args{agent}) || __PACKAGE__ . '/' . $VERSION),
-    );
-    if(defined $args{headers}) {
-        push @headers, @{delete $args{headers}};
-    }
-    bless {
-        timeout       => 10,
-        max_redirects => 7,
-        bufsize       => 10*1024, # no mmap
-        headers       => \@headers,
-        proxy         => '',
-        no_proxy      => '',
-        sock_cache    => $class->new_conn_cache(),
-        header_format => HEADERS_AS_ARRAYREF,
-        %args
-    }, $class;
+    return $class->SUPER::new( header_format => Furl::HTTP::HEADERS_AS_HASHREF(),
+        @_ );
 }
 
-
-sub Furl::Util::header_get {
-    my ($headers, $key) = (shift, lc shift);
-    for (my $i=0; $i<@$headers; $i+=2) {
-        return $headers->[$i+1] if lc($headers->[$i]) eq $key;
+sub request {
+    my $self = shift;
+    my @res = $self->SUPER::request(@_);
+    if(@res == 1) {
+        # the response is already Furl::Response
+        # because of retrying requests (e.g. by redirect)
+        return $res[0];
     }
-    return undef;
-}
-
-
-sub Furl::Util::requires {
-    my($file, $feature, $library) = @_;
-    return if exists $INC{$file};
-    unless(eval { require $file }) {
-        if ($@ =~ /^Can't locate/) {
-            $library ||= do {
-                local $_ = $file;
-                s/ \.pm \z//xms;
-                s{/}{::}g;
-                $_;
-            };
-            Carp::croak(
-                "$feature requires $library, but it is not available."
-                . " Please install $library using your prefer CPAN client"
-            );
-        } else {
-            die $@;
-        }
+    else {
+        # the response is that of Furl::HTTP->request
+        return Furl::Response->new( @res );
     }
 }
 
 sub get {
-    my ($self, $url, $headers) = @_;
-    $self->request( method => 'GET',
-        url => $url, headers => $headers );
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'GET',
+        url     => $url,
+        headers => $headers
+    );
 }
 
 sub head {
-    my ($self, $url, $headers) = @_;
-    $self->request( method => 'HEAD',
-        url => $url, headers => $headers );
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'HEAD',
+        url     => $url,
+        headers => $headers
+    );
 }
 
 sub post {
     my ( $self, $url, $headers, $content ) = @_;
-    $self->request( method => 'POST',
-        url => $url, headers => $headers, content => $content );
+    $self->request(
+        method  => 'POST',
+        url     => $url,
+        headers => $headers,
+        content => $content
+    );
 }
 
 sub put {
     my ( $self, $url, $headers, $content ) = @_;
-    $self->request( method => 'PUT',
-        url => $url, headers => $headers, content => $content );
+    $self->request(
+        method  => 'PUT',
+        url     => $url,
+        headers => $headers,
+        content => $content
+    );
 }
 
 sub delete {
-    my ($self, $url, $headers) = @_;
-    $self->request( method => 'DELETE',
-        url => $url, headers => $headers );
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'DELETE',
+        url     => $url,
+        headers => $headers
+    );
 }
 
-# returns $scheme, $host, $port, $path_query
-sub _parse_url {
-    my($self, $url) = @_;
-    $url =~ m{\A
-        ([a-z]+)       # scheme
-        ://
-        ([^/:]+)       # host
-        (?: : (\d+) )? # port
-        (?: (/ .*)  )? # path_query
-    \z}xms or Carp::croak("Passed malformed URL: $url");
-    return( $1, $2, $3, $4 );
-}
-
-sub make_x_www_form_urlencoded {
-    my($self, $content) = @_;
-    my @params;
-    my @p = ref($content) eq 'HASH'  ? %{$content}
-          : ref($content) eq 'ARRAY' ? @{$content}
-          : Carp::croak("Cannot coerce $content to x-www-form-urlencoded");
-    while ( my ( $k, $v ) = splice @p, 0, 2 ) {
-        foreach my $s($k, $v) {
-            utf8::downgrade($s); # will die in wide characters
-            # escape unsafe chars (defined by RFC 3986)
-            $s =~ s/ ([^A-Za-z0-9\-\._~]) / sprintf '%%%02X', ord $1 /xmsge;
-        }
-        push @params, "$k=$v";
-    }
-    return join( "&", @params );
-}
-
-sub env_proxy {
-    my $self = shift;
-    $self->{proxy} = $ENV{HTTP_PROXY} || '';
-    $self->{no_proxy} = $ENV{NO_PROXY} || '';
-    $self;
-}
-
-# XXX more better naming?
 sub request_with_http_request {
     my ($self, $req, %args) = @_;
     my $headers = +[
@@ -173,6 +126,7 @@ sub request_with_http_request {
     );
 }
 
+<<<<<<< HEAD
 sub request {
     my $self = shift;
     my %args = @_;
@@ -783,6 +737,8 @@ sub match_no_proxy {
     sub get_response_string { undef }
 }
 
+=======
+>>>>>>> useragent
 1;
 __END__
 
@@ -791,6 +747,7 @@ __END__
 =head1 NAME
 
 Furl - Lightning-fast URL fetcher
+<<<<<<< HEAD
 
 =head1 SYNOPSIS
 
@@ -1129,3 +1086,5 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
+=======
+>>>>>>> useragent

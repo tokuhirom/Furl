@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -10,33 +10,28 @@ my $n = shift(@ARGV) || 3;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new(bufsize => 10);
+        my $furl = Furl::HTTP->new(bufsize => 10);
         for (1 .. $n) {
-            my ( $code, $msg, $headers, $content ) =
+            my %special_headers = (
+                'x-bar' => '',
+            );
+            my ( undef, $code, $msg, $headers, $content ) =
                 $furl->request(
                     port       => $port,
                     path_query => '/foo',
                     host       => '127.0.0.1',
-                    headers    => [ "X-Foo" => "ppp" ]
+                    headers    => [ "X-Foo" => "ppp" ],
+                    special_headers => \%special_headers,
                 );
             is $code, 200, "request()/$_";
             is $msg, "OK";
-            is Furl::Util::header_get($headers, 'Content-Length'), 4, 'header'
-                or diag(explain($headers));
+            is $special_headers{'content-length'}, 4, 'header'
+                or diag(explain(\%special_headers));
+            is $special_headers{'x-bar'}, 10;
             is $content, '/foo'
                 or do{ require Devel::Peek; Devel::Peek::Dump($content) };
         }
 
-        for (1..3) {
-            my $path_query = '/foo/bar?a=b;c=d&e=f';
-            my ( $code, $msg, $headers, $content ) =
-                $furl->get("http://127.0.0.1:$port$path_query");
-            is $code, 200, "get()/$_";
-            is $msg, "OK";
-            is Furl::Util::header_get($headers, 'Content-Length'),
-                length($path_query), 'header';
-            is $content, $path_query;
-        }
         done_testing;
     },
     server => sub {
@@ -46,9 +41,9 @@ test_tcp(
             #note explain $env;
             my $req = Plack::Request->new($env);
             is $req->header('X-Foo'), "ppp" if $env->{REQUEST_URI} eq '/foo';
-            like $req->header('User-Agent'), qr/\A Furl /xms;
+            like $req->header('User-Agent'), qr/\A Furl::HTTP /xms;
             return [ 200,
-                [ 'Content-Length' => length($env->{REQUEST_URI}) ],
+                [ 'Content-Length' => length($env->{REQUEST_URI}), 'X-Bar' => 10 ],
                 [$env->{REQUEST_URI}]
             ];
         });

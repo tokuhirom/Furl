@@ -5,7 +5,7 @@ use Benchmark ':all';
 use Starman;
 use LWP::UserAgent;
 use WWW::Curl::Easy 4.14;
-use Furl;
+use Furl::HTTP;
 use Child;
 use Test::TCP qw/empty_port/;
 use Plack::Loader;
@@ -19,7 +19,7 @@ my $port = empty_port();
 
 my $ua = LWP::UserAgent->new(parse_head => 0, keep_alive => 1);
 my $curl = WWW::Curl::Easy->new();
-my $furl = Furl->new(parse_header => 0);
+my $furl = Furl::HTTP->new(parse_header => 0);
 my $url = "http://127.0.0.1:$port/foo/bar";
 
 my $child = Child->new(
