@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -12,10 +12,10 @@ use Fcntl qw/:seek/;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new();
+        my $furl = Furl::HTTP->new();
 
-        my ( $status, $msg, $headers, $body ) =
-          $furl->get( "http://127.0.0.1:$port/", [ 'X-Foo' => "bar\015\012baz" ] );
+        my ( undef, $status, $msg, $headers, $body ) =
+          $furl->request( url => "http://127.0.0.1:$port/", headers => [ 'X-Foo' => "bar\015\012baz" ], method => 'GET' );
         is $status, 200;
 
         done_testing;

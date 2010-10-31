@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
@@ -13,15 +13,16 @@ my @data = qw/foo bar baz/;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new();
+        my $furl = Furl::HTTP->new();
         my $fh =
           IO::Callback->new( '<',
             sub { my $x = shift @data; $x ? "-$x" : undef } );
-        my ( $code, $msg, $headers, $content ) =
-            $furl->put(
-                "http://127.0.0.1:$port/",
-                ['Content-Length' => length(join('', map { "-$_" } @data)) ],
-                $fh,
+        my ( undef, $code, $msg, $headers, $content ) =
+            $furl->request(
+                method  => 'PUT',
+                url     => "http://127.0.0.1:$port/",
+                headers => ['Content-Length' => length(join('', map { "-$_" } @data)) ],
+                content => $fh,
             );
         is $code, 200, "request()";
 

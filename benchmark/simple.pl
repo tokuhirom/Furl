@@ -4,7 +4,7 @@ use Benchmark ':all';
 use LWP::UserAgent;
 use WWW::Curl::Easy 4.14;
 use HTTP::Lite;
-use Furl qw/HEADER_NONE HEADERS_AS_ARRAYREF/;
+use Furl::HTTP qw/HEADERS_NONE HEADERS_AS_ARRAYREF/;
 use Config;
 use Getopt::Long;
 
@@ -20,7 +20,7 @@ my $url = shift @ARGV || 'http://192.168.1.3:80/';
 
 my $ua = LWP::UserAgent->new(parse_head => 0, keep_alive => 1);
 my $curl = WWW::Curl::Easy->new();
-my $furl = Furl->new(header_format => HEADER_NONE);
+my $furl = Furl::HTTP->new(header_format => HEADERS_NONE);
 $furl->{bufsize} = $bufsize if defined $bufsize;
 my $uri = URI->new($url);
 my $host = $uri->host;
@@ -72,7 +72,7 @@ cmpthese(
             length($content) == $body_content_length or die;
         },
         furl => sub {
-            my ( $code, $msg, $headers, $content ) = $furl->request(
+            my ( $version, $code, $msg, $headers, $content ) = $furl->request(
                 method     => 'GET',
                 host       => $host,
                 port       => $port,

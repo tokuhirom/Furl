@@ -7,23 +7,23 @@ use Furl;
 
 no_leaks_ok {
     my $furl = Furl->new();
-    my($code, $headers, $body) = $furl->request(
+    my $res = $furl->request(
         method => 'GET',
         host   => 'example.com',
         path   => '/',
     );
-    $code == 200 or die $body;
+    $res->is_success or die $res->status_line;
 };
 
 my $furl = Furl->new();
 no_leaks_ok {
-    for(1 .. 10) {
-        my($code, $headers, $body) = $furl->request(
+    for(1 .. 5) {
+        my $res = $furl->request(
             method => 'GET',
             host   => 'example.com',
             path   => '/',
         );
-        $code == 200 or die $body;
+        $res->is_success or die $res->status_line;
     }
 };
 

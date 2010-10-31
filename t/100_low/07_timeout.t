@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl;
+use Furl::HTTP;
 use Test::TCP;
 use Test::More;
 use t::Slowloris;
@@ -13,11 +13,11 @@ $Slowloris::SleepBeforeWrite = 3;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new(timeout => 1.5);
+        my $furl = Furl::HTTP->new(timeout => 1.5);
 
         note 'read_timeout';
         for (1 .. $n) {
-            my ( $code, $msg, $headers, $content ) =
+            my ( undef, $code, $msg, $headers, $content ) =
                 $furl->request(
                     port       => $port,
                     path_query => '/foo',
@@ -29,10 +29,10 @@ test_tcp(
             ok $content, 'content: ' . $content;
         }
 
-        $furl = Furl->new(timeout => 0.5);
+        $furl = Furl::HTTP->new(timeout => 0.5);
         note 'write_timeout';
         for (1 .. $n) {
-            my ( $code, $msg, $headers, $content ) =
+            my ( undef, $code, $msg, $headers, $content ) =
                 $furl->request(
                     port       => $port,
                     path_query => '/foo',

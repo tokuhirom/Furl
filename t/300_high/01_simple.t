@@ -54,9 +54,9 @@ test_tcp(
         while (my $row = shift @d) {
             my ($method, $args) = @$row;
             note "-- $method";
-            my ($status, $msg, $headers, $body) = $furl->$method($url, @$args);
-            is $status, 200, "client: status by $method()"
-                or die "BAD: $status, $msg, $body";
+            my $res = $furl->$method($url, @$args);
+            is $res->status, 200, "client: status by $method()"
+                or die "BAD: " . join(', ', $res->status, $res->message, $res->content);
         }
 
         done_testing;

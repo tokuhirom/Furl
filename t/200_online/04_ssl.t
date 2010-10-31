@@ -10,8 +10,8 @@ skip_if_offline();
 
 my $furl = Furl->new();
 for my $url('https://mixi.jp/', 'https://mixi.jp') {
-    my ($code, $msg, $headers, $content) = $furl->get($url);
-    is $code, 200 or diag $content;
+    my $res = $furl->get($url);
+    ok $res->is_success or diag $res->status_line;
 }
 
 done_testing;
