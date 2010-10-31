@@ -59,7 +59,7 @@ _%args_ might be:
 
 ## Instance Methods
 
-### C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
+### C<< $furl->request(%args) :Furl::Response >>
 
 Sends an HTTP request to a specified URL and returns a instance of [Furl::Response](http://search.cpan.org/perldoc?Furl::Response).
 
@@ -101,29 +101,30 @@ Content to request.
 You must encode all the queries or this method will die, saying
 `Wide character in ...`.
 
-### C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
+### C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to `request()`, sending the `GET` method.
 
-### C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) :List >>
+### C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to `request()`, sending the `HEAD` method.
 
-### C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+### C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to `request()`, sending the `POST` method.
 
-### C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+### C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to `request()`, sending the `PUT` method.
 
-### C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) :List >>
+### C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to `request()`, sending the `DELETE` method.
 
-### C<< $furl->request_with_http_request($req :HTTP::Request) :List >>
+### C<< $furl->request_with_http_request($req :HTTP::Request) >>
 
-This is an easy-to-use alias to `request()`.
+This is an easy-to-use alias to `request()` with an instance of
+`HTTP::Request`.
 
 ### C<< $furl->env_proxy() >>
 
@@ -133,7 +134,8 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 - I need more speed.
 
-See [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP), it is low level interface of [Furl](http://search.cpan.org/perldoc?Furl). It is faster than Furl.pm since [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP) does not create objects.
+See [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP), which provides the low level interface of [Furl](http://search.cpan.org/perldoc?Furl).
+It is faster than `Furl.pm` since [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP) does not create response objects.
 
 # AUTHOR
 
@@ -158,6 +160,10 @@ walf443
 # SEE ALSO
 
 [LWP](http://search.cpan.org/perldoc?LWP)
+
+[Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP)
+
+[Furl::Response](http://search.cpan.org/perldoc?Furl::Response)
 
 # LICENSE
 
