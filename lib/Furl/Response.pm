@@ -2,10 +2,7 @@ package Furl::Response;
 use strict;
 use warnings;
 use utf8;
-use base qw/Class::Accessor::Fast/;
 use Furl::Headers;
-
-__PACKAGE__->mk_ro_accessors(qw/code message headers content/);
 
 sub new {
     my ($class, $minor_version, $code, $message, $headers, $content) = @_;
@@ -17,6 +14,12 @@ sub new {
         content => $content
     }, $class;
 }
+
+# accessors
+sub code { shift->{code} }
+sub message { shift->{message} }
+sub headers { shift->{headers} }
+sub content { shift->{content} }
 
 # alias
 sub status { shift->code() }
@@ -48,5 +51,69 @@ __END__
 
 =head1 SYNOPSIS
 
-    my $res = Furl::Response->new($code, $message, $headers, $content);
+    my $res = Furl::Response->new($minor_version, $code, $message, $headers, $content);
+    print $res->status, "\n";
 
+=head1 DESCRIPTION
+
+This is a HTTP response object in Furl.
+
+=head1 CONSTRUCTOR
+
+    my $res = Furl::Response->new($minor_version, $code, $msg, \%headers, $content);
+
+=head1 INSTANCE METHODS
+
+=over 4
+
+=item $res->code
+
+=item $res->status
+
+Returns HTTP status code.
+
+=item $res->message
+
+Returns HTTP status message.
+
+=item $res->headers
+
+Returns instance of L<Furl::Headers>
+
+=item $res->content
+
+=item $res->body
+
+Returns response body in scalar.
+
+=item $res->content_length
+
+=item $res->content_type
+
+=item $res->content_encoding
+
+=item $res->header
+
+Shorthand to access L<Furl::Headers>.
+
+=item $res->protocol
+
+    $res->protocol(); # => "HTTP/1.1"
+
+Returns HTTP protocol in string.
+
+=item $res->as_http_response
+
+Make instance of L<HTTP::Response> from L<Furl::Response>.
+
+=item $res->is_success
+
+Returns true if status code is 2xx.
+
+=item $res->status_line
+    
+    $res->status_line() # => "200 OK"
+
+Returns status line.
+
+=back

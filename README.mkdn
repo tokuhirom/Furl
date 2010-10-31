@@ -11,15 +11,11 @@ Furl - Lightning-fast URL fetcher
         timeout => 10,
     );
 
-    my ($code, $msg, $headers, $body) = $furl->request(
-        method => 'GET',
-        host   => 'example.com',
-        port   => 80,
-        path   => '/'
-    );
-    # or
-    my ($code, $msg, $headers, $body) = $furl->get('http://example.com/');
-    my ($code, $msg, $headers, $body) = $furl->post(
+    my $res = $furl->get('http://example.com/');
+    die $res->status_line unless $res->is_success;
+    print $res->content;
+
+    my $res = $furl->post(
         'http://example.com/', # URL
         [...],                 # headers
         [ foo => 'bar' ],      # form data (HashRef/FileHandle are also okay)
@@ -61,22 +57,11 @@ _%args_ might be:
 
 - headers :ArrayRef
 
-- header_format :Int = HEADERS_AS_ARRAYREF
-
-This option choose return value format of `$furl->request`.
-
-This option allows HEADERS_NONE or HEADERS_AS_ARRAYREF.
-
-__HEADERS_AS_ARRAYREF__ is a default value. This makes __$headers__ as ArrayRef.
-
-__HEADERS_NONE__ makes __$headers__ as undef. Furl does not return parsing result of headers. You should take needed headers from __special_headers__.
-
 ## Instance Methods
 
 ### C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
 
-Sends an HTTP request to a specified URL and returns a status code,
-status message, response headers, response body respectively.
+Sends an HTTP request to a specified URL and returns a instance of [Furl::Response](http://search.cpan.org/perldoc?Furl::Response).
 
 _%args_ might be:
 
@@ -144,150 +129,11 @@ This is an easy-to-use alias to `request()`.
 
 Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
-# INTEGRATE WITH HTTP::Response
-
-Some useful libraries require HTTP::Response instances for their arguments.
-You can easily create its instance from the result of `request()` and other HTTP request methods.
-
-    my $res = HTTP::Response->new($furl->get($url));
-
-# PROJECT POLICY
-
-- Why IO::Socket::SSL?
-
-Net::SSL is not well documented.
-
-- Why is env_proxy optional?
-
-Environment variables are highly dependent on each users' environment,
-and we think it may confuse users when something doesn't go right.
-
-- What operating systems are supported?
-
-Linux 2.6 or higher, OSX Tiger or higher, Windows XP or higher.
-
-And other operating systems will be supported if you send a patch.
-
-- Why doesn't Furl support chunked upload?
-
-There are reasons why chunked POST/PUTs should not be used in general.
-
-First, you cannot send chunked requests unless the peer server at the other end of the established TCP connection is known to be a HTTP/1.1 server.
-
-Second, HTTP/1.1 servers disconnect their persistent connection quite quickly (compared to the time they wait for the first request), so it is not a good idea to post non-idempotent requests (e.g. POST, PUT, etc.) as a succeeding request over persistent connections.
-
-These facts together makes using chunked requests virtually impossible (unless you _know_ that the server supports HTTP/1.1), and this is why we decided that supporting the feature is NOT of high priority.
-
 # FAQ
 
-- How do you build the response content as it arrives?
+- I need more speed.
 
-You can use [IO::Callback](http://search.cpan.org/perldoc?IO::Callback) for this purpose.
-
-    my $fh = IO::Callback->new(
-        '<',
-        sub {
-            my $x = shift @data;
-            $x ? "-$x" : undef;
-        }
-    );
-    my ( $code, $msg, $headers, $content ) =
-      $furl->put( "http://127.0.0.1:$port/", [ 'Content-Length' => $len ], $fh,
-      );
-
-- How do you use cookie_jar?
-
-Furl does not directly support the cookie_jar option available in LWP. You can use [HTTP::Cookies](http://search.cpan.org/perldoc?HTTP::Cookies), [HTTP::Request](http://search.cpan.org/perldoc?HTTP::Request), [HTTP::Response](http://search.cpan.org/perldoc?HTTP::Response) like following.
-
-    my $f = Furl->new();
-    my $cookies = HTTP::Cookies->new();
-    my $req = HTTP::Request->new(...);
-    $cookies->add_cookie_header($req);
-    my $res = HTTP::Response->new($f->request_with_http_request($req));
-    $cookies->extract_cookies($res);
-    # and use $res.
-
-- How do you use gzip/deflate compressed communication?
-
-Add an __Accept-Encoding__ header to your request. Furl inflates response bodies transparently according to the __Content-Encoding__ response header.
-
-- How do you use mutipart/form-data?
-
-You can use multipart/form-data with [HTTP::Request::Common](http://search.cpan.org/perldoc?HTTP::Request::Common).
-
-    use HTTP::Request::Common;
-
-    my $furl = Furl->new();
-    $req = POST 'http://www.perl.org/survey.cgi',
-      Content_Type => 'form-data',
-      Content      => [
-        name   => 'Hiromu Tokunaga',
-        email  => 'tokuhirom@example.com',
-        gender => 'F',
-        born   => '1978',
-        init   => ["$ENV{HOME}/.profile"],
-      ];
-    $furl->request_with_http_request($req);
-
-Native multipart/form-data support for [Furl](http://search.cpan.org/perldoc?Furl) is available if you can send a patch for me.
-
-- How do you use Keep-Alive and what happens on the HEAD method?
-
-Furl supports HTTP/1.1, hence `Keep-Alive`. However, if you use the HEAD
-method, the connection is closed immediately.
-
-RFC 2616 section 9.4 says:
-
-    The HEAD method is identical to GET except that the server MUST NOT
-    return a message-body in the response.
-
-Some web applications, however, returns message bodies on the HEAD method,
-which might confuse `Keep-Alive` processes, so Furl closes connection in
-such cases.
-
-Anyway, the HEAD method is not so useful nowadays. The GET method and
-`If-Modified-Sinse` are more suitable to cache HTTP contents.
-
-# TODO
-
-    - AnyEvent::Furl?
-    - use HTTP::Response::Parser
-    - ipv6 support
-    - better docs for NO_PROXY
-
-# OPTIONAL FEATURES
-
-## Internationalized Domain Name (IDN)
-
-This feature requires Net::IDN::Encode.
-
-## SSL
-
-This feature requires IO::Socket::SSL.
-
-## Content-Encoding (deflate, gzip)
-
-This feature requires Compress::Raw::Zlib.
-
-# DEVELOPMENT
-
-To setup your environment:
-
-    $ git clone http://github.com/tokuhirom/p5-Furl.git
-    $ cd p5-Furl
-
-To get picohttpparser:
-
-    $ git submodule init
-    $ git submodule update
-
-    $ perl Makefile.PL
-    $ make
-    $ sudo make install
-
-## HOW TO CONTRIBUTE
-
-Please send the pull-req via <http://github.com/tokuhirom/p5-Furl/>.
+See [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP), it is low level interface of [Furl](http://search.cpan.org/perldoc?Furl). It is faster than Furl.pm since [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP) does not create objects.
 
 # AUTHOR
 
@@ -307,13 +153,11 @@ lestrrat
 
 walf443
 
+
+
 # SEE ALSO
 
 [LWP](http://search.cpan.org/perldoc?LWP)
-
-HTTP specs:
-<http://www.w3.org/Protocols/HTTP/1.0/spec.html>
-<http://www.w3.org/Protocols/HTTP/1.1/spec.html>
 
 # LICENSE
 
