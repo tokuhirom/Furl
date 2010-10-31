@@ -19,7 +19,6 @@ inc/Module/Install/ReadmeFromPod.pm
 inc/Module/Install/ReadmeMarkdownFromPod.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
-inc/Module/Install/XSUtil.pm
 inc/Pod/Markdown.pm
 lib/Furl.pm
 lib/Furl/ZlibStream.pm
@@ -54,17 +53,15 @@ t/100_simple/16_read_callback.t
 t/100_simple/17_keep_alive.t
 t/100_simple/18_no_proxy.t
 t/100_simple/19_special_headers.t
+t/100_simple/20_header_format_none.t
 t/200_online/01_idn.t
 t/200_online/02_google.t
 t/200_online/03_yahoo_com.t
 t/200_online/04_ssl.t
-t/300_parser/01_simple.t
-t/300_parser/02_multiline_header.t
 t/SilentStarman.pm
 t/Slowloris.pm
 t/Util.pm
 TODO
-xs/Furl.xs
 xt/01_podspell.t
 xt/02_perlcritic.t
 xt/03_pod.t

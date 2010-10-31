@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base qw/Exporter/;
 use 5.008;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Carp ();
 

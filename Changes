@@ -1,5 +1,13 @@
 Revision history for Perl extension Furl
 
+0.05
+
+        - use HTTP::Parser::XS
+        - optimization
+        - users can be set your own special headers.
+        - fixed Deep recursion when redirect over max_redirects.
+        - now, header_get is not public api.
+
 0.04
 
         - fixed retval handling around Compress::Raw::Zlib(gfx)
