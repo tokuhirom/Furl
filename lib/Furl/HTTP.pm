@@ -741,7 +741,7 @@ __END__
 
 =head1 NAME
 
-Furl::HTTP - Low level interface of Furl
+Furl::HTTP - Low level interface to Furl
 
 =head1 SYNOPSIS
 
@@ -778,7 +778,7 @@ This library is an B<alpha> software. Any API may change without notice.
 
 =head2 Class Methods
 
-=head3 C<< Furl->new(%args | \%args) :Furl >>
+=head3 C<< Furl::HTTP->new(%args | \%args) :Furl >>
 
 Creates and returns a new Furl client with I<%args>. Dies on errors.
 
@@ -812,7 +812,7 @@ B<HEADERS_NONE> makes B<$headers> as undef. Furl does not return parsing result 
 
 =head2 Instance Methods
 
-=head3 C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
+=head3 C<< $furl->request(%args) :($protocol_minor_version, $code, $msg, \@headers, $body) >>
 
 Sends an HTTP request to a specified URL and returns a protocol minor version,
 status code, status message, response headers, response body respectively.

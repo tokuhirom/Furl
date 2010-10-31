@@ -160,7 +160,7 @@ I<%args> might be:
 
 =head2 Instance Methods
 
-=head3 C<< $furl->request(%args) :($code, $msg, \@headers, $body) >>
+=head3 C<< $furl->request(%args) :Furl::Response >>
 
 Sends an HTTP request to a specified URL and returns a instance of L<Furl::Response>.
 
@@ -206,29 +206,30 @@ Content to request.
 You must encode all the queries or this method will die, saying
 C<Wide character in ...>.
 
-=head3 C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) :List >>
+=head3 C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) >>
 
-This is an easy-to-use alias to C<request()>.
+This is an easy-to-use alias to C<request()>, sending the C<GET> method.
 
-=head3 C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) :List >>
+=head3 C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) >>
 
-This is an easy-to-use alias to C<request()>.
+This is an easy-to-use alias to C<request()>, sending the C<HEAD> method.
 
-=head3 C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+=head3 C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) >>
 
-This is an easy-to-use alias to C<request()>.
+This is an easy-to-use alias to C<request()>, sending the C<POST> method.
 
-=head3 C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) :List >>
+=head3 C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) >>
 
-This is an easy-to-use alias to C<request()>.
+This is an easy-to-use alias to C<request()>, sending the C<PUT> method.
 
-=head3 C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) :List >>
+=head3 C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) >>
 
-This is an easy-to-use alias to C<request()>.
+This is an easy-to-use alias to C<request()>, sending the C<DELETE> method.
 
-=head3 C<< $furl->request_with_http_request($req :HTTP::Request) :List >>
+=head3 C<< $furl->request_with_http_request($req :HTTP::Request) >>
 
-This is an easy-to-use alias to C<request()>.
+This is an easy-to-use alias to C<request()> with an instance of
+C<HTTP::Request>.
 
 =head3 C<< $furl->env_proxy() >>
 
@@ -240,7 +241,8 @@ Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
 
 =item I need more speed.
 
-See L<Furl::HTTP>, it is low level interface of L<Furl>. It is faster than Furl.pm since L<Furl::HTTP> does not create objects.
+See L<Furl::HTTP>, which provides the low level interface of L<Furl>.
+It is faster than C<Furl.pm> since L<Furl::HTTP> does not create response objects.
 
 =back
 
@@ -266,6 +268,10 @@ walf443
 =head1 SEE ALSO
 
 L<LWP>
+
+L<Furl::HTTP>
+
+L<Furl::Response>
 
 =head1 LICENSE
 
