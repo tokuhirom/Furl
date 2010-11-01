@@ -57,6 +57,69 @@ sub new {
     }, $class;
 }
 
+sub get {
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'GET',
+        url     => $url,
+        headers => $headers
+    );
+}
+
+sub head {
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'HEAD',
+        url     => $url,
+        headers => $headers
+    );
+}
+
+sub post {
+    my ( $self, $url, $headers, $content ) = @_;
+    $self->request(
+        method  => 'POST',
+        url     => $url,
+        headers => $headers,
+        content => $content
+    );
+}
+
+sub put {
+    my ( $self, $url, $headers, $content ) = @_;
+    $self->request(
+        method  => 'PUT',
+        url     => $url,
+        headers => $headers,
+        content => $content
+    );
+}
+
+sub delete {
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'DELETE',
+        url     => $url,
+        headers => $headers
+    );
+}
+
+sub request_with_http_request {
+    my ($self, $req, %args) = @_;
+    my $headers = +[
+        map {
+            my $k = $_;
+            map { ( $k => $_ ) } $req->headers->header($_);
+          } $req->headers->header_field_names
+    ];
+    $self->request(
+        url     => $req->uri,
+        method  => $req->method,
+        content => $req->content,
+        headers => $headers,
+        %args
+    );
+}
 
 sub _header_get {
     my ($headers, $key) = (shift, lc shift);
@@ -857,6 +920,32 @@ Content to request.
 
 You must encode all the queries or this method will die, saying
 C<Wide character in ...>.
+
+=head3 C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) >>
+
+This is an easy-to-use alias to C<request()>, sending the C<GET> method.
+
+=head3 C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) >>
+
+This is an easy-to-use alias to C<request()>, sending the C<HEAD> method.
+
+=head3 C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) >>
+
+This is an easy-to-use alias to C<request()>, sending the C<POST> method.
+
+=head3 C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) >>
+
+This is an easy-to-use alias to C<request()>, sending the C<PUT> method.
+
+=head3 C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) >>
+
+This is an easy-to-use alias to C<request()>, sending the C<DELETE> method.
+
+=head3 C<< $furl->request_with_http_request($req :HTTP::Request) >>
+
+This is an easy-to-use alias to C<request()> with an instance of
+C<HTTP::Request>.
+
 
 =head1 FAQ
 
