@@ -902,18 +902,6 @@ You can use L<IO::Callback> for this purpose.
       $furl->put( "http://127.0.0.1:$port/", [ 'Content-Length' => $len ], $fh,
       );
 
-=item How do you use cookie_jar?
-
-Furl does not directly support the cookie_jar option available in LWP. You can use L<HTTP::Cookies>, L<HTTP::Request>, L<HTTP::Response> like following.
-
-    my $f = Furl->new();
-    my $cookies = HTTP::Cookies->new();
-    my $req = HTTP::Request->new(...);
-    $cookies->add_cookie_header($req);
-    my $res = HTTP::Response->new($f->request_with_http_request($req));
-    $cookies->extract_cookies($res);
-    # and use $res.
-
 =item How do you use gzip/deflate compressed communication?
 
 Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently according to the B<Content-Encoding> response header.

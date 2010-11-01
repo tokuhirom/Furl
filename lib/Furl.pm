@@ -244,6 +244,18 @@ Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
 See L<Furl::HTTP>, which provides the low level interface of L<Furl>.
 It is faster than C<Furl.pm> since L<Furl::HTTP> does not create response objects.
 
+=item How do you use cookie_jar?
+
+Furl does not directly support the cookie_jar option available in LWP. You can use L<HTTP::Cookies>, L<HTTP::Request>, L<HTTP::Response> like following.
+
+    my $f = Furl->new();
+    my $cookies = HTTP::Cookies->new();
+    my $req = HTTP::Request->new(...);
+    $cookies->add_cookie_header($req);
+    my $res = H$f->request_with_http_request($req)->as_http_response;
+    $cookies->extract_cookies($res);
+    # and use $res.
+
 =back
 
 =head1 AUTHOR
