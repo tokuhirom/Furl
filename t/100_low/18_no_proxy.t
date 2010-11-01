@@ -44,8 +44,8 @@ test_tcp(
                         );
                     is $code, 200, "request()";
                     is $msg, "OK";
-                    is Furl::Util::header_get($headers, 'Content-Length'), 10;
-                    isnt Furl::Util::header_get($headers, 'Via'), "1.0 $via", "passing through the proxy";
+                    is Furl::HTTP::_header_get($headers, 'Content-Length'), 10;
+                    isnt Furl::HTTP::_header_get($headers, 'Via'), "1.0 $via", "passing through the proxy";
                     is $content, 'Hello, foo'
                         or do{ require Devel::Peek; Devel::Peek::Dump($content) };
                 }

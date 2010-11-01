@@ -36,8 +36,8 @@ test_tcp(
                         );
                     is $code, 200, "request()";
                     is $msg, "OK";
-                    is Furl::Util::header_get($headers, 'Content-Length'), 10;
-                    is Furl::Util::header_get($headers, 'Via'), "1.0 $via";
+                    is Furl::HTTP::_header_get($headers, 'Content-Length'), 10;
+                    is Furl::HTTP::_header_get($headers, 'Via'), "1.0 $via";
                     is $content, 'Hello, foo'
                         or do{ require Devel::Peek; Devel::Peek::Dump($content) };
                 }

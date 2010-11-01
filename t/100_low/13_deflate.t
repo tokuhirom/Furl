@@ -26,7 +26,7 @@ test_tcp(
                         url        => "http://127.0.0.1:$port/",
                     );
                 is $code, 200, "request()";
-                is Furl::Util::header_get($headers, 'content-encoding'), $encoding;
+                is Furl::HTTP::_header_get($headers, 'content-encoding'), $encoding;
                 is($content, $CONTENT) or do { require Devel::Peek; Devel::Peek::Dump($content) };
             }
 
@@ -39,7 +39,7 @@ test_tcp(
                         write_file => $fh,
                     );
                 is $code, 200, "request()";
-                is Furl::Util::header_get($headers, 'content-encoding'), $encoding;
+                is Furl::HTTP::_header_get($headers, 'content-encoding'), $encoding;
                 is($content, $CONTENT) or do { require Devel::Peek; Devel::Peek::Dump($content) };
             }
 
@@ -52,7 +52,7 @@ test_tcp(
                         write_code => sub { $content .= $_[3] },
                     );
                 is $code, 200, "request()";
-                is Furl::Util::header_get($headers, 'content-encoding'), $encoding;
+                is Furl::HTTP::_header_get($headers, 'content-encoding'), $encoding;
                 is($content, $CONTENT) or do { require Devel::Peek; Devel::Peek::Dump($content) };
             }
         }

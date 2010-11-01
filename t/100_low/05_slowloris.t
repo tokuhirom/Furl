@@ -24,7 +24,7 @@ test_tcp(
                 );
             is $code, 200, "request()/$_";
             is $msg, "OK";
-            is Furl::Util::header_get($headers, 'Content-Length'), 4;
+            is Furl::HTTP::_header_get($headers, 'Content-Length'), 4;
             is $content, '/foo';
         }
         for (1..3) {
@@ -33,7 +33,7 @@ test_tcp(
                 $furl->request(url => "http://127.0.0.1:$port$path_query", method => 'GET');
             is $code, 200, "get()/$_";
             is $msg, "OK";
-            is Furl::Util::header_get($headers, 'Content-Length'),
+            is Furl::HTTP::_header_get($headers, 'Content-Length'),
                 length($path_query);
             is $content, $path_query;
         }

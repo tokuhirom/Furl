@@ -17,7 +17,7 @@ test_tcp(
             $furl->request( url => "http://127.0.0.1:$port/1", );
             is $code, 200;
             is $msg, "OK";
-            is Furl::Util::header_get($headers, 'Content-Length'), 2;
+            is Furl::HTTP::_header_get($headers, 'Content-Length'), 2;
             is $content, 'OK';
         };
 
@@ -27,8 +27,8 @@ test_tcp(
             $furl->request( url => "http://127.0.0.1:$port/1", );
             is $code, 302;
             is $msg, 'Found';
-            is Furl::Util::header_get($headers, 'Content-Length'), 0;
-            is Furl::Util::header_get($headers, 'Location'), "http://127.0.0.1:$port/2";
+            is Furl::HTTP::_header_get($headers, 'Content-Length'), 0;
+            is Furl::HTTP::_header_get($headers, 'Location'), "http://127.0.0.1:$port/2";
             is $content, '';
         };
 
@@ -40,8 +40,8 @@ test_tcp(
             $furl->request( url => "http://127.0.0.1:$port/$start_num");
             is $code, 302, 'code ok';
             is $msg, 'Found', 'msg ok';
-            is Furl::Util::header_get($headers, 'Content-Length'), 0, 'content length ok';
-            is Furl::Util::header_get($headers, 'Location'), "http://127.0.0.1:$port/" . ( $max_redirects + $start_num + 1 ), 'url ok';
+            is Furl::HTTP::_header_get($headers, 'Content-Length'), 0, 'content length ok';
+            is Furl::HTTP::_header_get($headers, 'Location'), "http://127.0.0.1:$port/" . ( $max_redirects + $start_num + 1 ), 'url ok';
             is $content, '', 'content ok';
         };
 
