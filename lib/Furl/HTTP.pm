@@ -490,7 +490,6 @@ sub request {
 }
 
 # connects to $host:$port and returns $socket
-# You can override this methond in your child class.
 sub connect :method {
     my($self, $host, $port) = @_;
     my $sock;
