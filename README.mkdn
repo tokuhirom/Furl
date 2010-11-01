@@ -137,6 +137,18 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 See [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP), which provides the low level interface of [Furl](http://search.cpan.org/perldoc?Furl).
 It is faster than `Furl.pm` since [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP) does not create response objects.
 
+- How do you use cookie_jar?
+
+Furl does not directly support the cookie_jar option available in LWP. You can use [HTTP::Cookies](http://search.cpan.org/perldoc?HTTP::Cookies), [HTTP::Request](http://search.cpan.org/perldoc?HTTP::Request), [HTTP::Response](http://search.cpan.org/perldoc?HTTP::Response) like following.
+
+    my $f = Furl->new();
+    my $cookies = HTTP::Cookies->new();
+    my $req = HTTP::Request->new(...);
+    $cookies->add_cookie_header($req);
+    my $res = H$f->request_with_http_request($req)->as_http_response;
+    $cookies->extract_cookies($res);
+    # and use $res.
+
 # AUTHOR
 
 Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>
