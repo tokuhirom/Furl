@@ -5,6 +5,7 @@ use LWP::UserAgent;
 use WWW::Curl::Easy 4.14;
 use HTTP::Lite;
 use Furl::HTTP qw/HEADERS_NONE HEADERS_AS_ARRAYREF/;
+use Furl;
 use Config;
 use Getopt::Long;
 
@@ -20,8 +21,10 @@ my $url = shift @ARGV || 'http://192.168.1.3:80/';
 
 my $ua = LWP::UserAgent->new(parse_head => 0, keep_alive => 1);
 my $curl = WWW::Curl::Easy->new();
-my $furl = Furl::HTTP->new(header_format => HEADERS_NONE);
-$furl->{bufsize} = $bufsize if defined $bufsize;
+my $furl_low = Furl::HTTP->new(header_format => HEADERS_NONE);
+my $furl_high = Furl->new();
+$furl_high->{bufsize} = $bufsize if defined $bufsize;
+$furl_low->{bufsize} = $bufsize if defined $bufsize;
 my $uri = URI->new($url);
 my $host = $uri->host;
 my $scheme = $uri->scheme;
@@ -34,7 +37,7 @@ my $res = $ua->get($url);
 print "--\n";
 print $res->headers_as_string;
 print "--\n";
-printf "bufsize: %d\n", $furl->{bufsize};
+printf "bufsize: %d\n", $furl_low->{bufsize};
 print "--\n\n";
 my $body_content_length = length($res->content);
 $body_content_length == $res->content_length or die;
@@ -71,8 +74,20 @@ cmpthese(
             $code == 200 or die "oops: $code";
             length($content) == $body_content_length or die;
         },
-        furl => sub {
-            my ( $version, $code, $msg, $headers, $content ) = $furl->request(
+        furl_high => sub {
+            my $res = $furl_high->request(
+                method     => 'GET',
+                host       => $host,
+                port       => $port,
+                scheme     => $scheme,
+                path_query => $path_query,
+                headers    => [ 'Content-Length' => 0 ]
+            );
+            $res->code == 200 or die "oops";
+            length($res->content) == $body_content_length or die;
+        },
+        furl_low => sub {
+            my ( $version, $code, $msg, $headers, $content ) = $furl_low->request(
                 method     => 'GET',
                 host       => $host,
                 port       => $port,
