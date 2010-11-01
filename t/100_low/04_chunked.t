@@ -2,8 +2,8 @@ use strict;
 use warnings;
 use Test::TCP;
 use Test::More;
-use Plack::Loader;
 use Furl::HTTP;
+use t::HTTPServer;
 
 my $s = q{The quick brown fox jumps over the lazy dog.\n};
 
@@ -30,9 +30,7 @@ test_tcp(
     server => sub {
         my $port = shift;
 
-        Plack::Loader->auto(
-            port          => $port,
-        )->run(
+        t::HTTPServer->new( port => $port, enable_chunked => 0 )->run(
             sub {
                 my $env = shift;
                 my $size = $env->{HTTP_X_PACKET_SIZE} or die '???';
@@ -42,7 +40,7 @@ test_tcp(
                     [ $chunk x $size, "0", "\015\012" x 2 ]
                 ];
             }
-          );
+        );
     }
 );
 

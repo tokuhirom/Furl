@@ -68,6 +68,7 @@ sub new {
     bless {
         bufsize => 10*1024,
         protocol => "HTTP/1.1",
+        enable_chunked => 1,
         %args
     }, $class;
 }
@@ -87,6 +88,8 @@ sub call_trigger {
 
 sub run {
     my ( $self, $app ) = @_;
+
+    $app = $self->fill_content_length($app);
 
     local $SIG{PIPE} = "IGNORE";
     my $sock = IO::Socket::INET->new(
@@ -134,7 +137,7 @@ sub handle_connection {
             }
             if ( $nread == 0 ) {
                 # unexpected EOF while reading HTTP request header
-                return;
+                last HANDLE_LOOP;
             }
             my $ret = parse_http_request( $buf, \%env );
             if ( $ret == -2 ) {    # incomplete.
@@ -161,11 +164,32 @@ sub handle_connection {
     $self->call_trigger( "AFTER_HANDLE_CONNECTION", $csock );
 }
 
+sub fill_content_length {
+    my ($self, $app) = @_;
+
+    sub {
+        my $env = shift;
+        my $res = $app->($env);
+        my $h = t::HTTPServer::Headers->new( $res->[1] );
+        if (
+            !t::HTTPServer::Util::status_with_no_entity_body( $res->[0] )
+            && !$h->exists('Content-Length')
+            && !$h->exists('Transfer-Encoding')
+            && defined(
+                my $content_length = t::HTTPServer::Util::content_length( $res->[2] )
+            )
+        ) {
+            push @{$res->[1]}, 'Content-Length' => $content_length;
+        }
+        return $res;
+    }
+}
+
 sub write_all {
     my ( $self, $csock, $buf ) = @_;
     my $off = 0;
     while ( my $len = length($buf) - $off ) {
-        my $nwrite = syswrite( $csock, $buf, $len, $off )
+        my $nwrite = $csock->syswrite( $buf, $len, $off )
             or die "Cannot write response: $!";
         $off += $nwrite;
     }
@@ -267,6 +291,87 @@ sub uri_unescape {
     local $_ = shift;
     $_ =~ s/%([0−9A−Fa−f]{2})/chr(hex($1))/eg;
     $_;
+}
+
+package t::HTTPServer::Util;
+# code taken from Plack::Util.
+
+use Scalar::Util ();
+
+sub status_with_no_entity_body {
+    my $status = shift;
+    return $status < 200 || $status == 204 || $status == 304;
+}
+
+sub content_length {
+    my $body = shift;
+
+    return unless defined $body;
+
+    if (ref $body eq 'ARRAY') {
+        my $cl = 0;
+        for my $chunk (@$body) {
+            $cl += length $chunk;
+        }
+        return $cl;
+    } elsif ( is_real_fh($body) ) {
+        return (-s $body) - tell($body);
+    }
+
+    return;
+}
+
+sub is_real_fh ($) {
+    my $fh = shift;
+
+    my $reftype = Scalar::Util::reftype($fh) or return;
+    if (   $reftype eq 'IO'
+        or $reftype eq 'GLOB' && *{$fh}{IO}
+    ) {
+        # if it's a blessed glob make sure to not break encapsulation with
+        # fileno($fh) (e.g. if you are filtering output then file descriptor
+        # based operations might no longer be valid).
+        # then ensure that the fileno *opcode* agrees too, that there is a
+        # valid IO object inside $fh either directly or indirectly and that it
+        # corresponds to a real file descriptor.
+        my $m_fileno = $fh->fileno;
+        return 0 unless defined $m_fileno;
+        return 0 unless $m_fileno >= 0;
+
+        my $f_fileno = fileno($fh);
+        return 0 unless defined $f_fileno;
+        return 0 unless $f_fileno >= 0;
+        return 1;
+    } else {
+        # anything else, including GLOBS without IO (even if they are blessed)
+        # and non GLOB objects that look like filehandle objects cannot have a
+        # valid file descriptor in fileno($fh) context so may break.
+        return 0;
+    }
+}
+
+package t::HTTPServer::Headers;
+
+sub new {
+    my ($class, $headers) = @_;
+    my %h;
+    for (my $i=0; $i<@$headers; $i++) {
+        my ($k, $v) = ($headers->[$i], $headers->[$i+1]);
+        push @{$h{lc $k}}, $v;
+    }
+    return bless \%h, $class;
+}
+
+sub exists {
+    my ($self, $key) = @_;
+    $self->{lc $key} ? 1 : 0;
+}
+
+sub header {
+    my ($self, $key) = @_;
+    my $val = $self->{lc $key};
+    return unless $val;
+    return wantarray ? @$val : join(', ', @$val);
 }
 
 1;

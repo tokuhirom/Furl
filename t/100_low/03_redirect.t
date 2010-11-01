@@ -4,6 +4,7 @@ use Furl::HTTP;
 use Test::TCP;
 use Plack::Loader;
 use Test::More;
+use Test::Requires 'Plack';
 
 use Plack::Request;
 

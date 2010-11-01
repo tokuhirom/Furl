@@ -1,13 +1,9 @@
 use strict;
 use warnings;
-use Test::Requires 'Starman';
 use Furl::HTTP;
 use Test::TCP;
-use Plack::Loader;
 use Test::More;
-
-use Plack::Request;
-use t::SilentStarman;
+use t::HTTPServer;
 
 my ($stealed, $pushed) = (0, 0);
 {
@@ -50,21 +46,16 @@ test_tcp(
     },
     server => sub {
         my $port = shift;
-        my $starmn = Plack::Loader->load( 'Starman',
-            host          => '127.0.0.1',
-            port          => $port,
-            log_level     => 0,
-            'max-workers' => 1,
-        )->run(
+        t::HTTPServer->new( port => $port )->run(
             sub {
                 my $env = shift;
                 return [
                     200,
-                    [ 'Transfer-Encoding' => 'chunked' ],
-                    [ 'OK'x100 ]
+                    [  ],
+                    [ 'OK' x 100 ]
                 ];
             }
-          );
+        );
     }
 );
 

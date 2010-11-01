@@ -3,6 +3,7 @@ use warnings;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
+use Test::Requires 'Plack';
 
 use Plack::Request;
 
@@ -43,9 +44,7 @@ test_tcp(
         my $port = shift;
         Slowloris::Server->new(port => $port)->run(sub {
             my $env = shift;
-            #note explain $env;
-            my $req = Plack::Request->new($env);
-            is $req->header('X-Foo'), "ppp" if $env->{REQUEST_URI} eq '/foo';
+            is $env->{'HTTP_X_FOO'}, "ppp" if $env->{REQUEST_URI} eq '/foo';
             return [ 200,
                 [ 'Content-Length' => length($env->{REQUEST_URI}) ],
                 [$env->{REQUEST_URI}]

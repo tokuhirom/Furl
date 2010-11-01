@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Furl::HTTP;
 use Test::TCP;
+use Test::Requires 'Plack';
 use Plack::Loader;
 use Test::More;
 use Plack::Request;
