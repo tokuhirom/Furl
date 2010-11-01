@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.07
+
+        - Do not use reference_from, it makes installing issue(reported by y).
+          http://github.com/tokuhirom/p5-Furl/issues#issue/4
+
 0.06
 
         - now Perl 5.8.1 or later is required.(tokuhirom)
