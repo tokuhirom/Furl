@@ -6,6 +6,8 @@ use Furl::HTTP;
 use Furl::Response;
 our $VERSION = '0.07';
 
+use 5.008001;
+
 sub new {
     my $class = shift;
     bless \(Furl::HTTP->new(header_format => Furl::HTTP::HEADERS_AS_HASHREF(), @_)), $class;
