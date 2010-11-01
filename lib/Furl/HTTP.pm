@@ -2,7 +2,7 @@ package Furl::HTTP;
 use strict;
 use warnings;
 use base qw/Exporter/;
-use 5.008;
+use 5.008001;
 
 use Carp ();
 use Furl;
