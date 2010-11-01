@@ -15,6 +15,7 @@ test_requires 'Plack' =>  0.9949;
 test_requires 'IO::Socket::INET';
 test_requires 'HTTP::Request';
 test_requires 'HTTP::Response';
+test_requires 'Test::Requires';
 
 recommends 'Net::IDN::Encode';    # for International Domain Name
 recommends 'IO::Socket::SSL';     # for SSL

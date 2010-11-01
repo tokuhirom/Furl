@@ -453,6 +453,11 @@ sub request {
     if ($special_headers->{location}) {
         my $max_redirects = defined($args{max_redirects}) ? $args{max_redirects} : $self->{max_redirects};
         if ($max_redirects && $res_status =~ /^30[123]$/) {
+            my $location = $special_headers->{location};
+            unless ($location =~ m{^[a-z0-9]+://}) {
+                _requires("URI.pm", "redirect with relative url");
+                $location = URI->new_abs($location, "$scheme://$host:$port$path_query")->as_string;
+            }
             # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
             # to change the method on the redirected request.  However, most
             # existing user agent implementations treat 302 as if it were a 303
@@ -463,7 +468,7 @@ sub request {
             return $self->request(
                 @_,
                 method        => $res_status eq '301' ? $method : 'GET',
-                url           => $special_headers->{location},
+                url           => $location,
                 max_redirects => $max_redirects - 1,
             );
         }
