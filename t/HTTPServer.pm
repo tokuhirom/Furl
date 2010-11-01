@@ -121,11 +121,11 @@ sub make_header {
 sub handle_connection {
     my ($self, $csock, $app) = @_;
 
-    my $buf;
     $self->call_trigger( "BEFORE_HANDLE_CONNECTION", $csock );
     HANDLE_LOOP: while (1) {
         $self->call_trigger( "BEFORE_HANDLE_REQUEST", $csock );
         my %env;
+        my $buf = '';
       PARSE_HTTP_REQUEST: while (1) {
             my $nread = sysread( $csock, $buf, $self->{bufsize}, length($buf) );
             $buf =~ s!^(\015\012)*!! if defined($buf); # for keep-alive
