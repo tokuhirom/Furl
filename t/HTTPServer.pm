@@ -5,6 +5,62 @@ use IO::Socket::INET;
 use Socket qw(IPPROTO_TCP TCP_NODELAY);
 use Carp ();
 
+# taken from HTTP::Status
+our %STATUS_CODE = (
+    100 => 'Continue',
+    101 => 'Switching Protocols',
+    102 => 'Processing',                      # RFC 2518 (WebDAV)
+    200 => 'OK',
+    201 => 'Created',
+    202 => 'Accepted',
+    203 => 'Non-Authoritative Information',
+    204 => 'No Content',
+    205 => 'Reset Content',
+    206 => 'Partial Content',
+    207 => 'Multi-Status',                    # RFC 2518 (WebDAV)
+    300 => 'Multiple Choices',
+    301 => 'Moved Permanently',
+    302 => 'Found',
+    303 => 'See Other',
+    304 => 'Not Modified',
+    305 => 'Use Proxy',
+    307 => 'Temporary Redirect',
+    400 => 'Bad Request',
+    401 => 'Unauthorized',
+    402 => 'Payment Required',
+    403 => 'Forbidden',
+    404 => 'Not Found',
+    405 => 'Method Not Allowed',
+    406 => 'Not Acceptable',
+    407 => 'Proxy Authentication Required',
+    408 => 'Request Timeout',
+    409 => 'Conflict',
+    410 => 'Gone',
+    411 => 'Length Required',
+    412 => 'Precondition Failed',
+    413 => 'Request Entity Too Large',
+    414 => 'Request-URI Too Large',
+    415 => 'Unsupported Media Type',
+    416 => 'Request Range Not Satisfiable',
+    417 => 'Expectation Failed',
+    422 => 'Unprocessable Entity',            # RFC 2518 (WebDAV)
+    423 => 'Locked',                          # RFC 2518 (WebDAV)
+    424 => 'Failed Dependency',               # RFC 2518 (WebDAV)
+    425 => 'No code',                         # WebDAV Advanced Collections
+    426 => 'Upgrade Required',                # RFC 2817
+    449 => 'Retry with',                      # unofficial Microsoft
+    500 => 'Internal Server Error',
+    501 => 'Not Implemented',
+    502 => 'Bad Gateway',
+    503 => 'Service Unavailable',
+    504 => 'Gateway Timeout',
+    505 => 'HTTP Version Not Supported',
+    506 => 'Variant Also Negotiates',         # RFC 2295
+    507 => 'Insufficient Storage',            # RFC 2518 (WebDAV)
+    509 => 'Bandwidth Limit Exceeded',        # unofficial
+    510 => 'Not Extended',                    # RFC 2774
+);
+
 sub new {
     my $class = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
@@ -19,6 +75,7 @@ sub new {
 sub add_trigger {
     my ($self, $name, $code) = @_;
     push @{$self->{triggers}->{$name}}, $code;
+    return $self;
 }
 
 sub call_trigger {
@@ -53,7 +110,8 @@ sub run {
 
 sub make_header {
     my ($self, $code, $headers) = @_;
-    my $ret = "$self->{protocol} $code $code\015\012";
+    my $msg = $STATUS_CODE{$code} || $code;
+    my $ret = "$self->{protocol} $code $msg\015\012";
     for (my $i=0; $i<@$headers; $i+=2) {
         $ret .= $headers->[$i] . ': ' . $headers->[$i+1] . "\015\012";
     }
@@ -64,10 +122,10 @@ sub handle_connection {
     my ($self, $csock, $app) = @_;
 
     my $buf;
-    my %env;
     $self->call_trigger( "BEFORE_HANDLE_CONNECTION", $csock );
     HANDLE_LOOP: while (1) {
         $self->call_trigger( "BEFORE_HANDLE_REQUEST", $csock );
+        my %env;
       PARSE_HTTP_REQUEST: while (1) {
             my $nread = sysread( $csock, $buf, $self->{bufsize}, length($buf) );
             $buf =~ s!^(\015\012)*!! if defined($buf); # for keep-alive
@@ -75,7 +133,8 @@ sub handle_connection {
                 die "cannot read HTTP request header: $!";
             }
             if ( $nread == 0 ) {
-                die "unexpected EOF while reading HTTP request header";
+                # unexpected EOF while reading HTTP request header
+                return;
             }
             my $ret = parse_http_request( $buf, \%env );
             if ( $ret == -2 ) {    # incomplete.
@@ -97,7 +156,7 @@ sub handle_connection {
             $self->write_all( $csock, $body );
         }
         $self->call_trigger( "AFTER_HANDLE_REQUEST", $csock );
-        warn "# sent";
+        last HANDLE_LOOP unless $csock->opened;
     }
     $self->call_trigger( "AFTER_HANDLE_CONNECTION", $csock );
 }

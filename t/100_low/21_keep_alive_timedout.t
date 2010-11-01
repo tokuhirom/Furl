@@ -21,7 +21,7 @@ test_tcp(
                     host       => '127.0.0.1',
                 );
             is $code, 200, "request()/$_";
-            is $msg, "200";
+            is $msg, "OK";
             is Furl::HTTP::_header_get($headers, 'Content-Length'), 2, 'header'
                 or diag(explain($headers));
             is Furl::HTTP::_header_get($headers, 'Connection'), 'keep-alive';
@@ -32,18 +32,20 @@ test_tcp(
     },
     server => sub {
         my $port = shift;
-        my $server = t::HTTPServer->new(port => $port);
-        $server->add_trigger("AFTER_HANDLE_REQUEST" => sub {
-            my ($s, $csock) = @_;
-            $csock->close();
-        });
-        $server->run(sub {
-            +[
-                200,
-                ['Content-Length' => 2, 'Connection' => 'keep-alive'],
-                ['OK']
-            ]
-        });
+        t::HTTPServer->new( port => $port )->add_trigger(
+            "AFTER_HANDLE_REQUEST" => sub {
+                my ( $s, $csock ) = @_;
+                $csock->close();
+            }
+          )->run(
+            sub {
+                +[
+                    200,
+                    [ 'Content-Length' => 2, 'Connection' => 'keep-alive' ],
+                    ['OK']
+                ];
+            }
+          );
     }
 );
 
