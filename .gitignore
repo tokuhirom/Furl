@@ -10,7 +10,6 @@ _build/
 xshelper.h
 META.yml
 MYMETA.yml
-README
 .online
 blib/
 pm_to_blib

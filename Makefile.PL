@@ -3,7 +3,9 @@ use Module::Install::AuthorTests;
 use Module::Install::ReadmeMarkdownFromPod;
 
 name 'Furl';
-reference_module 'lib/Furl.pm'; # all_from, readme_from, readme_markdown_from
+
+all_from 'lib/Furl.pm';
+readme_markdown_from 'lib/Furl.pm';
 
 requires 'HTTP::Parser::XS' => 0.11;
 
