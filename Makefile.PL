@@ -16,13 +16,15 @@ test_requires 'IO::Socket::INET';
 test_requires 'HTTP::Request';
 test_requires 'HTTP::Response';
 
-
 recommends 'Net::IDN::Encode';    # for International Domain Name
 recommends 'IO::Socket::SSL';     # for SSL
 recommends 'Compress::Raw::Zlib'; # for Content-Encoding
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 author_tests('xt');
+
+repository 'http://github.com/tokuhirom/p5-Furl/';
+bugtracker 'http://github.com/tokuhirom/p5-Furl/issues';
 
 clean_files '.online';
 
