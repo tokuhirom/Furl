@@ -58,7 +58,7 @@ sub new {
 }
 
 
-sub Furl::Util::header_get {
+sub _header_get {
     my ($headers, $key) = (shift, lc shift);
     for (my $i=0; $i<@$headers; $i+=2) {
         return $headers->[$i+1] if lc($headers->[$i]) eq $key;
@@ -67,7 +67,7 @@ sub Furl::Util::header_get {
 }
 
 
-sub Furl::Util::requires {
+sub _requires {
     my($file, $feature, $library) = @_;
     return if exists $INC{$file};
     unless(eval { require $file }) {
@@ -161,7 +161,7 @@ sub request {
     }
 
     if ($host =~ /[^A-Za-z0-9.-]/) {
-        Furl::Util::requires('Net/IDN/Encode.pm',
+        _requires('Net/IDN/Encode.pm',
             'Internationalized Domain Name (IDN)');
         $host = Net::IDN::Encode::domain_to_ascii($host);
     }
@@ -239,12 +239,12 @@ sub request {
             $content_is_fh = Scalar::Util::openhandle($content);
             if(!$content_is_fh && ref $content) {
                 $content = $self->make_x_www_form_urlencoded($content);
-                if(!defined Furl::Util::header_get(\@headers, 'Content-Type')) {
+                if(!defined _header_get(\@headers, 'Content-Type')) {
                     push @headers, 'Content-Type'
                         => 'application/x-www-form-urlencoded';
                 }
             }
-            if(!defined Furl::Util::header_get(\@headers, 'Content-Length')) {
+            if(!defined _header_get(\@headers, 'Content-Length')) {
                 my $content_length;
                 if($content_is_fh) {
                     my $assert = sub {
@@ -357,7 +357,7 @@ sub request {
     }
 
     if (exists $COMPRESSED{ $special_headers->{'content-encoding'} }) {
-        Furl::Util::requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib');
+        _requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib');
 
         $res_content = Furl::ZlibStream->new($res_content);
     }
@@ -447,7 +447,7 @@ sub connect :method {
 # @return file handle like object
 sub connect_ssl {
     my ($self, $host, $port) = @_;
-    Furl::Util::requires('IO/Socket/SSL.pm', 'SSL');
+    _requires('IO/Socket/SSL.pm', 'SSL');
 
     return IO::Socket::SSL->new( PeerHost => $host, PeerPort => $port )
       or Carp::croak("Cannot create SSL connection: $!");
@@ -455,7 +455,7 @@ sub connect_ssl {
 
 sub connect_ssl_over_proxy {
     my ($self, $proxy_host, $proxy_port, $host, $port, $timeout) = @_;
-    Furl::Util::requires('IO/Socket/SSL.pm', 'SSL');
+    _requires('IO/Socket/SSL.pm', 'SSL');
 
     my $sock = $self->connect($proxy_host, $proxy_port);
 
