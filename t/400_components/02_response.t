@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Requires 'HTTP::Response';
 use Furl::Response;
 
 my $res = Furl::Response->new(

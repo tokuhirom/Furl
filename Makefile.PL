@@ -9,11 +9,8 @@ readme_markdown_from 'lib/Furl.pm';
 
 requires 'HTTP::Parser::XS' => 0.11;
 
-test_requires 'Test::More' => 0.96; # done_testing, subtest
-test_requires 'Test::TCP' => 1.06;
-test_requires 'IO::Socket::INET';
-test_requires 'HTTP::Request';
-test_requires 'HTTP::Response';
+test_requires 'Test::More' => 0.96;    # done_testing, subtest
+test_requires 'Test::TCP'  => 1.06;
 test_requires 'Test::Requires';
 
 recommends 'Net::IDN::Encode';    # for International Domain Name
