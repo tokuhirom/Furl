@@ -169,4 +169,7 @@ These methods are shortcut for popular headers.
 
 =back
 
-=back
+=head1 SEE ALSO
+
+L<HTTP::Headers>
+
