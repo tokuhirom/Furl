@@ -16,7 +16,7 @@ sub new {
 }
 
 # accessors
-sub code { shift->{code} }
+sub code    { shift->{code} }
 sub message { shift->{message} }
 sub headers { shift->{headers} }
 sub content { shift->{content} }
