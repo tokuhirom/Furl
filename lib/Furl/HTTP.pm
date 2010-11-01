@@ -6,6 +6,7 @@ use 5.008001;
 
 use Carp ();
 use Furl;
+use Furl::ConnPool;
 
 use Scalar::Util ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK ECONNRESET);
@@ -51,7 +52,7 @@ sub new {
         headers       => \@headers,
         proxy         => '',
         no_proxy      => '',
-        sock_cache    => $class->new_conn_cache(),
+        conn_pool     => Furl::ConnPool->new(),
         header_format => HEADERS_AS_ARRAYREF,
         %args
     }, $class;
@@ -238,7 +239,7 @@ sub request {
     }
 
     local $SIG{PIPE} = 'IGNORE';
-    my $sock         = $self->get_conn_cache($host, $port);
+    my $sock         = $self->{conn_pool}->steal($host, $port);
     my $in_keepalive = defined $sock;
     if(!$in_keepalive) {
         my ($_host, $_port);
@@ -378,7 +379,6 @@ sub request {
         if(!$n) { # error or eof
             if($in_keepalive && (defined($n) || $!==ECONNRESET)) {
                 # the server closes the connection (maybe because of keep-alive timeout)
-                $self->remove_conn_cache($host, $port);
                 return $self->request(%args);
             }
             return $self->_r500(
@@ -478,14 +478,12 @@ sub request {
 
     # manage connection cache (i.e. keep-alive)
     my $connection = lc $special_headers->{'connection'};
-    if( ($res_minor_version == 0
+    if ( ($res_minor_version == 0
             ? $connection eq 'keep-alive' # HTTP/1.0 needs explicit keep-alive
             : $connection ne 'close' )    # HTTP/1.1 can keep alive by default
           && ( defined $content_length or $chunked )
           && $method ne 'HEAD' ) {
-        $self->add_conn_cache($host, $port, $sock);
-    } else {
-        $self->remove_conn_cache($host, $port);
+        $self->{conn_pool}->push($host, $port, $sock);
     }
 
     # return response.
@@ -544,37 +542,6 @@ sub connect_ssl_over_proxy {
 
     IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout )
       or Carp::croak("Cannot start SSL connection: $!");
-}
-
-# following three connections are related to connection cache for keep-alive.
-# If you want to change the cache strategy, you can override in child classs.
-sub new_conn_cache {
-    return [''];
-}
-
-sub get_conn_cache {
-    my ( $self, $host, $port ) = @_;
-
-    my $cache = $self->{sock_cache};
-    if ($cache->[0] eq "$host:$port") {
-        return $cache->[1];
-    } else {
-        return undef;
-    }
-}
-
-sub remove_conn_cache {
-    my ($self, $host, $port) = @_;
-
-    @{ $self->{sock_cache} } = ('');
-    return;
-}
-
-sub add_conn_cache {
-    my ($self, $host, $port, $sock) = @_;
-
-    @{ $self->{sock_cache} } = ("$host:$port" => $sock);
-    return;
 }
 
 sub _read_body_chunked {
@@ -745,7 +712,6 @@ sub write_all {
 
 sub _r500 {
     my($self, $message) = @_;
-    $self->remove_conn_cache();
     $message = Carp::shortmess($message); # add lineno and filename
     return(0, 500, 'Internal Server Error',
         ['Content-Length' => length($message)], $message);

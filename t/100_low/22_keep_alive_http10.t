@@ -33,7 +33,7 @@ test_tcp(
             is $content, '/foo'
                 or do{ require Devel::Peek; Devel::Peek::Dump($content) };
 
-            ok defined( $furl->get_conn_cache($host, $port) ), 'in keep-alive';
+            ok defined( $furl->{conn_pool}->steal($host, $port) ), 'in keep-alive';
         }
         done_testing;
     },
