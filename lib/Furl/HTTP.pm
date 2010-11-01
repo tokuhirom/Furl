@@ -8,7 +8,7 @@ use Carp ();
 use Furl;
 
 use Scalar::Util ();
-use Errno qw(EAGAIN EINTR EWOULDBLOCK);
+use Errno qw(EAGAIN EINTR EWOULDBLOCK ECONNRESET);
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK SEEK_SET SEEK_END);
 use Socket qw(
     PF_INET SOCK_STREAM
@@ -376,8 +376,8 @@ sub request {
         my $n = $self->read_timeout($sock,
             \$buf, $self->{bufsize}, length($buf), $timeout );
         if(!$n) { # error or eof
-            if($in_keepalive && defined $n) {
-                # the server closes the connection (maybe because of timeout)
+            if($in_keepalive && (defined($n) || $!==ECONNRESET)) {
+                # the server closes the connection (maybe because of keep-alive timeout)
                 $self->remove_conn_cache($host, $port);
                 return $self->request(%args);
             }
