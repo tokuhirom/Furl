@@ -455,6 +455,8 @@ sub request {
         if ($max_redirects && $res_status =~ /^30[123]$/) {
             my $location = $special_headers->{location};
             unless ($location =~ m{^[a-z0-9]+://}) {
+                # RFC 2616 14.30 says Location header is absoluteURI.
+                # But, a lot of servers return relative URI.
                 _requires("URI.pm", "redirect with relative url");
                 $location = URI->new_abs($location, "$scheme://$host:$port$path_query")->as_string;
             }
