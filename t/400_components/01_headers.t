@@ -20,8 +20,7 @@ subtest 'total test' => sub {
     is_deeply( [$h->header('X-Foo')], [qw/1 3/] );
     is( $h->header('X-Bar'), 2 );
     is( $h->header('X-Bar'), 2 );
-    $h->push_header('X-Foo', 7);
-    is_deeply( [$h->header('X-Foo')], [qw/1 3 7/] );
+    is_deeply( [$h->header('X-Foo')], [qw/1 3/] );
     $h->header('X-Poo', 'san');
     is( $h->header('X-Poo'), 'san' );
     $h->header('X-Poo', ['san', 'winnie']);

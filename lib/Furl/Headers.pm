@@ -38,11 +38,6 @@ sub header {
     }
 }
 
-sub push_header {
-    my ($self, $key) = (shift, shift);
-    push @{$self->{lc $key}}, @_;
-}
-
 sub remove_header {
     my ($self, $key) = @_;
     delete $self->{lc $key};
@@ -92,3 +87,86 @@ sub content_length    { [ shift->header( 'Content-Length'    => @_ ) ]->[0] }
 sub content_encoding  { [ shift->header( 'Content-Encoding'  => @_ ) ]->[0] }
 
 1;
+__END__
+
+=head1 NAME
+
+Furl::Headers - HTTP Headers object
+
+=head1 SYNOPSIS
+
+=head1 CONSTRUCTOR
+
+=over 4
+
+=item my $headers = Furl::Headers->new(\%headers);
+
+The constructor takes one argument. It is a hashref.
+Every key of hashref must be lower-cased.
+
+The format of the argument is like following:
+
+    +{
+        'content-length' => [30],
+        'set-cookies'    => ['auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT', '_twitter_sess=JKLJBNBLKSFJBLKSJBLKSJLKJFLSDJFjkDKFUFIOSDUFSDVjOTUzNzUwNTE2%250AZWFiMWRiNDZhMDcwOWEwMWQ5IgpmbGFzaElDOidBY3Rpb25Db250cm9sbGVy%250AOjpGbGFzaDo6Rmxhc2hIYXNoewAGOgpAdXNlZHsA--d9ce07496a22525bc178jlkhafklsdjflajfl411; domain=.twitter.com; path=/'],
+    }
+
+=back
+
+=head1 INSTANCE METHODS
+
+=over 4
+
+=item my @values = $headers->header($key);
+
+Get the header value in array.
+
+=item my $values_joined = $headers->header($key);
+
+Get the header value in scalar. This is not a first value of header. This is same as:
+
+    my $values = join(", ", $headers->header($key))
+
+=item $headers->header($key, $val);
+
+=item $headers->header($key, \@val);
+
+Set the new value of headers.
+
+=item $headers->remove_header($key);
+
+Delete key from headers.
+
+=item my @h = $headers->flatten();
+
+Gets pairs of keys and values.
+
+=item my @keys = $headers->keys();
+
+=item my @keys = $headers->header_field_names();
+
+Returns keys of headers in array. The return value do not contains duplicated value.
+
+=item my $str = $headers->as_string();
+
+Return the header fields as a formatted MIME header.
+
+=item my $val = $headers->referer()
+
+=item my $val = $headers->expires()
+
+=item my $val = $headers->last_modified()
+
+=item my $val = $headers->if_modified_since()
+
+=item my $val = $headers->content_type()
+
+=item my $val = $headers->content_length()
+
+=item my $val = $headers->content_encoding()
+
+These methods are shortcut for popular headers.
+
+=back
+
+=back
