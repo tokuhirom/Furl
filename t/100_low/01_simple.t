@@ -2,15 +2,14 @@ use strict;
 use warnings;
 use Furl::HTTP;
 use Test::TCP;
-use Plack::Loader;
 use Test::More;
+use t::HTTPServer;
 
-use Plack::Request;
 my $n = shift(@ARGV) || 3;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl::HTTP->new(bufsize => 10);
+        my $furl = Furl::HTTP->new(bufsize => 10, timeout => 3);
         for (1 .. $n) {
             my ( undef, $code, $msg, $headers, $content ) =
                 $furl->request(
@@ -41,12 +40,10 @@ test_tcp(
     },
     server => sub {
         my $port = shift;
-        Plack::Loader->auto(port => $port)->run(sub {
+        t::HTTPServer->new(port => $port)->run(sub {;
             my $env = shift;
-            #note explain $env;
-            my $req = Plack::Request->new($env);
-            is $req->header('X-Foo'), "ppp" if $env->{REQUEST_URI} eq '/foo';
-            like $req->header('User-Agent'), qr/\A Furl::HTTP /xms;
+            is $env->{HTTP_X_FOO}, "ppp" if $env->{REQUEST_URI} eq '/foo';
+            like $env->{'HTTP_USER_AGENT'}, qr/\A Furl::HTTP /xms;
             return [ 200,
                 [ 'Content-Length' => length($env->{REQUEST_URI}) ],
                 [$env->{REQUEST_URI}]
