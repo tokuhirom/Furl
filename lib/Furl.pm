@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 use Furl::HTTP;
 use Furl::Response;
-our $VERSION = '0.04';
+our $VERSION = '0.06';
 
 sub new {
     my $class = shift;

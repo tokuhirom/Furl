@@ -1,5 +1,12 @@
 Revision history for Perl extension Furl
 
+0.06
+
+        - now Perl 5.8.1 or later is required.(tokuhirom)
+        - High level interface is now available(tokuhirom)
+        - Keep alive on HTTP/1.0(kazuho, gfx)
+        - Retry requests if the connection is closed while in keep-alive(gfx)
+
 0.05
 
         - use HTTP::Parser::XS
