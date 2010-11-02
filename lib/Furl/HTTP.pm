@@ -6,7 +6,7 @@ use 5.008001;
 
 use Carp ();
 use Furl;
-use Furl::ConnPool;
+use Furl::ConnectionCache;
 
 use Scalar::Util ();
 use Errno qw(EAGAIN EINTR EWOULDBLOCK ECONNRESET);
@@ -52,7 +52,7 @@ sub new {
         headers       => \@headers,
         proxy         => '',
         no_proxy      => '',
-        conn_pool     => Furl::ConnPool->new(),
+        connection_pool     => Furl::ConnectionCache->new(),
         header_format => HEADERS_AS_ARRAYREF,
         %args
     }, $class;
@@ -239,7 +239,7 @@ sub request {
     }
 
     local $SIG{PIPE} = 'IGNORE';
-    my $sock         = $self->{conn_pool}->steal($host, $port);
+    my $sock         = $self->{connection_pool}->steal($host, $port);
     my $in_keepalive = defined $sock;
     if(!$in_keepalive) {
         my ($_host, $_port);
@@ -483,7 +483,7 @@ sub request {
             : $connection ne 'close' )    # HTTP/1.1 can keep alive by default
           && ( defined $content_length or $chunked )
           && $method ne 'HEAD' ) {
-        $self->{conn_pool}->push($host, $port, $sock);
+        $self->{connection_pool}->push($host, $port, $sock);
     }
 
     # return response.

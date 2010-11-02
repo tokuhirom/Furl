@@ -1,4 +1,4 @@
-package Furl::ConnPool;
+package Furl::ConnectionCache;
 use strict;
 use warnings;
 use utf8;

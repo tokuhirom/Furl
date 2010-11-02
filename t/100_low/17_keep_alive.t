@@ -16,7 +16,7 @@ my ($stealed, $pushed) = (0, 0);
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl::HTTP->new(conn_pool => MyConnPool->new());
+        my $furl = Furl::HTTP->new(connection_pool => MyConnPool->new());
         for (1 .. 3) {
             note "-- TEST $_";
             my ( undef, $code, $msg, $headers, $content ) =
