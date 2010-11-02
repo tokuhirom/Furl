@@ -93,7 +93,7 @@ I<%args> might be:
 
 =head2 Instance Methods
 
-=head3 C<< $furl->request(%args) :Furl::Response >>
+=head3 C<< $furl->request([$request,] %args) :Furl::Response >>
 
 Sends an HTTP request to a specified URL and returns a instance of L<Furl::Response>.
 
@@ -136,11 +136,31 @@ Content to request.
 
 =back
 
-The C<request()> method assumes the first argument to be an instance
-of C<HTTP::Request> if the arguments are an odd number:
+If the number of arguments is an odd number, this method assumes that the
+first argument is an instance of C<HTTP::Request>. Remaining arguments
+can be any of the previously describe values (but currently there's no
+way to really utilize them, so don't use it)
 
     my $req = HTTP::Request->new(...);
-    my $res = $furl->request($req); # allowed
+    my $res = $furl->request($req);
+
+You can also specify an object other than HTTP::Request, but the object
+must implement the following methods: 
+
+=over 4
+
+=item uri
+
+=item method
+
+=item content
+
+=item headers
+
+=back
+
+These must return the same type of values as their counterparts in
+C<HTTP::Request>.
 
 You must encode all the queries or this method will die, saying
 C<Wide character in ...>.
