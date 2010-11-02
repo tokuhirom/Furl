@@ -1011,7 +1011,6 @@ C<If-Modified-Sinse> are more suitable to cache HTTP contents.
     - AnyEvent::Furl?
     - ipv6 support
     - better docs for NO_PROXY
-    - document: how do you use progressbar like LWP::ProgressBar
 
 =head1 OPTIONAL FEATURES
 
