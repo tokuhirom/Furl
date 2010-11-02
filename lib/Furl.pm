@@ -15,12 +15,36 @@ sub new {
 
 {
     no strict 'refs';
-    for my $meth (qw/request get head post delete put/) {
+    for my $meth (qw/get head post delete put/) {
         *{__PACKAGE__ . '::' . $meth} = sub {
             my $self = shift;
             Furl::Response->new(${$self}->$meth(@_));
         }
     }
+}
+
+sub request {
+    my $self = shift;
+
+    my %args;
+    if (@_ % 2 == 0) {
+        %args = @_;
+    } else {
+        my $req = shift;
+        %args = @_;
+        my $headers = +[
+            map {
+                my $k = $_;
+                map { ( $k => $_ ) } $req->headers->header($_);
+            } $req->headers->header_field_names
+        ];
+
+        $args{url}     = $req->uri;
+        $args{method}  = $req->method;
+        $args{content} = $req->content;
+        $args{headers} = $headers;
+    }
+    Furl::Response->new(${$self}->request(%args));
 }
 
 1;

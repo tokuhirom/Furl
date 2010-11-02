@@ -174,25 +174,8 @@ sub env_proxy {
 
 sub request {
     my $self = shift;
+    my %args = @_;
 
-    my %args;
-    if (@_ % 2 == 0) {
-        %args = @_;
-    } else {
-        my $req = shift;
-        %args = @_;
-        my $headers = +[
-            map {
-                my $k = $_;
-                map { ( $k => $_ ) } $req->headers->header($_);
-              } $req->headers->header_field_names
-        ];
-
-        $args{url}     = $req->uri;
-        $args{method}  = $req->method;
-        $args{content} = $req->content;
-        $args{headers} = $headers;
-    }
 
     my $timeout = $args{timeout};
     $timeout = $self->{timeout} if not defined $timeout;
@@ -985,7 +968,7 @@ You can use multipart/form-data with L<HTTP::Request::Common>.
         born   => '1978',
         init   => ["$ENV{HOME}/.profile"],
       ];
-    $furl->request_with_http_request($req);
+    $furl->request($req);
 
 Native multipart/form-data support for L<Furl> is available if you can send a patch for me.
 
