@@ -176,10 +176,9 @@ sub request {
     my $self = shift;
 
     my %args;
-    if (Scalar::Util::blessed($_[0]) && 
-        $_[0]->can('headers') && $_[0]->can('uri') &&
-        $_[0]->can('method') && $_[0]->can('content')
-    ) {
+    if (@_ % 2 == 0) {
+        %args = @_;
+    } else {
         my $req = shift;
         %args = @_;
         my $headers = +[
@@ -193,8 +192,6 @@ sub request {
         $args{method}  = $req->method;
         $args{content} = $req->content;
         $args{headers} = $headers;
-    } else {
-        %args = @_;
     }
 
     my $timeout = $args{timeout};
