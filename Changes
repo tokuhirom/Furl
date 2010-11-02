@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.09
+
+        - fixed packaging.
+
 0.08
 
         - rewrote connection pooling strategy(tokuhirom)
