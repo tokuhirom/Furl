@@ -1,5 +1,12 @@
 Revision history for Perl extension Furl
 
+0.08
+
+        - rewrote connection pooling strategy(tokuhirom)
+          (suggested by kazuho++)
+        - updated docs(tokuhirom)
+        - support relative url in redirection #5(tokuhirom)
+
 0.07
 
         - Do not use reference_from, it makes installing issue(reported by y).

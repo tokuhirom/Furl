@@ -19,6 +19,7 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/Pod/Markdown.pm
 lib/Furl.pm
+lib/Furl/ConnPool.pm
 lib/Furl/Headers.pm
 lib/Furl/HTTP.pm
 lib/Furl/Response.pm
@@ -47,6 +48,7 @@ t/100_low/19_special_headers.t
 t/100_low/20_header_format_none.t
 t/100_low/21_keep_alive_timedout.t
 t/100_low/22_keep_alive_http10.t
+t/100_low/23_redirect_relative.t
 t/200_online/01_idn.t
 t/200_online/02_google.t
 t/200_online/03_yahoo_com.t
@@ -55,6 +57,7 @@ t/300_high/01_simple.t
 t/300_high/04_http_request.t
 t/400_components/01_headers.t
 t/400_components/02_response.t
+t/HTTPServer.pm
 t/SilentStarman.pm
 t/Slowloris.pm
 t/Util.pm

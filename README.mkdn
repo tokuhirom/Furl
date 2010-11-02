@@ -149,6 +149,61 @@ Furl does not directly support the cookie_jar option available in LWP. You can u
     $cookies->extract_cookies($res);
     # and use $res.
 
+- How do you limit the response content length?
+
+You can limit the content length by callback function.
+
+    my $f = Furl->new();
+    my $content = '';
+    my $limit = 1_000_000;
+    my %special_headers = ('content-length' => undef);
+    my $res = $f->request(
+        method          => 'GET',
+        url             => $url,
+        special_headers => \%special_headers,
+        write_code      => sub {
+            my ( $status, $msg, $headers, $buf ) = @_;
+            if (($special_headers{'content-length'}||0) > $limit || length($content) > $limit) {
+                die "over limit: $limit";
+            }
+            $content .= $buf;
+        }
+    );
+
+- How do you display the progress bar?
+
+    my $bar = Term::ProgressBar->new({count => 1024, ETA => 'linear'});
+    $bar->minor(0);
+    $bar->max_update_rate(1);
+
+    my $f = Furl->new();
+    my $content = '';
+    my %special_headers = ('content-length' => undef);;
+    my $did_set_target = 0;
+    my $received_size = 0;
+    my $next_update  = 0;
+    $f->request(
+        method          => 'GET',
+        url             => $url,
+        special_headers => \%special_headers,
+        write_code      => sub {
+            my ( $status, $msg, $headers, $buf ) = @_;
+            unless ($did_set_target) {
+                if ( my $cl = $special_headers{'content-length'} ) {
+                    $bar->target($cl);
+                    $did_set_target++;
+                }
+                else {
+                    $bar->target( $received_size + 2 * length($buf) );
+                }
+            }
+            $received_size += length($buf);
+            $content .= $buf;
+            $next_update = $bar->update($received_size)
+            if $received_size >= $next_update;
+        }
+    );
+
 # AUTHOR
 
 Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>
