@@ -105,23 +105,6 @@ sub delete {
     );
 }
 
-sub request_with_http_request {
-    my ($self, $req, %args) = @_;
-    my $headers = +[
-        map {
-            my $k = $_;
-            map { ( $k => $_ ) } $req->headers->header($_);
-          } $req->headers->header_field_names
-    ];
-    $self->request(
-        url     => $req->uri,
-        method  => $req->method,
-        content => $req->content,
-        headers => $headers,
-        %args
-    );
-}
-
 sub _header_get {
     my ($headers, $key) = (shift, lc shift);
     for (my $i=0; $i<@$headers; $i+=2) {
@@ -129,7 +112,6 @@ sub _header_get {
     }
     return undef;
 }
-
 
 sub _requires {
     my($file, $feature, $library) = @_;
@@ -192,7 +174,28 @@ sub env_proxy {
 
 sub request {
     my $self = shift;
-    my %args = @_;
+
+    my %args;
+    if (Scalar::Util::blessed($_[0]) && 
+        $_[0]->can('headers') && $_[0]->can('uri') &&
+        $_[0]->can('method') && $_[0]->can('content')
+    ) {
+        my $req = shift;
+        %args = @_;
+        my $headers = +[
+            map {
+                my $k = $_;
+                map { ( $k => $_ ) } $req->headers->header($_);
+              } $req->headers->header_field_names
+        ];
+
+        $args{url}     = $req->uri;
+        $args{method}  = $req->method;
+        $args{content} = $req->content;
+        $args{headers} = $headers;
+    } else {
+        %args = @_;
+    }
 
     my $timeout = $args{timeout};
     $timeout = $self->{timeout} if not defined $timeout;

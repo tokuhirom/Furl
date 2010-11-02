@@ -15,7 +15,7 @@ sub new {
 
 {
     no strict 'refs';
-    for my $meth (qw/request get head post delete put request_with_http_request/) {
+    for my $meth (qw/request get head post delete put/) {
         *{__PACKAGE__ . '::' . $meth} = sub {
             my $self = shift;
             Furl::Response->new(${$self}->$meth(@_));
