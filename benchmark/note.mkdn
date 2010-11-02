@@ -136,3 +136,32 @@ fixed bug.
     furl_high 4699/s      488%      345%        --      -31%      -46%
     furl_low  6762/s      746%      540%       44%        --      -22%
     curl      8650/s      982%      719%       84%       28%        --
+
+### 0.07
+
+
+    58868db2dbe06394ac6b8344fbbf47acf334daf1
+    Perl/5.12.1 on x86_64-linux
+    Furl/0.07, LWP/5.837, WWW::Curl/4.14, HTTP::Lite/2.2, libcurl[libcurl/7.21.0 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.18]
+    --
+    Connection: keep-alive
+    Date: Tue, 02 Nov 2010 00:24:44 GMT
+    Accept-Ranges: bytes
+    Server: nginx/0.8.48
+    Content-Length: 2947
+    Content-Type: text/html
+    Last-Modified: Sat, 05 Jun 2010 23:53:36 GMT
+    Client-Date: Tue, 02 Nov 2010 00:24:44 GMT
+    Client-Peer: 192.168.1.3:80
+    Client-Response-Num: 1
+    --
+    bufsize: 10240
+    --
+
+                Rate       lwp http_lite furl_high  furl_low      curl
+    lwp        792/s        --      -24%      -83%      -88%      -91%
+    http_lite 1046/s       32%        --      -78%      -84%      -88%
+    furl_high 4757/s      501%      355%        --      -25%      -45%
+    furl_low  6342/s      701%      506%       33%        --      -27%
+    curl      8650/s      993%      727%       82%       36%        --
+
