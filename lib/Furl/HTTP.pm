@@ -721,7 +721,7 @@ sub _r500 {
 sub match_no_proxy {
     my ( $self, $no_proxy, $host ) = @_;
 
-    # ref. curl1.
+    # ref. curl.1.
     #   list of host names that shouldn't go through any proxy.
     #   If set to a asterisk '*' only, it matches all hosts.
     if ( $no_proxy eq '*' ) {
