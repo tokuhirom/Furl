@@ -892,6 +892,12 @@ Content to request.
 
 =back
 
+The C<request()> method assumes the first argument to be an instance
+of C<HTTP::Request> if the arguments are an odd number:
+
+    my $req = HTTP::Request->new(...);
+    my @res = $furl->request($req); # allowed
+
 You must encode all the queries or this method will die, saying
 C<Wide character in ...>.
 
@@ -914,12 +920,6 @@ This is an easy-to-use alias to C<request()>, sending the C<PUT> method.
 =head3 C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) >>
 
 This is an easy-to-use alias to C<request()>, sending the C<DELETE> method.
-
-=head3 C<< $furl->request_with_http_request($req :HTTP::Request) >>
-
-This is an easy-to-use alias to C<request()> with an instance of
-C<HTTP::Request>.
-
 
 =head1 FAQ
 
