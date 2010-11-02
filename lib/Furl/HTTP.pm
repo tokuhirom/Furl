@@ -739,7 +739,8 @@ sub match_no_proxy {
 
 # utility class
 {
-    package Furl::FileStream;
+    package # hide from pause
+        Furl::FileStream;
     use overload '.=' => 'append', fallback => 1;
     sub new {
         my ($class, $fh) = @_;
@@ -754,7 +755,8 @@ sub match_no_proxy {
 }
 
 {
-    package Furl::CallbackStream;
+    package # hide from pause
+        Furl::CallbackStream;
     use overload '.=' => 'append', fallback => 1;
     sub new {
         my ($class, $cb) = @_;
