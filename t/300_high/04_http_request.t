@@ -14,10 +14,7 @@ test_tcp(
         my $port = shift;
         my $furl = Furl->new();
         my $req = HTTP::Request->new(POST => "http://127.0.0.1:$port/foo", ['X-Foo' => 'ppp', 'Content-Length' => 3], 'yay');
-        my $res = 
-            $furl->request_with_http_request(
-                $req
-            );
+        my $res = $furl->request( $req );
         is $res->code, 200, "request()";
 
         done_testing;
