@@ -19,7 +19,7 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/Pod/Markdown.pm
 lib/Furl.pm
-lib/Furl/ConnPool.pm
+lib/Furl/ConnectionCache.pm
 lib/Furl/Headers.pm
 lib/Furl/HTTP.pm
 lib/Furl/Response.pm

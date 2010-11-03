@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.10
+
+        - change request() to accept HTTP::Request, and remove request_with_http_request(lestrrat)
+        - Furl::ConnPool.pm was renamed to Furl::ConnectionCache.pm(tokuhirom)
+
 0.09
 
         - fixed packaging.
