@@ -827,6 +827,12 @@ B<HEADERS_AS_ARRAYREF> is a default value. This makes B<$headers> as ArrayRef.
 
 B<HEADERS_NONE> makes B<$headers> as undef. Furl does not return parsing result of headers. You should take needed headers from B<special_headers>.
 
+=item connection_pool
+
+This is the connection pool object for keep-alive requests. By default, it is a instance of L<Furl::ConnectionCache>.
+
+You may not customize this variable otherwise to use L<Coro>. This attribute requires a duck type object. It has two methods, C<< $obj->steal($host, $port >> and C<< $obj->push($host, $port, $sock) >>.
+
 =back
 
 =head2 Instance Methods
