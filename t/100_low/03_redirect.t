@@ -2,10 +2,10 @@ use strict;
 use warnings;
 use Furl::HTTP;
 use Test::TCP;
-use Plack::Loader;
 use Test::More;
-use Test::Requires 'Plack';
+use Test::Requires 'Plack::Loader', 'Plack::Request';
 
+use Plack::Loader;
 use Plack::Request;
 
 test_tcp(

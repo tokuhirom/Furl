@@ -3,6 +3,9 @@ use warnings;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
+
+use Test::Requires 'Plack::Request', 'Plack::Loader';
+
 use t::Slowloris;
 
 my $n = shift(@ARGV) || 2;
