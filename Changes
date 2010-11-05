@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.11
+
+        - fixed testing issue gh#6
+          (reported by ichesnokov)
+
 0.10
 
         - change request() to accept HTTP::Request, and remove request_with_http_request(lestrrat)
