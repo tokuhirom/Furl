@@ -49,6 +49,7 @@ t/100_low/20_header_format_none.t
 t/100_low/21_keep_alive_timedout.t
 t/100_low/22_keep_alive_http10.t
 t/100_low/23_redirect_relative.t
+t/100_low/24_no_content.t
 t/200_online/01_idn.t
 t/200_online/02_google.t
 t/200_online/03_yahoo_com.t

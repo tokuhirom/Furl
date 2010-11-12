@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.13
+
+        - do not die when $content is empty string.
+
 0.12
 
         - fixed testing issue.
