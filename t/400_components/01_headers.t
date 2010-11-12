@@ -2,8 +2,8 @@ use strict;
 use warnings;
 use Test::More;
 use Furl::Headers;
-use HTTP::Headers;
 use Test::Requires 'HTTP::Headers';
+use HTTP::Headers;
 
 subtest 'total test' => sub {
     my $h = Furl::Headers->new([

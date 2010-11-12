@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.12
+
+        - fixed testing issue.
+
 0.11
 
         - fixed testing issue gh#6
