@@ -337,8 +337,10 @@ sub request {
                         or return $self->_r500("Failed to send content: $!");
                 }
             } else { # simple string
-                $self->write_all($sock, $content, $timeout)
-                    or return $self->_r500("Failed to send content: $!");
+                if (length($content) > 0) {
+                    $self->write_all($sock, $content, $timeout)
+                        or return $self->_r500("Failed to send content: $!");
+                }
             }
         }
     }
