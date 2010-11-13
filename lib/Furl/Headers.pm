@@ -102,7 +102,7 @@ Furl::Headers - HTTP Headers object
 =item my $headers = Furl::Headers->new(\%headers);
 
 The constructor takes one argument. It is a hashref.
-Every key of hashref must be lower-cased.
+Every key of hashref MUST be lower-cased.
 
 The format of the argument is like following:
 

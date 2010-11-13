@@ -18,6 +18,7 @@ use Socket qw(
     inet_aton
     pack_sockaddr_in
 );
+use Furl::Util qw//;
 
 use constant WIN32 => $^O eq 'MSWin32';
 use HTTP::Parser::XS qw/HEADERS_NONE HEADERS_AS_ARRAYREF HEADERS_AS_HASHREF/;
@@ -113,27 +114,6 @@ sub _header_get {
     return undef;
 }
 
-sub _requires {
-    my($file, $feature, $library) = @_;
-    return if exists $INC{$file};
-    unless(eval { require $file }) {
-        if ($@ =~ /^Can't locate/) {
-            $library ||= do {
-                local $_ = $file;
-                s/ \.pm \z//xms;
-                s{/}{::}g;
-                $_;
-            };
-            Carp::croak(
-                "$feature requires $library, but it is not available."
-                . " Please install $library using your prefer CPAN client"
-            );
-        } else {
-            die $@;
-        }
-    }
-}
-
 # returns $scheme, $host, $port, $path_query
 sub _parse_url {
     my($self, $url) = @_;
@@ -208,7 +188,7 @@ sub request {
     }
 
     if ($host =~ /[^A-Za-z0-9.-]/) {
-        _requires('Net/IDN/Encode.pm',
+        Furl::Util::requires('Net/IDN/Encode.pm',
             'Internationalized Domain Name (IDN)');
         $host = Net::IDN::Encode::domain_to_ascii($host);
     }
@@ -405,7 +385,7 @@ sub request {
     }
 
     if (exists $COMPRESSED{ $special_headers->{'content-encoding'} }) {
-        _requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib');
+        Furl::Util::requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib');
 
         $res_content = Furl::ZlibStream->new($res_content);
     }
@@ -442,7 +422,7 @@ sub request {
             unless ($location =~ m{^[a-z0-9]+://}) {
                 # RFC 2616 14.30 says Location header is absoluteURI.
                 # But, a lot of servers return relative URI.
-                _requires("URI.pm", "redirect with relative url");
+                Furl::Util::requires("URI.pm", "redirect with relative url");
                 $location = URI->new_abs($location, "$scheme://$host:$port$path_query")->as_string;
             }
             # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
@@ -499,7 +479,7 @@ sub connect :method {
 # @return file handle like object
 sub connect_ssl {
     my ($self, $host, $port) = @_;
-    _requires('IO/Socket/SSL.pm', 'SSL');
+    Furl::Util::requires('IO/Socket/SSL.pm', 'SSL');
 
     return IO::Socket::SSL->new( PeerHost => $host, PeerPort => $port )
       or Carp::croak("Cannot create SSL connection: $!");
@@ -507,7 +487,7 @@ sub connect_ssl {
 
 sub connect_ssl_over_proxy {
     my ($self, $proxy_host, $proxy_port, $host, $port, $timeout) = @_;
-    _requires('IO/Socket/SSL.pm', 'SSL');
+    Furl::Util::requires('IO/Socket/SSL.pm', 'SSL');
 
     my $sock = $self->connect($proxy_host, $proxy_port);
 
