@@ -54,6 +54,7 @@ sub new {
         no_proxy      => '',
         connection_pool     => Furl::ConnectionCache->new(),
         header_format => HEADERS_AS_ARRAYREF,
+        abort_on_eintr => sub {},
         %args
     }, $class;
 }
@@ -487,10 +488,16 @@ sub connect :method {
         or Carp::croak("Cannot resolve host name: $host, $!");
     my $sock_addr = pack_sockaddr_in($port, $iaddr);
 
+ RETRY:
     socket($sock, PF_INET, SOCK_STREAM, 0)
         or Carp::croak("Cannot create socket: $!");
-    connect($sock, $sock_addr)
-        or Carp::croak("Cannot connect to ${host}:${port}: $!");
+    if (! connect($sock, $sock_addr)) {
+        if ($! == EINTR && ! $self->{abort_on_eintr}->()) {
+            close $sock;
+            goto RETRY;
+        }
+        Carp::croak("Cannot connect to ${host}:${port}: $!");
+    }
     return $sock;
 }
 
@@ -640,7 +647,8 @@ sub do_select {
         }
         my $start_at = time;
         my $nfound   = select($rfd, $wfd, $efd, $timeout);
-        return 1 if $nfound;
+        return 1 if $nfound > 0;
+        return 0 if $nfound == -1 && $! == EINTR && $self->{abort_on_eintr}->();
         $timeout    -= (time - $start_at);
         return 0 if $timeout <= 0;
     }
@@ -656,8 +664,12 @@ sub read_timeout {
         # try to do the IO
         defined($ret = sysread($sock, $$buf, $len, $off))
             and return $ret;
-
-        unless ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK) {
+        if ($! == EAGAIN || $! == EWOULDBLOCK) {
+            # pass thru
+        } elsif ($! == EINTR) {
+            return undef if $self->{abort_on_eintr}->();
+            # otherwise pass thru
+        } else {
             return undef;
         }
         # on EINTER/EAGAIN/EWOULDBLOCK
@@ -673,11 +685,14 @@ sub write_timeout {
         # try to do the IO
         defined($ret = syswrite($sock, $buf, $len, $off))
             and return $ret;
-
-        unless ($! == EINTR || $! == EAGAIN || $! == EWOULDBLOCK) {
+        if ($! == EAGAIN || $! == EWOULDBLOCK) {
+            # pass thru
+        } elsif ($! == EINTR) {
+            return undef if $self->{abort_on_eintr}->();
+            # otherwise pass thru
+        } else {
             return undef;
         }
-        # on EINTER/EAGAIN/EWOULDBLOCK
         $self->do_select(1, $sock, $timeout) or return undef;
     }
 }
