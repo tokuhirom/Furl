@@ -57,6 +57,5 @@ test_tcp(
                 [ 'hello' ],
             ];
         });
-        warn "oaeuou";
     },
 );
