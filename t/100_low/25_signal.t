@@ -13,6 +13,7 @@ test_tcp(
         my $furl = Furl::HTTP->new(
             bufsize        => 10,
             abort_on_eintr => sub { $abort_on_eintr },
+            timeout        => undef,
         );
         local $SIG{ALRM} = sub {};
         for (1 .. $n) {
