@@ -642,12 +642,16 @@ sub _read_body_normal_to_string_buffer {
     return;
 }
 
+# returns true if the socket is ready to read, false if timeout has occurred ($! will be cleared upon timeout)
 sub do_select {
     my($self, $is_write, $sock, $timeout_at) = @_;
     # wait for data
     while (1) {
         my $timeout = $timeout_at - time;
-        return 0 if $timeout <= 0;
+        if ($timeout <= 0) {
+            $! = 0;
+            return 0;
+        }
         my($rfd, $wfd);
         my $efd = '';
         vec($efd, fileno($sock), 1) = 1;
