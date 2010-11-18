@@ -18,6 +18,7 @@ use Socket qw(
     inet_aton
     pack_sockaddr_in
 );
+use Time::HiRes qw(time);
 
 use constant WIN32 => $^O eq 'MSWin32';
 use HTTP::Parser::XS qw/HEADERS_NONE HEADERS_AS_ARRAYREF HEADERS_AS_HASHREF/;
@@ -177,9 +178,7 @@ sub request {
     my $self = shift;
     my %args = @_;
 
-
-    my $timeout = $args{timeout};
-    $timeout = $self->{timeout} if not defined $timeout;
+    my $timeout_at = time + $self->{timeout};
 
     my ($scheme, $host, $port, $path_query);
     if (defined(my $url = $args{url})) {
@@ -237,12 +236,12 @@ sub request {
         }
 
         if ($scheme eq 'http') {
-            $sock = $self->connect($_host, $_port);
+            $sock = $self->connect($_host, $_port, $timeout_at);
         } else {
             $sock = $proxy
                 ? $self->connect_ssl_over_proxy(
-                    $_host, $_port, $host, $port, $timeout)
-                : $self->connect_ssl($_host, $_port);
+                    $_host, $_port, $host, $port, $timeout_at)
+                : $self->connect_ssl($_host, $_port, $timeout_at);
         }
         setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
           or Carp::croak("Failed to setsockopt(TCP_NODELAY): $!");
@@ -321,8 +320,9 @@ sub request {
             $p .= "$headers[$i]: $val\015\012";
         }
         $p .= "\015\012";
-        $self->write_all($sock, $p, $timeout)
-            or return $self->_r500("Failed to send HTTP request: $!");
+        $self->write_all($sock, $p, $timeout_at)
+            or return $self->_r500(
+                "Failed to send HTTP request: " . _strerror_or_timeout());
         if (defined $content) {
             if ($content_is_fh) {
                 my $ret;
@@ -334,13 +334,17 @@ sub request {
                     } elsif ($ret == 0) { # EOF
                         last SENDFILE;
                     }
-                    $self->write_all($sock, $buf, $timeout)
-                        or return $self->_r500("Failed to send content: $!");
+                    $self->write_all($sock, $buf, $timeout_at)
+                        or return $self->_r500(
+                            "Failed to send content: " . _strerror_or_timeout()
+                        );
                 }
             } else { # simple string
                 if (length($content) > 0) {
-                    $self->write_all($sock, $content, $timeout)
-                        or return $self->_r500("Failed to send content: $!");
+                    $self->write_all($sock, $content, $timeout_at)
+                        or return $self->_r500(
+                            "Failed to send content: " . _strerror_or_timeout()
+                        );
                 }
             }
         }
@@ -361,7 +365,7 @@ sub request {
     $special_headers->{'transfer-encoding'} = '';
   LOOP: while (1) {
         my $n = $self->read_timeout($sock,
-            \$buf, $self->{bufsize}, length($buf), $timeout );
+            \$buf, $self->{bufsize}, length($buf), $timeout_at);
         if(!$n) { # error or eof
             if($in_keepalive && (defined($n) || $!==ECONNRESET)) {
                 # the server closes the connection (maybe because of keep-alive timeout)
@@ -369,7 +373,7 @@ sub request {
             }
             return $self->_r500(
                 !defined($n)
-                    ? "Cannot read response header: $!"
+                    ? "Cannot read response header: " . _strerror_or_timeout()
                     : "Unexpected EOF while reading response header"
             );
         }
@@ -418,17 +422,17 @@ sub request {
         my @err;
         if ( $chunked ) {
             @err = $self->_read_body_chunked($sock,
-                \$res_content, $rest_header, $timeout);
+                \$res_content, $rest_header, $timeout_at);
         } else {
             $res_content .= $rest_header;
             if (ref $res_content || !defined($content_length)) {
                 @err = $self->_read_body_normal($sock,
                     \$res_content, length($rest_header),
-                    $content_length, $timeout);
+                    $content_length, $timeout_at);
             } else {
                 @err = $self->_read_body_normal_to_string_buffer($sock,
                     \$res_content, length($rest_header),
-                    $content_length, $timeout);
+                    $content_length, $timeout_at);
             }
         }
         if(@err) {
@@ -482,7 +486,7 @@ sub request {
 
 # connects to $host:$port and returns $socket
 sub connect :method {
-    my($self, $host, $port) = @_;
+    my($self, $host, $port, $timeout_at) = @_;
     my $sock;
     my $iaddr = inet_aton($host)
         or Carp::croak("Cannot resolve host name: $host, $!");
@@ -513,31 +517,35 @@ sub connect_ssl {
 }
 
 sub connect_ssl_over_proxy {
-    my ($self, $proxy_host, $proxy_port, $host, $port, $timeout) = @_;
+    my ($self, $proxy_host, $proxy_port, $host, $port, $timeout_at) = @_;
     _requires('IO/Socket/SSL.pm', 'SSL');
 
-    my $sock = $self->connect($proxy_host, $proxy_port);
+    my $sock = $self->connect($proxy_host, $proxy_port, $timeout_at);
 
     my $p = "CONNECT $host:$port HTTP/1.0\015\012Server: $host\015\012\015\012";
-    $self->write_all($sock, $p, $timeout)
-        or return $self->_r500("Failed to send HTTP request to proxy: $!");
+    $self->write_all($sock, $p, $timeout_at)
+        or return $self->_r500(
+            "Failed to send HTTP request to proxy: " . _strerror_or_timeout());
     my $buf = '';
     my $read = $self->read_timeout($sock,
-        \$buf, $self->{bufsize}, length($buf), $timeout);
+        \$buf, $self->{bufsize}, length($buf), $timeout_at);
     if (not defined $read) {
-        Carp::croak("Cannot read proxy response: $!");
+        Carp::croak("Cannot read proxy response: " . _strerror_or_timeout());
     } elsif ( $read == 0 ) {    # eof
         Carp::croak("Unexpected EOF while reading proxy response");
     } elsif ( $buf !~ /^HTTP\/1.[01] 200 Connection established\015\012/ ) {
         Carp::croak("Invalid HTTP Response via proxy");
     }
 
+    my $timeout = $timeout_at - time;
+    Carp::croak("Cannot start SSL connection: timoeut")
+        if $timeout_at <= 0;
     IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout )
-      or Carp::croak("Cannot start SSL connection: $!");
+      or Carp::croak("Cannot start SSL connection: " . _strerror_or_timeout());
 }
 
 sub _read_body_chunked {
-    my ($self, $sock, $res_content, $rest_header, $timeout) = @_;
+    my ($self, $sock, $res_content, $rest_header, $timeout_at) = @_;
 
     my $buf = $rest_header;
   READ_LOOP: while (1) {
@@ -567,9 +575,10 @@ sub _read_body_chunked {
             # +2 means trailing CRLF
           READ_CHUNK: while ( $next_len+2 > length($buf) ) {
                 my $n = $self->read_timeout( $sock,
-                    \$buf, $self->{bufsize}, length($buf), $timeout );
+                    \$buf, $self->{bufsize}, length($buf), $timeout_at );
                 if ( not defined $n ) {
-                    return $self->_r500("Cannot read chunk: $!");
+                    return $self->_r500(
+                        "Cannot read chunk: " . _strerror_or_timeout());
                 }
             }
             $$res_content .= substr($buf, 0, $next_len);
@@ -580,29 +589,30 @@ sub _read_body_chunked {
         }
 
         my $n = $self->read_timeout( $sock,
-            \$buf, $self->{bufsize}, length($buf), $timeout );
+            \$buf, $self->{bufsize}, length($buf), $timeout_at );
         if (!$n) {
             return $self->_r500(
                 !defined($n)
-                    ? "Cannot read chunk: $!"
+                    ? "Cannot read chunk: " . _strerror_or_timeout()
                     : "Unexpected EOF while reading packets"
             );
         }
     }
     # read last CRLF
     return $self->_read_body_normal(
-        $sock, \$buf, length($buf), 2, $timeout);
+        $sock, \$buf, length($buf), 2, $timeout_at);
 }
 
 sub _read_body_normal {
-    my ($self, $sock, $res_content, $nread, $res_content_length, $timeout) = @_;
+    my ($self, $sock, $res_content, $nread, $res_content_length, $timeout_at)
+        = @_;
     while (!defined($res_content_length) || $res_content_length != $nread) {
         my $n = $self->read_timeout( $sock,
-            \my $buf, $self->{bufsize}, 0, $timeout );
+            \my $buf, $self->{bufsize}, 0, $timeout_at );
         if (!$n) {
             return $self->_r500(
                 !defined($n)
-                    ? "Cannot read content body: $!"
+                    ? "Cannot read content body: " . _strerror_or_timeout()
                     : "Unexpected EOF while reading content body"
             );
         }
@@ -615,14 +625,15 @@ sub _read_body_normal {
 # This function loads all content at once if it's possible. Since $res_content is just a plain scalar.
 # Buffering is not needed.
 sub _read_body_normal_to_string_buffer {
-    my ($self, $sock, $res_content, $nread, $res_content_length, $timeout) = @_;
+    my ($self, $sock, $res_content, $nread, $res_content_length, $timeout_at)
+        = @_;
     while ($res_content_length != $nread) {
         my $n = $self->read_timeout( $sock,
-            $res_content, $res_content_length, $nread, $timeout );
+            $res_content, $res_content_length, $nread, $timeout_at );
         if (!$n) {
             return $self->_r500(
                 !defined($n)
-                    ? "Cannot read content body: $!"
+                    ? "Cannot read content body: " . _strerror_or_timeout()
                     : "Unexpected EOF while reading content body"
             );
         }
@@ -631,12 +642,12 @@ sub _read_body_normal_to_string_buffer {
     return;
 }
 
-# I/O with tmeout (stolen from Starlet/kazuho++)
-
 sub do_select {
-    my($self, $is_write, $sock, $timeout) = @_;
+    my($self, $is_write, $sock, $timeout_at) = @_;
     # wait for data
     while (1) {
+        my $timeout = $timeout_at - time;
+        return 0 if $timeout <= 0;
         my($rfd, $wfd);
         my $efd = '';
         vec($efd, fileno($sock), 1) = 1;
@@ -645,21 +656,18 @@ sub do_select {
         } else {
             $rfd = $efd;
         }
-        my $start_at = time;
         my $nfound   = select($rfd, $wfd, $efd, $timeout);
         return 1 if $nfound > 0;
         return 0 if $nfound == -1 && $! == EINTR && $self->{abort_on_eintr}->();
-        $timeout    -= (time - $start_at);
-        return 0 if $timeout <= 0;
     }
     die 'not reached';
 }
 
 # returns (positive) number of bytes read, or undef if the socket is to be closed
 sub read_timeout {
-    my ($self, $sock, $buf, $len, $off, $timeout) = @_;
+    my ($self, $sock, $buf, $len, $off, $timeout_at) = @_;
     my $ret;
-    $self->do_select(0, $sock, $timeout) or return undef;
+    $self->do_select(0, $sock, $timeout_at) or return undef;
     while(1) {
         # try to do the IO
         defined($ret = sysread($sock, $$buf, $len, $off))
@@ -673,13 +681,13 @@ sub read_timeout {
             return undef;
         }
         # on EINTER/EAGAIN/EWOULDBLOCK
-        $self->do_select(0, $sock, $timeout) or return undef;
+        $self->do_select(0, $sock, $timeout_at) or return undef;
     }
 }
 
 # returns (positive) number of bytes written, or undef if the socket is to be closed
 sub write_timeout {
-    my ($self, $sock, $buf, $len, $off, $timeout) = @_;
+    my ($self, $sock, $buf, $len, $off, $timeout_at) = @_;
     my $ret;
     while(1) {
         # try to do the IO
@@ -693,16 +701,16 @@ sub write_timeout {
         } else {
             return undef;
         }
-        $self->do_select(1, $sock, $timeout) or return undef;
+        $self->do_select(1, $sock, $timeout_at) or return undef;
     }
 }
 
 # writes all data in buf and returns number of bytes written or undef if failed
 sub write_all {
-    my ($self, $sock, $buf, $timeout) = @_;
+    my ($self, $sock, $buf, $timeout_at) = @_;
     my $off = 0;
     while (my $len = length($buf) - $off) {
-        my $ret = $self->write_timeout($sock, $buf, $len, $off, $timeout)
+        my $ret = $self->write_timeout($sock, $buf, $len, $off, $timeout_at)
             or return undef;
         $off += $ret;
     }
@@ -715,6 +723,10 @@ sub _r500 {
     $message = Carp::shortmess($message); # add lineno and filename
     return(0, 500, 'Internal Server Error',
         ['Content-Length' => length($message)], $message);
+}
+
+sub _strerror_or_timeout {
+    $! != 0 ? "$!" : 'timeout';
 }
 
 # You can override this method if you want to use more powerful matcher.
