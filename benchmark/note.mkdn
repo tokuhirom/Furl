@@ -165,3 +165,31 @@ fixed bug.
     furl_low  6342/s      701%      506%       33%        --      -27%
     curl      8650/s      993%      727%       82%       36%        --
 
+### kazuho
+
+    perl -Ilib benchmperl -Ilib benchmark/simple.pl                                         [~/dev/Furl] 水 17 19:05
+    65d1df9882c8f5330f9cc93a03722887867e303c
+    Perl/5.12.1 on x86_64-linux
+    Furl/0.13, LWP/5.837, WWW::Curl/4.14, HTTP::Lite/2.2, libcurl[libcurl/7.21.0 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.18]
+    --
+    Connection: keep-alive
+    Date: Wed, 17 Nov 2010 10:05:52 GMT
+    Accept-Ranges: bytes
+    Server: nginx/0.8.48
+    Content-Length: 2947
+    Content-Type: text/html
+    Last-Modified: Sat, 05 Jun 2010 23:53:36 GMT
+    Client-Date: Wed, 17 Nov 2010 10:05:52 GMT
+    Client-Peer: 192.168.1.3:80
+    Client-Response-Num: 1
+    --
+    bufsize: 10240
+    --
+    
+                Rate       lwp http_lite furl_high  furl_low      curl
+    lwp        800/s        --      -24%      -79%      -84%      -91%
+    http_lite 1056/s       32%        --      -72%      -79%      -88%
+    furl_high 3759/s      370%      256%        --      -24%      -57%
+    furl_low  4978/s      522%      372%       32%        --      -43%
+    curl      8698/s      987%      724%      131%       75%        --
+
