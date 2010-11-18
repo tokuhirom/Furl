@@ -9,7 +9,7 @@ use Furl;
 use Furl::ConnectionCache;
 
 use Scalar::Util ();
-use Errno qw(EAGAIN EINTR EWOULDBLOCK ECONNRESET);
+use Errno qw(EAGAIN ECONNRESET EINPROGRESS EINTR EWOULDBLOCK);
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK SEEK_SET SEEK_END);
 use Socket qw(
     PF_INET SOCK_STREAM
@@ -225,45 +225,28 @@ sub request {
     my $sock         = $self->{connection_pool}->steal($host, $port);
     my $in_keepalive = defined $sock;
     if(!$in_keepalive) {
-        my ($_host, $_port);
+        my $err_reason;
         if ($proxy) {
-            (undef, $_host, $_port, undef)
+            my (undef, $proxy_host, $proxy_port, undef)
                 = $self->_parse_url($proxy);
-        }
-        else {
-            $_host = $host;
-            $_port = $port;
-        }
-
-        if ($scheme eq 'http') {
-            $sock = $self->connect($_host, $_port, $timeout_at);
+            if ($scheme eq 'http') {
+                ($sock, $err_reason)
+                    = $self->connect($proxy_host, $proxy_port, $timeout_at);
+            } else {
+                ($sock, $err_reason) = $self->connect_ssl_over_proxy(
+                    $proxy_host, $proxy_port, $host, $port, $timeout_at);
+            }
         } else {
-            $sock = $proxy
-                ? $self->connect_ssl_over_proxy(
-                    $_host, $_port, $host, $port, $timeout_at)
-                : $self->connect_ssl($_host, $_port, $timeout_at);
+            if ($scheme eq 'http') {
+                ($sock, $err_reason)
+                    = $self->connect($host, $port, $timeout_at);
+            } else {
+                ($sock, $err_reason)
+                    = $self->connect_ssl($host, $port, $timeout_at);
+            }
         }
-        setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
-          or Carp::croak("Failed to setsockopt(TCP_NODELAY): $!");
-        if (WIN32) {
-            my $tmp = 1;
-            ioctl( $sock, 0x8004667E, \$tmp )
-              or Carp::croak("Cannot set flags for the socket: $!");
-        } else {
-            my $flags = fcntl( $sock, F_GETFL, 0 )
-              or Carp::croak("Cannot get flags for the socket: $!");
-            $flags = fcntl( $sock, F_SETFL, $flags | O_NONBLOCK )
-              or Carp::croak("Cannot set flags for the socket: $!");
-        }
-
-        {
-            # no buffering
-            my $orig = select();
-            select($sock); $|=1;
-            select($orig);
-        }
-
-        binmode $sock;
+        return $self->_r500($err_reason)
+            unless $sock;
     }
 
     # write request
@@ -489,18 +472,25 @@ sub connect :method {
     my($self, $host, $port, $timeout_at) = @_;
     my $sock;
     my $iaddr = inet_aton($host)
-        or Carp::croak("Cannot resolve host name: $host, $!");
+        or return (undef, Carp::croak("Cannot resolve host name: $host, $!"));
     my $sock_addr = pack_sockaddr_in($port, $iaddr);
 
  RETRY:
     socket($sock, PF_INET, SOCK_STREAM, 0)
         or Carp::croak("Cannot create socket: $!");
-    if (! connect($sock, $sock_addr)) {
+    _set_sockopts($sock);
+    if (connect($sock, $sock_addr)) {
+        # connected
+    } elsif ($! == EINPROGRESS) {
+        $self->do_select(1, $sock, $timeout_at)
+            or return (undef, "Cannot connect to ${host}:${port}: timeout");
+        # connected
+    } else {
         if ($! == EINTR && ! $self->{abort_on_eintr}->()) {
             close $sock;
             goto RETRY;
         }
-        Carp::croak("Cannot connect to ${host}:${port}: $!");
+        return (undef, "Cannot connect to ${host}:${port}: $!");
     }
     return $sock;
 }
@@ -509,11 +499,19 @@ sub connect :method {
 # You can override this methond in your child class, if you want to use Crypt::SSLeay or some other library.
 # @return file handle like object
 sub connect_ssl {
-    my ($self, $host, $port) = @_;
+    my ($self, $host, $port, $timeout_at) = @_;
     _requires('IO/Socket/SSL.pm', 'SSL');
 
-    return IO::Socket::SSL->new( PeerHost => $host, PeerPort => $port )
-      or Carp::croak("Cannot create SSL connection: $!");
+    my $timeout = $timeout_at - time;
+    return (undef, "Cannot create SSL connection: timeout")
+        if $timeout <= 0;
+    my $sock = IO::Socket::SSL->new(
+        PeerHost => $host,
+        PeerPort => $port,
+        Timeout  => $timeout,
+    ) or return (undef, "Cannot create SSL connection: $!");
+    _set_sockopts($sock);
+    $sock;
 }
 
 sub connect_ssl_over_proxy {
@@ -530,18 +528,20 @@ sub connect_ssl_over_proxy {
     my $read = $self->read_timeout($sock,
         \$buf, $self->{bufsize}, length($buf), $timeout_at);
     if (not defined $read) {
-        Carp::croak("Cannot read proxy response: " . _strerror_or_timeout());
+        return (undef, "Cannot read proxy response: " . _strerror_or_timeout());
     } elsif ( $read == 0 ) {    # eof
-        Carp::croak("Unexpected EOF while reading proxy response");
+        return (undef, "Unexpected EOF while reading proxy response");
     } elsif ( $buf !~ /^HTTP\/1.[01] 200 Connection established\015\012/ ) {
-        Carp::croak("Invalid HTTP Response via proxy");
+        return (undef, "Invalid HTTP Response via proxy");
     }
 
     my $timeout = $timeout_at - time;
-    Carp::croak("Cannot start SSL connection: timoeut")
+    return (undef, "Cannot start SSL connection: timeout")
         if $timeout_at <= 0;
     IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout )
-      or Carp::croak("Cannot start SSL connection: " . _strerror_or_timeout());
+      or return (
+          undef, "Cannot start SSL connection: " . _strerror_or_timeout());
+    _set_sockopts($sock); # just in case (20101118 kazuho)
 }
 
 sub _read_body_chunked {
@@ -731,6 +731,32 @@ sub _r500 {
 
 sub _strerror_or_timeout {
     $! != 0 ? "$!" : 'timeout';
+}
+
+sub _set_sockopts {
+    my $sock = shift;
+
+    setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
+        or Carp::croak("Failed to setsockopt(TCP_NODELAY): $!");
+    if (WIN32) {
+        my $tmp = 1;
+        ioctl( $sock, 0x8004667E, \$tmp )
+            or Carp::croak("Cannot set flags for the socket: $!");
+    } else {
+        my $flags = fcntl( $sock, F_GETFL, 0 )
+            or Carp::croak("Cannot get flags for the socket: $!");
+        $flags = fcntl( $sock, F_SETFL, $flags | O_NONBLOCK )
+            or Carp::croak("Cannot set flags for the socket: $!");
+    }
+
+    {
+        # no buffering
+        my $orig = select();
+        select($sock); $|=1;
+        select($orig);
+    }
+
+    binmode $sock;
 }
 
 # You can override this method if you want to use more powerful matcher.
