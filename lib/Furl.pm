@@ -231,6 +231,7 @@ Furl does not directly support the cookie_jar option available in LWP. You can u
     my $req = HTTP::Request->new(...);
     $cookies->add_cookie_header($req);
     my $res = H$f->request_with_http_request($req)->as_http_response;
+    $res->request($req);
     $cookies->extract_cookies($res);
     # and use $res.
 
