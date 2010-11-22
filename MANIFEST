@@ -50,10 +50,13 @@ t/100_low/21_keep_alive_timedout.t
 t/100_low/22_keep_alive_http10.t
 t/100_low/23_redirect_relative.t
 t/100_low/24_no_content.t
+t/100_low/25_signal.t
 t/200_online/01_idn.t
 t/200_online/02_google.t
 t/200_online/03_yahoo_com.t
 t/200_online/04_ssl.t
+t/200_online/05_connect_error.t
+t/200_online/06_net-dns-lite.t
 t/300_high/01_simple.t
 t/300_high/04_http_request.t
 t/400_components/01_headers.t

@@ -1,5 +1,13 @@
 Revision history for Perl extension Furl
 
+0.14
+
+        - changed the semantics of the "timeout" parameter from per-IO timeout
+          to request timeout(Kazuho Oku)
+        - optional support for name resolution timeouts using Net::DNS::Lite(Kazuho Oku)
+        - make blocking operations cancellable (through the "stop_if"
+          callback)(Kazuho Oku)
+
 0.13
 
         - do not die when $content is empty string.
