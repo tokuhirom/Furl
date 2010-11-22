@@ -10,6 +10,21 @@ my $n = shift(@ARGV) || 2;
 
 # TODO add proxy tests
 
+note 'name resolution error';
+{
+    my $furl = Furl::HTTP->new(timeout => 60);
+    my (undef, $code, $msg, $headers, $content) =
+        $furl->request(
+            host => 'a.', # an non-existent gTLD
+            port => 80,
+            path_query => '/foo',
+        );
+    is $code, 500, "nameerror/$_";
+    is $msg, 'Internal Server Error';
+    is ref($headers), 'ARRAY';
+    ok $content, "content: $content";
+}
+
 note 'refused error';
 {
     my $furl = Furl::HTTP->new(timeout => 60);
