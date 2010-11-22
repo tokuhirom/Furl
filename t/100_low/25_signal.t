@@ -9,15 +9,15 @@ my $n = shift(@ARGV) || 3;
 test_tcp(
     client => sub {
         my $port = shift;
-        my $abort_on_eintr = 0;
+        my $stop_if = 0;
         my $furl = Furl::HTTP->new(
-            bufsize        => 10,
-            abort_on_eintr => sub { $abort_on_eintr },
+            bufsize => 10,
+            stop_if => sub { $stop_if },
         );
         local $SIG{ALRM} = sub {};
         for (1 .. $n) {
             # ignore signal
-            $abort_on_eintr = undef;
+            $stop_if = undef;
             alarm(2);
             my ($undef, $code, $msg, $headers, $content) =
                 $furl->request(
@@ -29,7 +29,7 @@ test_tcp(
             alarm(0);
             sleep(4); # wait until the server stops handling the request
             # cancel on signal
-            $abort_on_eintr = 1;
+            $stop_if = 1;
             alarm(2);
             ($undef, $code, $msg, $headers, $content) =
                 $furl->request(

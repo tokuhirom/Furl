@@ -54,7 +54,7 @@ sub new {
         no_proxy      => '',
         connection_pool     => Furl::ConnectionCache->new(),
         header_format => HEADERS_AS_ARRAYREF,
-        abort_on_eintr => sub {},
+        stop_if       => sub {},
         inet_aton      => sub { Socket::inet_aton($_[0]) },
         %args
     }, $class;
@@ -491,7 +491,7 @@ sub connect :method {
             or return (undef, "Cannot connect to ${host}:${port}: timeout");
         # connected
     } else {
-        if ($! == EINTR && ! $self->{abort_on_eintr}->()) {
+        if ($! == EINTR && ! $self->{stop_if}->()) {
             close $sock;
             goto RETRY;
         }
@@ -667,7 +667,7 @@ sub do_select {
         }
         my $nfound   = select($rfd, $wfd, $efd, $timeout);
         return 1 if $nfound > 0;
-        return 0 if $nfound == -1 && $! == EINTR && $self->{abort_on_eintr}->();
+        return 0 if $nfound == -1 && $! == EINTR && $self->{stop_if}->();
     }
     die 'not reached';
 }
@@ -684,7 +684,7 @@ sub read_timeout {
         if ($! == EAGAIN || $! == EWOULDBLOCK) {
             # pass thru
         } elsif ($! == EINTR) {
-            return undef if $self->{abort_on_eintr}->();
+            return undef if $self->{stop_if}->();
             # otherwise pass thru
         } else {
             return undef;
@@ -705,7 +705,7 @@ sub write_timeout {
         if ($! == EAGAIN || $! == EWOULDBLOCK) {
             # pass thru
         } elsif ($! == EINTR) {
-            return undef if $self->{abort_on_eintr}->();
+            return undef if $self->{stop_if}->();
             # otherwise pass thru
         } else {
             return undef;
@@ -873,6 +873,8 @@ I<%args> might be:
 
 =item timeout :Int = 10
 
+Seconds until the call to $furl->request returns a timeout error (as an internally generated 500 error). The timeout might not be accurate since some underlying modules / built-ins function may block longer than the specified timeout. See the FAQ for how to support timeout during name resolution.
+
 =item max_redirects :Int = 7
 
 =item proxy :Str
@@ -896,6 +898,14 @@ B<HEADERS_NONE> makes B<$headers> as undef. Furl does not return parsing result 
 This is the connection pool object for keep-alive requests. By default, it is a instance of L<Furl::ConnectionCache>.
 
 You may not customize this variable otherwise to use L<Coro>. This attribute requires a duck type object. It has two methods, C<< $obj->steal($host, $port >> and C<< $obj->push($host, $port, $sock) >>.
+
+=item stop_if
+
+A callback function that is called by Furl after when a blocking function call returns EINTR. Furl will abort the HTTP request and return immediately if the callback returns true. Otherwise the operation is continued (the default behaviour).
+
+=item inet_aton
+
+A callback function to customize name resolution. Takes two arguments: ($hostname, $timeout_in_seconds). If omitted, Furl calls L<Socket::inet_aton>.
 
 =back
 
@@ -1058,6 +1068,17 @@ such cases.
 
 Anyway, the HEAD method is not so useful nowadays. The GET method and
 C<If-Modified-Sinse> are more suitable to cache HTTP contents.
+
+=item Why does Furl take longer than specified until it returns a timeout error?
+
+Although Furl itself supports timeout, some underlying modules / functions do not. And the most noticeable one is L<Socket::inet_aton>, the function used for name resolution (a function that converts hostnames to IP addresses). If you need accurate and short timeout for name resolution, the use of L<Net::DNS::Lite> is recommended. The following code snippet describes how to use the module in conjunction with Furl.
+
+    use Net::DNS::Lite qw();
+
+    my $furl = Furl->new(
+        timeout   => $my_timeout_in_seconds,
+        inet_aton => sub { Net::DNS::Lite::inet_aton(@_) },
+    );
 
 =back
 
