@@ -15,7 +15,6 @@ use Socket qw(
     PF_INET SOCK_STREAM
     IPPROTO_TCP
     TCP_NODELAY
-    inet_aton
     pack_sockaddr_in
 );
 use Time::HiRes qw(time);
@@ -56,6 +55,7 @@ sub new {
         connection_pool     => Furl::ConnectionCache->new(),
         header_format => HEADERS_AS_ARRAYREF,
         abort_on_eintr => sub {},
+        inet_aton      => sub { Socket::inet_aton($_[0]) },
         %args
     }, $class;
 }
@@ -471,8 +471,13 @@ sub request {
 sub connect :method {
     my($self, $host, $port, $timeout_at) = @_;
     my $sock;
-    my $iaddr = inet_aton($host)
-        or return (undef, Carp::croak("Cannot resolve host name: $host, $!"));
+
+    my $timeout = $timeout_at - time;
+    return (undef, "Failed to resolve host name: timeout")
+        if $timeout <= 0;
+    my $iaddr = $self->{inet_aton}->($host, $timeout)
+        or return (undef, "Cannot resolve host name: $host, $!");
+
     my $sock_addr = pack_sockaddr_in($port, $iaddr);
 
  RETRY:
