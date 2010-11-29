@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.15
+
+        - doc enhancements(tokuhirom)
+
 0.14
 
         - changed the semantics of the "timeout" parameter from per-IO timeout
