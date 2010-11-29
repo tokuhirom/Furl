@@ -953,6 +953,20 @@ HTTP request headers. e.g. C<< headers => [ 'Accept-Encoding' => 'gzip' ] >>.
 
 Content to request.
 
+=item write_file : FileHandle
+
+If this parameter is set, the response content will be saved here instead of in the response object.
+
+It's like a ':content_file' in L<LWP::UserAgent>.
+
+=item write_code : CodeRef
+
+If a callback is provided with the "write_code" option
+then this function will be called for each chunk of the response
+content as it is received from the server.
+
+It's like a ':content_cb' in L<LWP::UserAgent>.
+
 =back
 
 The C<request()> method assumes the first argument to be an instance
