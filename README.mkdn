@@ -107,7 +107,7 @@ way to really utilize them, so don't use it)
     my $res = $furl->request($req);
 
 You can also specify an object other than HTTP::Request, but the object
-must implement the following methods: 
+must implement the following methods:
 
 - uri
 
@@ -148,6 +148,14 @@ This is an easy-to-use alias to `request()`, sending the `DELETE` method.
 Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 # FAQ
+
+- Does Furl depends on XS modules?
+
+No. Although some optional features require XS modules, basic features are
+available without XS modules.
+
+Note that Furl requires HTTP::Parser::XS, which seems an XS module
+but includes a pure Perl backend, HTTP::Parser::XS::PP.
 
 - I need more speed.
 

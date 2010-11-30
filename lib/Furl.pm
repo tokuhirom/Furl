@@ -169,7 +169,7 @@ way to really utilize them, so don't use it)
     my $res = $furl->request($req);
 
 You can also specify an object other than HTTP::Request, but the object
-must implement the following methods: 
+must implement the following methods:
 
 =over 4
 
@@ -216,6 +216,14 @@ Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
 =head1 FAQ
 
 =over 4
+
+=item Does Furl depends on XS modules?
+
+No. Although some optional features require XS modules, basic features are
+available without XS modules.
+
+Note that Furl requires HTTP::Parser::XS, which seems an XS module
+but includes a pure Perl backend, HTTP::Parser::XS::PP.
 
 =item I need more speed.
 
