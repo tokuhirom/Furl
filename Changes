@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.16
+
+        - support for status codes wo. content(kazuho oku)
+
 0.15
 
         - doc enhancements(tokuhirom)
