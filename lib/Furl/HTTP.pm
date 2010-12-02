@@ -42,14 +42,24 @@ sub new {
     my @headers = (
         'User-Agent' => (delete($args{agent}) || __PACKAGE__ . '/' . $Furl::VERSION),
     );
+    my $connection_header = 'keep-alive';
     if(defined $args{headers}) {
-        push @headers, @{delete $args{headers}};
+        my $in_headers = delete $args{headers};
+        for (my $i = 0; $i < @$in_headers; $i += 2) {
+            my $name = $in_headers->[$i];
+            if (lc($name) eq 'connection') {
+                $connection_header = $in_headers->[$i + 1];
+            } else {
+                push @headers, $name, $in_headers->[$i + 1];
+            }
+        }
     }
     bless {
         timeout       => 10,
         max_redirects => 7,
         bufsize       => 10*1024, # no mmap
         headers       => \@headers,
+        connection_header => $connection_header,
         proxy         => '',
         no_proxy      => '',
         connection_pool     => Furl::ConnectionCache->new(),
@@ -251,6 +261,7 @@ sub request {
 
     # write request
     my $method = $args{method} || 'GET';
+    my $connection_header = $self->{connection_header};
     {
         if($proxy) {
             $path_query = "$scheme://$host:$port$path_query";
@@ -259,9 +270,19 @@ sub request {
               . "Host: $host:$port\015\012";
 
         my @headers = @{$self->{headers}};
-        if ($args{headers}) {
-            push @headers, @{$args{headers}};
+        $connection_header = 'close'
+            if $method eq 'HEAD';
+        if (my $in_headers = $args{headers}) {
+            for (my $i = 0; $i < @$in_headers; $i += 2) {
+                my $name = $in_headers->[$i];
+                if (lc($name) eq 'connection') {
+                    $connection_header = $in_headers->[$i + 1];
+                } else {
+                    push @headers, $name, $in_headers->[$i + 1];
+                }
+            }
         }
+        unshift @headers, 'Connection', $connection_header;
 
         my $content       = $args{content};
         my $content_is_fh = 0;
@@ -453,13 +474,14 @@ sub request {
     }
 
     # manage connection cache (i.e. keep-alive)
-    my $connection = lc $special_headers->{'connection'};
-    if ( ($res_minor_version == 0
-            ? $connection eq 'keep-alive' # HTTP/1.0 needs explicit keep-alive
-            : $connection ne 'close' )    # HTTP/1.1 can keep alive by default
-          && ( defined $content_length or $chunked )
-          && $method ne 'HEAD' ) {
-        $self->{connection_pool}->push($host, $port, $sock);
+    if ($connection_header eq 'keep-alive') {
+        my $connection = lc $special_headers->{'connection'};
+        if (($res_minor_version == 0
+             ? $connection eq 'keep-alive' # HTTP/1.0 needs explicit keep-alive
+             : $connection ne 'close')    # HTTP/1.1 can keep alive by default
+            && ( defined $content_length or $chunked)) {
+            $self->{connection_pool}->push($host, $port, $sock);
+        }
     }
 
     # return response.

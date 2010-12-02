@@ -15,7 +15,7 @@ my $host = '127.0.0.1';
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl::HTTP->new(headers => [Connection => 'keep-alive']);
+        my $furl = Furl::HTTP->new();
         for (1 .. $n) {
             note "request/$_";
             my ( undef, $code, $msg, $headers, $content ) =
