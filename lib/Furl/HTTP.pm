@@ -401,7 +401,10 @@ sub request {
     my $chunked        = ($special_headers->{'transfer-encoding'} eq 'chunked');
     my $content_length =  $special_headers->{'content-length'};
 
-    if($method ne 'HEAD') {
+    unless ($method eq 'HEAD'
+            || ($res_status < 200 && $res_status >= 100)
+            || $res_status == 204
+            || $res_status == 304) {
         my @err;
         if ( $chunked ) {
             @err = $self->_read_body_chunked($sock,
