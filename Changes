@@ -1,5 +1,16 @@
 Revision history for Perl extension Furl
 
+0.17
+
+    - only send the connection header with the highest precedence (Furl::request => Furl::new)
+      (Kazuho Oku)
+    - close the connection when furl requested as such, even if the server sent "connection: keep-alive"
+      (Kazuho Oku)
+    - support keep-alive for $furl->request(method => 'HEAD', headers => [ qw(connection keep-alive) ])
+      (Kazuho Oku)
+    - always send the connection header (support for automatic keep-alive with HTTP/1.0 servers)
+      (Kazuho Oku)
+
 0.16
 
         - support for status codes wo. content(kazuho oku)
