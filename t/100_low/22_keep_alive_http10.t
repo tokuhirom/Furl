@@ -1,7 +1,7 @@
 #!perl -w
 use strict;
 use warnings;
-use Test::Requires qw(Starlet);
+use Test::Requires {Starlet => 0.11};
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
