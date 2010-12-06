@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.18
+
+
+    - fixed testing issue(reported by many people)
+
 0.17
 
     - only send the connection header with the highest precedence (Furl::request => Furl::new)
