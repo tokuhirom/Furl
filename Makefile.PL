@@ -12,6 +12,7 @@ requires 'HTTP::Parser::XS' => 0.11;
 test_requires 'Test::More' => 0.96;    # done_testing, subtest
 test_requires 'Test::TCP'  => 1.06;
 test_requires 'Test::Requires';
+test_requires 'Starlet'    => 0.11;
 
 recommends 'Net::IDN::Encode';    # for International Domain Name
 recommends 'IO::Socket::SSL';     # for SSL
