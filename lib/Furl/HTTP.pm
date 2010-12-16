@@ -774,10 +774,10 @@ Furl::HTTP - Low level interface to Furl
     );
 
     my ($minor_version, $code, $msg, $headers, $body) = $furl->request(
-        method => 'GET',
-        host   => 'example.com',
-        port   => 80,
-        path   => '/'
+        method     => 'GET',
+        host       => 'example.com',
+        port       => 80,
+        path_query => '/'
     );
     # or
 
