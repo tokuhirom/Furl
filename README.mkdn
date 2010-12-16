@@ -33,7 +33,7 @@ Furl is yet another HTTP client library. LWP is the de facto standard HTTP
 client for Perl5, but it is too slow for some critical jobs, and too complex
 for weekend hacking. Furl resolves these issues. Enjoy it!
 
-This library is an __alpha__ software. Any API may change without notice.
+This library is an __beta__ software. Any API may change without notice.
 
 # INTERFACE
 
@@ -107,7 +107,7 @@ way to really utilize them, so don't use it)
     my $res = $furl->request($req);
 
 You can also specify an object other than HTTP::Request, but the object
-must implement the following methods: 
+must implement the following methods:
 
 - uri
 
@@ -149,6 +149,14 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 # FAQ
 
+- Does Furl depends on XS modules?
+
+No. Although some optional features require XS modules, basic features are
+available without XS modules.
+
+Note that Furl requires HTTP::Parser::XS, which seems an XS module
+but includes a pure Perl backend, HTTP::Parser::XS::PP.
+
 - I need more speed.
 
 See [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP), which provides the low level interface of [Furl](http://search.cpan.org/perldoc?Furl).
@@ -163,6 +171,7 @@ Furl does not directly support the cookie_jar option available in LWP. You can u
     my $req = HTTP::Request->new(...);
     $cookies->add_cookie_header($req);
     my $res = H$f->request_with_http_request($req)->as_http_response;
+    $res->request($req);
     $cookies->extract_cookies($res);
     # and use $res.
 

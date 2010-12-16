@@ -4,7 +4,7 @@ use warnings;
 use utf8;
 use Furl::HTTP;
 use Furl::Response;
-our $VERSION = '0.13';
+our $VERSION = '0.18';
 
 use 5.008001;
 
@@ -169,7 +169,7 @@ way to really utilize them, so don't use it)
     my $res = $furl->request($req);
 
 You can also specify an object other than HTTP::Request, but the object
-must implement the following methods: 
+must implement the following methods:
 
 =over 4
 
@@ -217,6 +217,14 @@ Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
 
 =over 4
 
+=item Does Furl depends on XS modules?
+
+No. Although some optional features require XS modules, basic features are
+available without XS modules.
+
+Note that Furl requires HTTP::Parser::XS, which seems an XS module
+but includes a pure Perl backend, HTTP::Parser::XS::PP.
+
 =item I need more speed.
 
 See L<Furl::HTTP>, which provides the low level interface of L<Furl>.
@@ -231,6 +239,7 @@ Furl does not directly support the cookie_jar option available in LWP. You can u
     my $req = HTTP::Request->new(...);
     $cookies->add_cookie_header($req);
     my $res = H$f->request_with_http_request($req)->as_http_response;
+    $res->request($req);
     $cookies->extract_cookies($res);
     # and use $res.
 

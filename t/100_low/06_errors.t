@@ -20,11 +20,6 @@ use Errno ();
     };
     like $@, qr/unsupported scheme/i, 'missuse';
 
-    eval {
-        $furl->request(url => 'http://./', method => 'GET');
-    };
-    like $@, qr/(cannot resolve host name|cannot connect to)/i, 'missuse';
-
     foreach my $bad_url(qw(
         hogehoge
         http://example.com:80foobar
