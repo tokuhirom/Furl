@@ -640,6 +640,7 @@ sub _read_body_normal {
         my $n = $self->read_timeout( $sock,
             \my $buf, $self->{bufsize}, 0, $timeout_at );
         if (!$n) {
+            last if ! defined($res_content_length);
             return $self->_r500(
                 !defined($n)
                     ? "Cannot read content body: " . _strerror_or_timeout()
