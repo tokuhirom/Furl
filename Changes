@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.20
+
+    - add internal error response message to status message
+      (tokuhirom)
+
 0.19
 
     - fixed documentation bug(tokuhirom)
