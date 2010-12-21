@@ -640,6 +640,7 @@ sub _read_body_normal {
         my $n = $self->read_timeout( $sock,
             \my $buf, $self->{bufsize}, 0, $timeout_at );
         if (!$n) {
+            last if ! defined($res_content_length);
             return $self->_r500(
                 !defined($n)
                     ? "Cannot read content body: " . _strerror_or_timeout()
@@ -861,10 +862,10 @@ Furl::HTTP - Low level interface to Furl
     );
 
     my ($minor_version, $code, $msg, $headers, $body) = $furl->request(
-        method => 'GET',
-        host   => 'example.com',
-        port   => 80,
-        path   => '/'
+        method     => 'GET',
+        host       => 'example.com',
+        port       => 80,
+        path_query => '/'
     );
     # or
 
