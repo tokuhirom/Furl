@@ -42,7 +42,7 @@ note 'dns timeout';
         );
         my $elapsed = time - $start_at;
         is $code, 500, "request/$_";
-        is $msg, 'Internal Server Error';
+        like $msg, qr/Internal Server Error: Cannot resolve host name: foo.harepe.co/;
         is ref($headers), 'ARRAY';
         ok $content, "content: $content";
         ok 0.5 <= $elapsed && $elapsed < 1.5, "elapsed: $elapsed";
