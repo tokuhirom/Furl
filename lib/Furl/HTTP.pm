@@ -371,7 +371,8 @@ sub request {
         my $n = $self->read_timeout($sock,
             \$buf, $self->{bufsize}, length($buf), $timeout_at);
         if(!$n) { # error or eof
-            if($in_keepalive && (defined($n) || $!==ECONNRESET)) {
+            if ($in_keepalive && length($buf) == 0
+                && (defined($n) || $!==ECONNRESET)) {
                 # the server closes the connection (maybe because of keep-alive timeout)
                 return $self->request(%args);
             }
