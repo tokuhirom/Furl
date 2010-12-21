@@ -71,7 +71,7 @@ test_tcp(
                     headers    => [ "X-Foo" => "ppp" ]
                 );
             is $code, 500, "request()/$_";
-            is $msg, "Internal Server Error";
+            like $msg, qr/Internal Response: Unexpected EOF while reading response header/;
             is ref($headers), "ARRAY";
             ok $content, 'content: ' . $content;
         }

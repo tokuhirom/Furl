@@ -30,7 +30,7 @@ test_tcp(
                 );
             my $elapsed = time - $start_at;
             is $code, 500, "request()/$_";
-            is $msg, "Internal Server Error";
+            like $msg, qr/Internal Response: Cannot read response header: timeout/;
             is ref($headers), "ARRAY";
             ok $content, 'content: ' . $content;
             ok 1.3 <= $elapsed && $elapsed <= 2;
@@ -55,7 +55,7 @@ test_tcp(
                 );
             my $elapsed = time - $start_at;
             is $code, 500, "request()/$_";
-            is $msg, "Internal Server Error";
+            like $msg, qr/Internal Response: Failed to send content: timeout/;
             is ref($headers), "ARRAY";
             ok $content, 'content: ' . $content;
             ok 0.4 <= $elapsed && $elapsed <= 1;

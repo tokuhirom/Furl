@@ -20,7 +20,7 @@ note 'name resolution error';
             path_query => '/foo',
         );
     is $code, 500, "nameerror/$_";
-    is $msg, 'Internal Server Error';
+    like $msg, qr/Internal Response: Cannot resolve host name: a/;
     is ref($headers), 'ARRAY';
     ok $content, "content: $content";
 }
@@ -40,7 +40,7 @@ note 'refused error';
                 );
             my $elapsed = time - $start_at;
             is $code, 500, "request/$scheme/$_";
-            is $msg, 'Internal Server Error';
+            like $msg, qr/Internal Response: (Cannot connect to 255.255.255.255:80:|Cannot create SSL connection:)/;
             is ref($headers), 'ARRAY';
             ok $content, "content: $content";
             ok $elapsed < 0.5;
@@ -63,7 +63,7 @@ for my $scheme (qw(http)) {
             );
         my $elapsed = time - $start_at;
         is $code, 500, "request/$scheme/timeout/$timeout";
-        is $msg, 'Internal Server Error';
+        like $msg, qr/Internal Response: Cannot connect to google.com:81:/;
         is ref($headers), 'ARRAY';
         ok $content, "content: $content";
         ok $timeout - 0.1 <= $elapsed && $elapsed <= $timeout + 1, "elapsed: $elapsed";
