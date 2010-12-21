@@ -52,6 +52,7 @@ t/100_low/23_redirect_relative.t
 t/100_low/24_no_content.t
 t/100_low/25_signal.t
 t/100_low/26_headers_only.t
+t/100_low/27_close_on_eof.t
 t/200_online/01_idn.t
 t/200_online/02_google.t
 t/200_online/03_yahoo_com.t

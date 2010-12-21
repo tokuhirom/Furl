@@ -1,5 +1,11 @@
 Revision history for Perl extension Furl
 
+0.19
+
+    - fixed documentation bug(tokuhirom)
+    - errorneously returned 500 error when closing of the socket was used to indicate eof (i.e. no Content-Encoding or Content-Length)
+      (Kazuho Oku)
+
 0.18
 
 
