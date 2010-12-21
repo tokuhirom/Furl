@@ -39,7 +39,7 @@ This library is an __beta__ software. Any API may change without notice.
 
 ## Class Methods
 
-### C<< Furl->new(%args | \%args) :Furl >>
+### `Furl->new(%args | \%args) :Furl`
 
 Creates and returns a new Furl client with _%args_. Dies on errors.
 
@@ -59,7 +59,7 @@ _%args_ might be:
 
 ## Instance Methods
 
-### C<< $furl->request([$request,] %args) :Furl::Response >>
+### `$furl->request([$request,] %args) :Furl::Response`
 
 Sends an HTTP request to a specified URL and returns a instance of [Furl::Response](http://search.cpan.org/perldoc?Furl::Response).
 
@@ -123,27 +123,27 @@ These must return the same type of values as their counterparts in
 You must encode all the queries or this method will die, saying
 `Wide character in ...`.
 
-### C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) >>
+### `$furl->get($url :Str, $headers :ArrayRef[Str] )`
 
 This is an easy-to-use alias to `request()`, sending the `GET` method.
 
-### C<< $furl->head($url :Str, $headers :ArrayRef[Str] ) >>
+### `$furl->head($url :Str, $headers :ArrayRef[Str] )`
 
 This is an easy-to-use alias to `request()`, sending the `HEAD` method.
 
-### C<< $furl->post($url :Str, $headers :ArrayRef[Str], $content :Any) >>
+### `$furl->post($url :Str, $headers :ArrayRef[Str], $content :Any)`
 
 This is an easy-to-use alias to `request()`, sending the `POST` method.
 
-### C<< $furl->put($url :Str, $headers :ArrayRef[Str], $content :Any) >>
+### `$furl->put($url :Str, $headers :ArrayRef[Str], $content :Any)`
 
 This is an easy-to-use alias to `request()`, sending the `PUT` method.
 
-### C<< $furl->delete($url :Str, $headers :ArrayRef[Str] ) >>
+### `$furl->delete($url :Str, $headers :ArrayRef[Str] )`
 
 This is an easy-to-use alias to `request()`, sending the `DELETE` method.
 
-### C<< $furl->env_proxy() >>
+### `$furl->env_proxy()`
 
 Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
