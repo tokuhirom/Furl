@@ -402,16 +402,22 @@ sub request {
         }
     }
 
-    my $res_content;
-    if (my $fh = $args{write_file}) {
-        $res_content = Furl::FileStream->new( $fh );
-    } elsif (my $coderef = $args{write_code}) {
-        $res_content = Furl::CallbackStream->new(
-            sub { $coderef->($res_status, $res_msg, $res_headers, @_) }
-        );
+    my $max_redirects = 0;
+    my $do_redirect = undef;
+    if ($special_headers->{location}) {
+        $max_redirects = defined($args{max_redirects}) ? $args{max_redirects} : $self->{max_redirects};
+        $do_redirect = $max_redirects && $res_status =~ /^30[123]$/;
     }
-    else {
-        $res_content = '';
+
+    my $res_content = '';
+    unless ($do_redirect) {
+        if (my $fh = $args{write_file}) {
+            $res_content = Furl::FileStream->new( $fh );
+        } elsif (my $coderef = $args{write_code}) {
+            $res_content = Furl::CallbackStream->new(
+                sub { $coderef->($res_status, $res_msg, $res_headers, @_) }
+            );
+        }
     }
 
     if (exists $COMPRESSED{ $special_headers->{'content-encoding'} }) {
@@ -448,32 +454,6 @@ sub request {
         }
     }
 
-    if ($special_headers->{location}) {
-        my $max_redirects = defined($args{max_redirects}) ? $args{max_redirects} : $self->{max_redirects};
-        if ($max_redirects && $res_status =~ /^30[123]$/) {
-            my $location = $special_headers->{location};
-            unless ($location =~ m{^[a-z0-9]+://}) {
-                # RFC 2616 14.30 says Location header is absoluteURI.
-                # But, a lot of servers return relative URI.
-                _requires("URI.pm", "redirect with relative url");
-                $location = URI->new_abs($location, "$scheme://$host:$port$path_query")->as_string;
-            }
-            # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
-            # to change the method on the redirected request.  However, most
-            # existing user agent implementations treat 302 as if it were a 303
-            # response, performing a GET on the Location field-value regardless
-            # of the original request method. The status codes 303 and 307 have
-            # been added for servers that wish to make unambiguously clear which
-            # kind of reaction is expected of the client.
-            return $self->request(
-                @_,
-                method        => $res_status eq '301' ? $method : 'GET',
-                url           => $location,
-                max_redirects => $max_redirects - 1,
-            );
-        }
-    }
-
     # manage connection cache (i.e. keep-alive)
     if ($connection_header eq 'keep-alive') {
         my $connection = lc $special_headers->{'connection'};
@@ -483,6 +463,32 @@ sub request {
             && ( defined $content_length or $chunked)) {
             $self->{connection_pool}->push($host, $port, $sock);
         }
+    }
+    # explicitely close here, just after returning the socket to the pool,
+    # since it might be reused in the upcoming recursive call
+    undef $sock;
+
+    if ($do_redirect) {
+        my $location = $special_headers->{location};
+        unless ($location =~ m{^[a-z0-9]+://}) {
+            # RFC 2616 14.30 says Location header is absoluteURI.
+            # But, a lot of servers return relative URI.
+            _requires("URI.pm", "redirect with relative url");
+            $location = URI->new_abs($location, "$scheme://$host:$port$path_query")->as_string;
+        }
+        # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
+        # to change the method on the redirected request.  However, most
+        # existing user agent implementations treat 302 as if it were a 303
+        # response, performing a GET on the Location field-value regardless
+        # of the original request method. The status codes 303 and 307 have
+        # been added for servers that wish to make unambiguously clear which
+        # kind of reaction is expected of the client.
+        return $self->request(
+            @_,
+            method        => $res_status eq '301' ? $method : 'GET',
+            url           => $location,
+            max_redirects => $max_redirects - 1,
+        );
     }
 
     # return response.
