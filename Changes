@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.21
+
+    - use keep-alive on redirection, do not activate the "write_code" or the "write_func" feature when redirection(kazuho)
+    - silently try to resend a request only when the server returned no respnose at all(kazuho)
+
 0.20
 
     - add internal error response message to status message
