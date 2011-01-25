@@ -206,12 +206,12 @@ sub request {
     } elsif($scheme ne 'http' && $scheme ne 'https') {
         Carp::croak("Unsupported scheme: $scheme");
     }
+
+    my $default_port = $scheme eq 'http'
+        ? 80
+        : 443;
     if(not defined $port) {
-        if ($scheme eq 'http') {
-            $port = 80;
-        } else {
-            $port = 443;
-        }
+        $port = $default_port;
     }
     if(not defined $path_query) {
         $path_query = '/';
@@ -266,8 +266,16 @@ sub request {
         if($proxy) {
             $path_query = "$scheme://$host:$port$path_query";
         }
-        my $p = "$method $path_query HTTP/1.1\015\012"
-              . "Host: $host:$port\015\012";
+        my $p = "$method $path_query HTTP/1.1\015\012";
+
+        if($port == $default_port) {
+            # NOTE: some servers refuse host headers with the default port
+            $p .= "Host: $host";
+        }
+        else {
+            $p .= "Host: $host:$port";
+        }
+        $p .= "\015\012";
 
         my @headers = @{$self->{headers}};
         $connection_header = 'close'
