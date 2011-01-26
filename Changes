@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.22
+
+    - Remove default ports from the Host header
+
 0.21
 
     - use keep-alive on redirection, do not activate the "write_code" or the "write_func" feature when redirection(kazuho)
