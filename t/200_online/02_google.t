@@ -10,6 +10,7 @@ skip_if_offline();
 my $url = 'http://www.google.co.jp/';
 
 my $furl = Furl->new();
+$furl->env_proxy();
 for(1 .. 2) {
     note "getting";
     my $res = $furl->get($url);

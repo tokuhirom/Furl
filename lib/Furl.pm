@@ -23,6 +23,11 @@ sub new {
     }
 }
 
+sub env_proxy {
+    my $self = shift;
+    $$self->env_proxy;
+}
+
 sub request {
     my $self = shift;
 
