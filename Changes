@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.23
+
+    - properly implement Furl::env_proxy as a delegate to Furl::HTTP::env_proxy (as was already documented)
+      (lestrrat)
+
 0.22
 
     - Remove default ports from the Host header
