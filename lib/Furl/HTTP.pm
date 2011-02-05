@@ -9,7 +9,7 @@ use Furl;
 use Furl::ConnectionCache;
 
 use Scalar::Util ();
-use Errno qw(EAGAIN ECONNRESET EINPROGRESS EINTR EWOULDBLOCK);
+use Errno qw(EAGAIN ECONNRESET EINPROGRESS EINTR EWOULDBLOCK ECONNABORTED EISCONN);
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK SEEK_SET SEEK_END);
 use Socket qw(
     PF_INET SOCK_STREAM
@@ -380,7 +380,7 @@ sub request {
             \$buf, $self->{bufsize}, length($buf), $timeout_at);
         if(!$n) { # error or eof
             if ($in_keepalive && length($buf) == 0
-                && (defined($n) || $!==ECONNRESET)) {
+                && (defined($n) || $!==ECONNRESET || (WIN32 && $! == ECONNABORTED))) {
                 # the server closes the connection (maybe because of keep-alive timeout)
                 return $self->request(%args);
             }
@@ -526,7 +526,7 @@ sub connect :method {
     _set_sockopts($sock);
     if (connect($sock, $sock_addr)) {
         # connected
-    } elsif ($! == EINPROGRESS) {
+    } elsif ($! == EINPROGRESS || (WIN32 && $! == EWOULDBLOCK)) {
         $self->do_select(1, $sock, $timeout_at)
             or return (undef, "Cannot connect to ${host}:${port}: timeout");
         # connected
@@ -722,7 +722,7 @@ sub read_timeout {
         # try to do the IO
         defined($ret = sysread($sock, $$buf, $len, $off))
             and return $ret;
-        if ($! == EAGAIN || $! == EWOULDBLOCK) {
+        if ($! == EAGAIN || $! == EWOULDBLOCK || (WIN32 && $! == EISCONN)) {
             # pass thru
         } elsif ($! == EINTR) {
             return undef if $self->{stop_if}->();
@@ -743,7 +743,7 @@ sub write_timeout {
         # try to do the IO
         defined($ret = syswrite($sock, $buf, $len, $off))
             and return $ret;
-        if ($! == EAGAIN || $! == EWOULDBLOCK) {
+        if ($! == EAGAIN || $! == EWOULDBLOCK || (WIN32 && $! == EISCONN)) {
             # pass thru
         } elsif ($! == EINTR) {
             return undef if $self->{stop_if}->();

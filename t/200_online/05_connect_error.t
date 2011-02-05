@@ -40,10 +40,15 @@ note 'refused error';
                 );
             my $elapsed = time - $start_at;
             is $code, 500, "request/$scheme/$_";
-            like $msg, qr/Internal Response: (Cannot connect to 255.255.255.255:80:|Cannot create SSL connection:)/;
+            if (Furl::HTTP::WIN32) {
+                like $msg, qr/Internal Response: (Failed to send HTTP request:|Cannot create SSL connection:)/;
+            }
+            else {
+                like $msg, qr/Internal Response: (Cannot connect to 255.255.255.255:80:|Cannot create SSL connection:)/;
+            }
             is ref($headers), 'ARRAY';
             ok $content, "content: $content";
-            ok $elapsed < 0.5;
+            ok $elapsed < 0.5 unless Furl::HTTP::WIN32 && $scheme eq 'https';
         }
     }
 }

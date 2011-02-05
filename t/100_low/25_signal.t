@@ -5,6 +5,8 @@ use Test::TCP;
 use Test::More;
 use t::HTTPServer;
 
+plan skip_all => "Win32 is not support" if Furl::HTTP::WIN32;
+
 my $n = shift(@ARGV) || 3;
 test_tcp(
     client => sub {
