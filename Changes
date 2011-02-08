@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.24
+
+    - workaround for windows (mattn++, xaicron++)
+
 0.23
 
     - properly implement Furl::env_proxy as a delegate to Furl::HTTP::env_proxy (as was already documented)
