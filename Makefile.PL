@@ -18,7 +18,7 @@ recommends 'IO::Socket::SSL';     # for SSL
 recommends 'Compress::Raw::Zlib'; # for Content-Encoding
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
-author_tests('xt');
+recursive_author_tests('xt');
 
 repository 'http://github.com/tokuhirom/p5-Furl/';
 bugtracker 'http://github.com/tokuhirom/p5-Furl/issues';
