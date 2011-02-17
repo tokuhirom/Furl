@@ -49,6 +49,10 @@ sub status_line { $_[0]->code . ' ' . $_[0]->message }
 1;
 __END__
 
+=head1 NAME
+
+Furl::Response - Response object for Furl
+
 =head1 SYNOPSIS
 
     my $res = Furl::Response->new($minor_version, $code, $message, $headers, $content);
