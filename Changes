@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.25
+
+    - move fucking ssl test to xt/.
+
 0.24
 
     - workaround for windows (mattn++, xaicron++)
