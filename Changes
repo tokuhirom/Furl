@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.26
+
+    - tiny pod fix(tokuhirom)
+
 0.25
 
     - move fucking ssl test to xt/.
