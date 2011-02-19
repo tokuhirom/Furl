@@ -46,6 +46,26 @@ test_tcp(
             is $content, '', 'content ok';
         };
 
+        subtest 'POST redirects' => sub {
+            my $furl = Furl::HTTP->new();
+
+            my ( undef, undef, undef, undef, $content ) =
+            $furl->post("http://127.0.0.1:$port/301", [], "");
+            is $content, 'POST', 'POST into 301 results in a POST';
+
+            ( undef, undef, undef, undef, $content ) =
+            $furl->post("http://127.0.0.1:$port/302", [], "");
+            is $content, 'GET', 'POST into 302 is implemented as 303';
+
+            ( undef, undef, undef, undef, $content ) =
+            $furl->post("http://127.0.0.1:$port/303", [], "");
+            is $content, 'GET', 'POST into 303 results in a GET';
+
+            ( undef, undef, undef, undef, $content ) =
+            $furl->post("http://127.0.0.1:$port/307", [], "");
+            is $content, 'POST', 'POST into 307 results in a POST';
+        };
+
         done_testing;
     },
     server => sub {
@@ -57,6 +77,14 @@ test_tcp(
             my $id = $1;
             if ($id == 3) {
                 return [ 200, [ 'Content-Length' => 2 ], ['OK'] ];
+            } elsif ($id =~ /^3\d\d$/) {
+                my $base = $req->base;
+                $base->path("/200"); # redirect target, see below
+                return [ $id, [ 'Location' => $base->as_string ] ];
+            } elsif ($id == 200) {
+                # redirect target, see above
+                my $method = $req->method;
+                return [ 200, [ 'Content-Length' => length $method ], [$method] ];
             } else {
                 my $base = $req->base;
                 $base->path('/' . ($id + 1));

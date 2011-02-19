@@ -414,7 +414,7 @@ sub request {
     my $do_redirect = undef;
     if ($special_headers->{location}) {
         $max_redirects = defined($args{max_redirects}) ? $args{max_redirects} : $self->{max_redirects};
-        $do_redirect = $max_redirects && $res_status =~ /^30[123]$/;
+        $do_redirect = $max_redirects && $res_status =~ /^30[1237]$/;
     }
 
     my $res_content = '';
@@ -493,7 +493,7 @@ sub request {
         # kind of reaction is expected of the client.
         return $self->request(
             @_,
-            method        => $res_status eq '301' ? $method : 'GET',
+            method        => ($res_status eq '301' or $res_status eq '307') ? $method : 'GET',
             url           => $location,
             max_redirects => $max_redirects - 1,
         );
