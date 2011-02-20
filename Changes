@@ -1,5 +1,11 @@
 Revision history for Perl extension Furl
 
+0.27
+
+    - Add support for 307 (it was not handled as a redirect), with tests for all redirects.
+      (307 is implemented the same as 301, preserving the original requesting method.)
+      (audreyt++)
+
 0.26
 
     - tiny pod fix(tokuhirom)
