@@ -263,10 +263,9 @@ sub request {
     my $method = $args{method} || 'GET';
     my $connection_header = $self->{connection_header};
     {
-        if($proxy) {
-            $path_query = "$scheme://$host:$port$path_query";
-        }
-        my $p = "$method $path_query HTTP/1.1\015\012";
+        my $p = $proxy
+            ? "$method $scheme://$host:$port$path_query HTTP/1.1\015\012"
+            : "$method $path_query HTTP/1.1\015\012";
 
         if($port == $default_port) {
             # NOTE: some servers refuse host headers with the default port
