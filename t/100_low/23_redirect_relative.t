@@ -22,6 +22,14 @@ test_tcp(
             is $content, 'OK';
         };
 
+        subtest 'redirect to root' => sub {
+            my $furl = Furl::HTTP->new(max_redirects => 0);
+            my ( undef, $code, $msg, $headers, $content ) = $furl->request( url => "http://127.0.0.1:$port/baz/" );
+            is $code, 302;
+            is $msg, "Found";
+            is Furl::HTTP::_header_get($headers, 'location'), "/foo/";
+        };
+
         done_testing;
     },
     server => sub {
@@ -31,6 +39,9 @@ test_tcp(
             my $req = Plack::Request->new($env);
             if ($env->{PATH_INFO} eq '/foo/bar') {
                 return [ 200, [ 'Content-Length' => 2 ], ['OK'] ];
+            } elsif ($env->{PATH_INFO} eq '/baz/') {
+                return [ 302, [ 'Location' => '/foo/', 'Content-Length' => 0 ],
+                    [] ];
             } else {
                 return [ 302, [ 'Location' => './bar', 'Content-Length' => 0 ],
                     [] ];
