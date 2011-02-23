@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.28
+
+    - fixed bug on proxy with redirect(mattn)
+
 0.27
 
     - Add support for 307 (it was not handled as a redirect), with tests for all redirects.
