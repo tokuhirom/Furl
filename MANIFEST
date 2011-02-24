@@ -53,11 +53,6 @@ t/100_low/24_no_content.t
 t/100_low/25_signal.t
 t/100_low/26_headers_only.t
 t/100_low/27_close_on_eof.t
-t/200_online/01_idn.t
-t/200_online/02_google.t
-t/200_online/03_yahoo_com.t
-t/200_online/05_connect_error.t
-t/200_online/06_net-dns-lite.t
 t/300_high/01_simple.t
 t/300_high/04_http_request.t
 t/400_components/01_headers.t
@@ -71,5 +66,10 @@ xt/02_perlcritic.t
 xt/03_pod.t
 xt/04_leaktrace.t
 xt/05_valgrind.t
+xt/200_online/01_idn.t
+xt/200_online/02_google.t
+xt/200_online/03_yahoo_com.t
 xt/200_online/04_ssl.t
+xt/200_online/05_connect_error.t
+xt/200_online/06_net-dns-lite.t
 xt/perlcriticrc
