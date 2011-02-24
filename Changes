@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.29
+
+
+    - move live tests to xt/.
+
 0.28
 
     - fixed bug on proxy with redirect(mattn)
