@@ -14,16 +14,19 @@ test_tcp(
     client => sub {
         my $port = shift;
         my $furl = Furl::HTTP->new(bufsize => 80);
-        for my $i(1, 3, 1024) {
-            note "-- TEST (packets: $i)";
-            my ( undef, $code, $msg, $headers, $content ) = $furl->request(
-                port => $port,
-                path => '/',
-                host => '127.0.0.1',
-                headers => ['X-Packet-Size', $i],
-            );
-            is $code, 200, 'status';
-            is $content, $s x $i, 'content';
+        # some httpd(e.g. ASP.NET) returns 00000000 as chunked end.
+        for my $chunk_end (qw(0 00000000)) {
+            for my $i(1, 3, 1024) {
+                note "-- TEST (packets: $i)";
+                my ( undef, $code, $msg, $headers, $content ) = $furl->request(
+                    port => $port,
+                    path => '/',
+                    host => '127.0.0.1',
+                    headers => ['X-Packet-Size', $i, 'X-Chunck-End' => $chunk_end],
+                );
+                is $code, 200, 'status';
+                is $content, $s x $i, 'content';
+            }
         }
         done_testing;
     },
@@ -34,10 +37,11 @@ test_tcp(
             sub {
                 my $env = shift;
                 my $size = $env->{HTTP_X_PACKET_SIZE} or die '???';
+                my $end_mark = $env->{HTTP_X_CHUNCK_END};
                 return [
                     200,
                     [ 'Transfer-Encoding' => 'chunked' ],
-                    [ $chunk x $size, "0", "\015\012" x 2 ]
+                    [ $chunk x $size, $end_mark, "\015\012" x 2 ]
                 ];
             }
         );

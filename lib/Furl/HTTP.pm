@@ -611,10 +611,10 @@ sub _read_body_chunked {
           )
         {
             $buf = substr($buf, length($header)); # remove header from buf
-            if ($next_len eq '0') {
+            $next_len = hex($next_len);
+            if ($next_len == 0) {
                 last READ_LOOP;
             }
-            $next_len = hex($next_len);
 
             # +2 means trailing CRLF
           READ_CHUNK: while ( $next_len+2 > length($buf) ) {
