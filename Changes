@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.30
+
+    - allow '0000000' as end of chunked response.
+
 0.29
 
 
