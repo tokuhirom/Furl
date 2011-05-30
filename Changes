@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.32
+
+    - remove duplicated Host header on high level API(xaicron)
+
 0.31
 
     - CarpLevel++(xaicron)
