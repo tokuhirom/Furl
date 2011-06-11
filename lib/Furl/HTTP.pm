@@ -279,15 +279,27 @@ sub request {
         my @headers = @{$self->{headers}};
         $connection_header = 'close'
             if $method eq 'HEAD';
+        my $user_agent;
         if (my $in_headers = $args{headers}) {
             for (my $i = 0; $i < @$in_headers; $i += 2) {
                 my $name = $in_headers->[$i];
                 if (lc($name) eq 'connection') {
                     $connection_header = $in_headers->[$i + 1];
+                } elsif (lc($name) eq 'user-agent') {
+                    $user_agent = $in_headers->[$i + 1];
                 } else {
                     push @headers, $name, $in_headers->[$i + 1];
                 }
             }
+        }
+        if ($user_agent) {
+            for (my $i = 0; $i < @headers; $i += 2) {
+                if (lc($headers[$i]) eq 'user-agent') {
+                    splice @headers, $i, 2, ();
+                    $i -= 2;
+                }
+            }
+            unshift @headers, 'User-Agent', $user_agent;
         }
         unshift @headers, 'Connection', $connection_header;
 
