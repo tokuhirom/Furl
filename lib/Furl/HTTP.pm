@@ -150,11 +150,11 @@ sub _requires {
 sub _parse_url {
     my($self, $url) = @_;
     $url =~ m{\A
-        ([a-z]+)       # scheme
+        ([a-z]+)                    # scheme
         ://
-        ([^/:]+)       # host
-        (?: : (\d+) )? # port
-        (?: (/ .*)  )? # path_query
+        ([^/:?]+)                   # host
+        (?: : (\d+) )?              # port
+        (?: ( /? \? .* | / .*)  )?  # path_query
     \z}xms or Carp::croak("Passed malformed URL: $url");
     return( $1, $2, $3, $4 );
 }
