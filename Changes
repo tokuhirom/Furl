@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.33
+
+    - support url doesn't have trailing slash like 'http://example.com?gfx=isogashi'
+      (xaicron++)
+
 0.32
 
     - remove duplicated Host header on high level API(xaicron)

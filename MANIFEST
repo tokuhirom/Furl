@@ -59,6 +59,7 @@ t/300_high/05_suppress_dup_host_header.t
 t/300_high/99_error.t
 t/400_components/01_headers.t
 t/400_components/02_response.t
+t/999_intrenal/parse_url.t
 t/HTTPServer.pm
 t/Slowloris.pm
 t/Util.pm
