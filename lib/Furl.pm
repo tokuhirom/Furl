@@ -4,7 +4,8 @@ use warnings;
 use utf8;
 use Furl::HTTP;
 use Furl::Response;
-our $VERSION = '0.27';
+use Carp ();
+our $VERSION = '0.34';
 
 use 5.008001;
 
@@ -18,6 +19,7 @@ sub new {
     for my $meth (qw/get head post delete put/) {
         *{__PACKAGE__ . '::' . $meth} = sub {
             my $self = shift;
+            local $Carp::CarpLevel = $Carp::CarpLevel + 1;
             Furl::Response->new(${$self}->$meth(@_));
         }
     }
@@ -37,11 +39,13 @@ sub request {
     } else {
         my $req = shift;
         %args = @_;
+        my $req_headers= $req->headers;
+        $req_headers->remove_header('Host'); # suppress duplicate Host header
         my $headers = +[
             map {
                 my $k = $_;
-                map { ( $k => $_ ) } $req->headers->header($_);
-            } $req->headers->header_field_names
+                map { ( $k => $_ ) } $req_headers->header($_);
+            } $req_headers->header_field_names
         ];
 
         $args{url}     = $req->uri;
@@ -49,6 +53,7 @@ sub request {
         $args{content} = $req->content;
         $args{headers} = $headers;
     }
+    local $Carp::CarpLevel = $Carp::CarpLevel + 1;
     Furl::Response->new(${$self}->request(%args));
 }
 

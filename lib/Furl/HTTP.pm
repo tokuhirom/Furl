@@ -150,11 +150,11 @@ sub _requires {
 sub _parse_url {
     my($self, $url) = @_;
     $url =~ m{\A
-        ([a-z]+)       # scheme
+        ([a-z]+)                    # scheme
         ://
-        ([^/:]+)       # host
-        (?: : (\d+) )? # port
-        (?: (/ .*)  )? # path_query
+        ([^/:?]+)                   # host
+        (?: : (\d+) )?              # port
+        (?: ( /? \? .* | / .*)  )?  # path_query
     \z}xms or Carp::croak("Passed malformed URL: $url");
     return( $1, $2, $3, $4 );
 }
@@ -217,7 +217,8 @@ sub request {
         $path_query = '/';
     }
 
-    if ($host =~ /[^A-Za-z0-9.-]/) {
+    # Note. '_' is a invalid character for uri, but some servers using fucking underscore for domain name. Then, I accept the '_' character for domain name.
+    if ($host =~ /[^A-Za-z0-9._-]/) {
         _requires('Net/IDN/Encode.pm',
             'Internationalized Domain Name (IDN)');
         $host = Net::IDN::Encode::domain_to_ascii($host);
@@ -611,10 +612,10 @@ sub _read_body_chunked {
           )
         {
             $buf = substr($buf, length($header)); # remove header from buf
-            if ($next_len eq '0') {
+            $next_len = hex($next_len);
+            if ($next_len == 0) {
                 last READ_LOOP;
             }
-            $next_len = hex($next_len);
 
             # +2 means trailing CRLF
           READ_CHUNK: while ( $next_len+2 > length($buf) ) {

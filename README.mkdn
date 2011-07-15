@@ -46,15 +46,10 @@ Creates and returns a new Furl client with _%args_. Dies on errors.
 _%args_ might be:
 
 - agent :Str = "Furl/$VERSION"
-
 - timeout :Int = 10
-
 - max_redirects :Int = 7
-
 - proxy :Str
-
 - no_proxy :Str
-
 - headers :ArrayRef
 
 ## Instance Methods
@@ -110,11 +105,8 @@ You can also specify an object other than HTTP::Request, but the object
 must implement the following methods:
 
 - uri
-
 - method
-
 - content
-
 - headers
 
 These must return the same type of values as their counterparts in

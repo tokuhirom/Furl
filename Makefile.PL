@@ -23,6 +23,12 @@ recursive_author_tests('xt');
 repository 'http://github.com/tokuhirom/p5-Furl/';
 bugtracker 'http://github.com/tokuhirom/p5-Furl/issues';
 
+if ($Module::Install::AUTHOR) {
+    test_requires(
+        map { $_ => 0 } qw/Plack Starlet IO::Socket::SSL Test::Perl::Critic Test::Pod Test::LeakTrace Net::DNS::Lite Net::IDN::Encode HTTP::Proxy Plack::Middleware::Deflater IO::Callback/
+    );
+}
+
 clean_files '.online';
 
 WriteAll;
