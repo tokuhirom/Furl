@@ -53,6 +53,7 @@ t/100_low/24_no_content.t
 t/100_low/25_signal.t
 t/100_low/26_headers_only.t
 t/100_low/27_close_on_eof.t
+t/100_low/28_idn.t
 t/300_high/01_simple.t
 t/300_high/04_http_request.t
 t/300_high/05_suppress_dup_host_header.t

@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.34
+
+    - accept the domain using '_' charcter(xaicron)
+
 0.33
 
     - support url doesn't have trailing slash like 'http://example.com?gfx=isogashi'
