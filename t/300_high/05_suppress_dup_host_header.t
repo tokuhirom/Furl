@@ -3,7 +3,7 @@ use warnings;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
-use Test::Requires 'HTTP::Request';
+use Test::Requires qw(Plack::Request HTTP::Body), 'HTTP::Request';
 use t::HTTPServer;
 
 test_tcp(

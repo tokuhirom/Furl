@@ -3,7 +3,7 @@ use warnings;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
-use Test::Requires 'Plack';
+use Test::Requires qw(Plack::Request HTTP::Body), 'Plack';
 
 use Plack::Request;
 use Errno ();

@@ -1,6 +1,6 @@
 #!perl -w
 use strict;
-use Test::Requires qw(Test::LeakTrace);
+use Test::Requires qw(Plack::Request HTTP::Body), qw(Test::LeakTrace);
 use Test::More;
 
 use Furl;

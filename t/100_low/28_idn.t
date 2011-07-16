@@ -5,7 +5,7 @@ use Furl::HTTP;
 use t::HTTPServer;
 use Test::TCP;
 use Test::More;
-use Test::Requires 'Net::IDN::Encode';
+use Test::Requires qw(Plack::Request HTTP::Body), 'Net::IDN::Encode';
 
 sub test_uses_idn {
     my %specs = @_;

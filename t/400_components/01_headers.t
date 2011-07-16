@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use Furl::Headers;
-use Test::Requires 'HTTP::Headers';
+use Test::Requires qw(Plack::Request HTTP::Body), 'HTTP::Headers';
 use HTTP::Headers;
 
 subtest 'total test' => sub {

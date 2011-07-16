@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Furl::HTTP qw/HEADERS_NONE/;
 use Test::TCP;
-use Test::Requires 'Plack';
+use Test::Requires qw(Plack::Request HTTP::Body), 'Plack';
 use Plack::Loader;
 use Test::More;
 

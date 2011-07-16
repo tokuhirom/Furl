@@ -3,7 +3,7 @@ use warnings;
 
 use Furl::HTTP;
 use Test::More;
-use Test::Requires qw(IO::Socket::SSL);
+use Test::Requires qw(Plack::Request HTTP::Body), qw(IO::Socket::SSL);
 use Time::HiRes qw(time);
 
 my $n = shift(@ARGV) || 2;

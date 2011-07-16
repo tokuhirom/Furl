@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Furl;
 use Test::TCP;
-use Test::Requires 'Plack';
+use Test::Requires qw(Plack::Request HTTP::Body), 'Plack';
 use Plack::Loader;
 use Test::More;
 
