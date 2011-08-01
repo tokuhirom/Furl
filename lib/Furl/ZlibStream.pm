@@ -21,9 +21,12 @@ sub append {
     my ( $self, $partial ) = @_;
 
     my $status = $self->{zlib}->inflate( $partial, \my $deflated );
-    ($status == Z_OK or $status == Z_STREAM_END)
-        or Carp::croak("Uncompress error: $status");
-    $self->{buffer} .= $deflated;
+    if ($status == Z_OK or $status == Z_STREAM_END) {
+        $self->{buffer} .= $deflated;
+    }
+    else {
+        $self->{buffer} .= $_[1]; # original partial 
+    }
 
     return $self;
 }
