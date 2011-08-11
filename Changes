@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.35
+
+    - Compensate for slash of path-query.(xaicron)
+      'http://example.com?foo=bar' → 'http://example.com/?foo=bar'
+
 0.34
 
     - accept the domain using '_' charcter(xaicron)
