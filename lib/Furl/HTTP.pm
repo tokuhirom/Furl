@@ -217,6 +217,10 @@ sub request {
         $path_query = '/';
     }
 
+    unless (substr($path_query, 0, 1) eq '/') {
+        $path_query = "/$path_query"; # Compensate for slash (?foo=bar => /?foo=bar)
+    }
+
     # Note. '_' is a invalid character for uri, but some servers using fucking underscore for domain name. Then, I accept the '_' character for domain name.
     if ($host =~ /[^A-Za-z0-9._-]/) {
         _requires('Net/IDN/Encode.pm',
