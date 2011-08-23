@@ -541,7 +541,7 @@ sub connect :method {
         }
         return (undef, "Cannot connect to ${host}:${port}: $!");
     }
-    return $sock;
+    $sock;
 }
 
 # connect SSL socket.
@@ -591,6 +591,7 @@ sub connect_ssl_over_proxy {
       or return (
           undef, "Cannot start SSL connection: " . _strerror_or_timeout());
     _set_sockopts($sock); # just in case (20101118 kazuho)
+    $sock;
 }
 
 sub _read_body_chunked {
@@ -791,7 +792,7 @@ sub _set_sockopts {
     if (WIN32) {
         if (ref($sock) ne 'IO::Socket::SSL') {
             my $tmp = 1;
-            ioctl( $sock, 0x8004667E, \tmp );
+            ioctl( $sock, 0x8004667E, \$tmp )
                 or Carp::croak("Cannot set flags for the socket: $!");
         }
     } else {
@@ -809,7 +810,6 @@ sub _set_sockopts {
     }
 
     binmode $sock;
-    $sock;
 }
 
 # You can override this method if you want to use more powerful matcher.
