@@ -22,6 +22,7 @@ my $verbose = 1;
 
 my $via = "VIA!VIA!VIA!";
 
+local $ENV{'HTTP_PROXY'} = '';
 test_tcp(
     client => sub {
         my $proxy_port = shift;

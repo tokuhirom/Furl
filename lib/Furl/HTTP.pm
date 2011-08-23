@@ -541,7 +541,7 @@ sub connect :method {
         }
         return (undef, "Cannot connect to ${host}:${port}: $!");
     }
-    return $sock;
+    $sock;
 }
 
 # connect SSL socket.
@@ -591,6 +591,7 @@ sub connect_ssl_over_proxy {
       or return (
           undef, "Cannot start SSL connection: " . _strerror_or_timeout());
     _set_sockopts($sock); # just in case (20101118 kazuho)
+    $sock;
 }
 
 sub _read_body_chunked {
@@ -789,9 +790,11 @@ sub _set_sockopts {
     setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
         or Carp::croak("Failed to setsockopt(TCP_NODELAY): $!");
     if (WIN32) {
-        my $tmp = 1;
-        ioctl( $sock, 0x8004667E, \$tmp )
-            or Carp::croak("Cannot set flags for the socket: $!");
+        if (ref($sock) ne 'IO::Socket::SSL') {
+            my $tmp = 1;
+            ioctl( $sock, 0x8004667E, \$tmp )
+                or Carp::croak("Cannot set flags for the socket: $!");
+        }
     } else {
         my $flags = fcntl( $sock, F_GETFL, 0 )
             or Carp::croak("Cannot get flags for the socket: $!");
