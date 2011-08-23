@@ -541,7 +541,7 @@ sub connect :method {
         }
         return (undef, "Cannot connect to ${host}:${port}: $!");
     }
-    return $sock;
+    $sock;
 }
 
 # connect SSL socket.
@@ -591,6 +591,7 @@ sub connect_ssl_over_proxy {
       or return (
           undef, "Cannot start SSL connection: " . _strerror_or_timeout());
     _set_sockopts($sock); # just in case (20101118 kazuho)
+    $sock;
 }
 
 sub _read_body_chunked {
