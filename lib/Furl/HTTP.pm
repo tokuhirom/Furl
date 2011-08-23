@@ -789,9 +789,11 @@ sub _set_sockopts {
     setsockopt( $sock, IPPROTO_TCP, TCP_NODELAY, 1 )
         or Carp::croak("Failed to setsockopt(TCP_NODELAY): $!");
     if (WIN32) {
-        my $tmp = 1;
-        ioctl( $sock, 0x8004667E, \$tmp )
-            or Carp::croak("Cannot set flags for the socket: $!");
+        if (ref($sock) ne 'IO::Socket::SSL') {
+            my $tmp = 1;
+            ioctl( $sock, 0x8004667E, \tmp );
+                or Carp::croak("Cannot set flags for the socket: $!");
+        }
     } else {
         my $flags = fcntl( $sock, F_GETFL, 0 )
             or Carp::croak("Cannot get flags for the socket: $!");
@@ -807,6 +809,7 @@ sub _set_sockopts {
     }
 
     binmode $sock;
+    $sock;
 }
 
 # You can override this method if you want to use more powerful matcher.
