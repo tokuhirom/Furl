@@ -5,7 +5,7 @@ use Test::TCP;
 use Test::More;
 use Time::HiRes qw(time);
 
-use Test::Requires 'Plack::Request', 'Plack::Loader';
+use Test::Requires qw(Plack::Request HTTP::Body), 'Plack::Request', 'Plack::Loader';
 
 use t::Slowloris;
 

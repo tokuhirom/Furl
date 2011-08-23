@@ -1,7 +1,7 @@
 use strict;
 use warnings;
-use Test::Requires 'Plack';
-use Test::Requires 'Plack::Middleware::Deflater', 'Compress::Raw::Zlib';
+use Test::Requires qw(Plack::Request HTTP::Body), 'Plack';
+use Test::Requires qw(Plack::Request HTTP::Body), 'Plack::Middleware::Deflater', 'Compress::Raw::Zlib';
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;

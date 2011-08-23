@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 use Test::More;
-use Test::Requires qw(IO::Socket::SSL);
+use Test::Requires qw(Plack::Request HTTP::Body), qw(IO::Socket::SSL);
 use Furl;
 use t::Util;
 

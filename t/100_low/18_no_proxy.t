@@ -2,11 +2,11 @@ use strict;
 use warnings;
 use Furl::HTTP;
 use Test::TCP;
-use Test::Requires 'Plack';
+use Test::Requires qw(Plack::Request HTTP::Body), 'Plack';
 use Plack::Loader;
 use Test::More;
 use Plack::Request;
-use Test::Requires 'HTTP::Proxy';
+use Test::Requires qw(Plack::Request HTTP::Body), 'HTTP::Proxy';
 
 plan tests => 4 + 7*3;
 
