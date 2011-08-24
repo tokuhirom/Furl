@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.36
+
+    - win32 ssl proxy fix(mattn++)
+
 0.35
 
     - Compensate for slash of path-query.(xaicron)
