@@ -723,7 +723,7 @@ sub read_timeout {
     my ($self, $sock, $buf, $len, $off, $timeout_at) = @_;
     my $ret;
 
-    # NOTE: select-read-select may stick in SSL,
+    # NOTE: select-read-select may get stuck in SSL,
     #       so we use read-select-read instead.
     while(1) {
         # try to do the IO
