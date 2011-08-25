@@ -722,7 +722,6 @@ sub do_select {
 sub read_timeout {
     my ($self, $sock, $buf, $len, $off, $timeout_at) = @_;
     my $ret;
-    $self->do_select(0, $sock, $timeout_at) or return undef;
     while(1) {
         # try to do the IO
         defined($ret = sysread($sock, $$buf, $len, $off))
