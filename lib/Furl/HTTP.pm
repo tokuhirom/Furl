@@ -722,6 +722,9 @@ sub do_select {
 sub read_timeout {
     my ($self, $sock, $buf, $len, $off, $timeout_at) = @_;
     my $ret;
+
+    # NOTE: select-read-select may stick in SSL,
+    #       so we use read-select-read instead.
     while(1) {
         # try to do the IO
         defined($ret = sysread($sock, $$buf, $len, $off))
