@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.37
+
+    - fixed SSL closing issue
+      (reported by sugyan++, resolved by kazuho++, and implemented by gfx++)
+
 0.36
 
     - win32 ssl proxy fix(mattn++)

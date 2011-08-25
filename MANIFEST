@@ -77,4 +77,5 @@ xt/200_online/03_yahoo_com.t
 xt/200_online/04_ssl.t
 xt/200_online/05_connect_error.t
 xt/200_online/06_net-dns-lite.t
+xt/200_online/07_ssl_shutdown.t
 xt/perlcriticrc
