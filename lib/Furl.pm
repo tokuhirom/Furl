@@ -25,6 +25,10 @@ sub new {
     }
 }
 
+sub agent {
+    @_ == 2 ? $$_[0]->agent($_[1]) : $$_[0]->agent;
+}
+
 sub env_proxy {
     my $self = shift;
     $$self->env_proxy;
