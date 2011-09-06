@@ -117,6 +117,25 @@ sub delete {
     );
 }
 
+sub agent {
+    if ( @_ == 2 ) {
+        _header_set(shift->{headers}, 'User-Agent', shift);
+    } else {
+        return _header_get(shift->{headers}, 'User-Agent');
+    }
+}
+
+sub _header_set {
+    my ($headers, $key, $value) = (shift, lc shift, shift);
+    for (my $i=0; $i<@$headers; $i+=2) {
+        if (lc($headers->[$i]) eq $key) {
+            $headers->[$i+1] = $value;
+            return;
+        }
+    }
+    push @$headers, $key, $value;
+}
+
 sub _header_get {
     my ($headers, $key) = (shift, lc shift);
     for (my $i=0; $i<@$headers; $i+=2) {
