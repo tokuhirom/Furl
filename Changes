@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+0.38
+
+    - added ->agent method(bayashi++)
+
 0.37
 
     - fixed SSL closing issue
