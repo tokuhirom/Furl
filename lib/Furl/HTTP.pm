@@ -145,9 +145,10 @@ sub _header_get {
 }
 
 sub _requires {
-    my($file, $feature, $library) = @_;
-    return if exists $INC{$file};
+    my($self, $file, $feature, $library) = @_;
+    return 1 if exists $INC{$file};
     unless(eval { require $file }) {
+        $self->{errstr} = $@;
         if ($@ =~ /^Can't locate/) {
             $library ||= do {
                 local $_ = $file;
@@ -155,14 +156,12 @@ sub _requires {
                 s{/}{::}g;
                 $_;
             };
-            Carp::croak(
-                "$feature requires $library, but it is not available."
+            $self->{errstr} = "$feature requires $library, but it is not available."
                 . " Please install $library using your prefer CPAN client"
-            );
-        } else {
-            die $@;
         }
+        return 0;
     }
+    return 1;
 }
 
 # returns $scheme, $host, $port, $path_query
@@ -242,8 +241,8 @@ sub request {
 
     # Note. '_' is a invalid character for uri, but some servers using fucking underscore for domain name. Then, I accept the '_' character for domain name.
     if ($host =~ /[^A-Za-z0-9._-]/) {
-        _requires('Net/IDN/Encode.pm',
-            'Internationalized Domain Name (IDN)');
+        $self->_requires('Net/IDN/Encode.pm',
+            'Internationalized Domain Name (IDN)') or return $self->_r500();
         $host = Net::IDN::Encode::domain_to_ascii($host);
     }
 
@@ -452,7 +451,8 @@ sub request {
     }
 
     if (exists $COMPRESSED{ $special_headers->{'content-encoding'} }) {
-        _requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib');
+        $self->_requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib')
+            or return $self->_r500();
 
         $res_content = Furl::ZlibStream->new($res_content);
     }
@@ -504,7 +504,7 @@ sub request {
         unless ($location =~ m{^[a-z0-9]+://}) {
             # RFC 2616 14.30 says Location header is absoluteURI.
             # But, a lot of servers return relative URI.
-            _requires("URI.pm", "redirect with relative url");
+            $self->_requires("URI.pm", "redirect with relative url") or return $self->_r500();
             $location = URI->new_abs($location, "$scheme://$host:$port$path_query")->as_string;
         }
         # Note: RFC 1945 and RFC 2068 specify that the client is not allowed
@@ -568,7 +568,7 @@ sub connect :method {
 # @return file handle like object
 sub connect_ssl {
     my ($self, $host, $port, $timeout_at) = @_;
-    _requires('IO/Socket/SSL.pm', 'SSL');
+    $self->_requires('IO/Socket/SSL.pm', 'SSL') or return (undef);
 
     my $timeout = $timeout_at - time;
     return (undef, "Cannot create SSL connection: timeout")
@@ -584,14 +584,13 @@ sub connect_ssl {
 
 sub connect_ssl_over_proxy {
     my ($self, $proxy_host, $proxy_port, $host, $port, $timeout_at) = @_;
-    _requires('IO/Socket/SSL.pm', 'SSL');
+    $self->_requires('IO/Socket/SSL.pm', 'SSL') or return (undef);
 
     my $sock = $self->connect($proxy_host, $proxy_port, $timeout_at);
 
     my $p = "CONNECT $host:$port HTTP/1.0\015\012Server: $host\015\012\015\012";
     $self->write_all($sock, $p, $timeout_at)
-        or return $self->_r500(
-            "Failed to send HTTP request to proxy: " . _strerror_or_timeout());
+        or return (undef, "Failed to send HTTP request to proxy: " . _strerror_or_timeout());
     my $buf = '';
     my $read = $self->read_timeout($sock,
         \$buf, $self->{bufsize}, length($buf), $timeout_at);
@@ -796,7 +795,7 @@ sub write_all {
 
 sub _r500 {
     my($self, $message) = @_;
-    $message = Carp::shortmess($message); # add lineno and filename
+    $message = Carp::shortmess($message || delete $self->{errstr}); # add lineno and filename
     return(0, 500, "Internal Response: $message",
         ['Content-Length' => length($message)], $message);
 }
