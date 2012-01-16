@@ -373,6 +373,7 @@ sub request {
                         or return $self->_r500(
                             "Failed to send content: " . _strerror_or_timeout()
                         );
+                    $timeout_at = time + $self->{timeout};
                 }
             } else { # simple string
                 if (length($content) > 0) {
