@@ -645,9 +645,12 @@ sub _read_body_chunked {
           READ_CHUNK: while ( $next_len+2 > length($buf) ) {
                 my $n = $self->read_timeout( $sock,
                     \$buf, $self->{bufsize}, length($buf), $timeout_at );
-                if ( not defined $n ) {
+                if (!$n) {
                     return $self->_r500(
-                        "Cannot read chunk: " . _strerror_or_timeout());
+                        !defined($n)
+                            ? "Cannot read chunk: " . _strerror_or_timeout()
+                            : "Unexpected EOF while reading packets"
+                    );
                 }
             }
             $$res_content .= substr($buf, 0, $next_len);
