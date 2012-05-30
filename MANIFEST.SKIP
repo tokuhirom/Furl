@@ -30,3 +30,4 @@ xs/Furl\.[co]$
 cover_db
 nytprof
 perltidy.ERR$
+^MYMETA\.

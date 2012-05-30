@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.39
+
+    - unexpected eof in reading chunked body. It makes busy loop.
+      (kazeburo++)
+
 0.38
 
     - added ->agent method(bayashi++)
