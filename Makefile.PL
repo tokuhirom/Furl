@@ -20,8 +20,8 @@ recommends 'Compress::Raw::Zlib'; # for Content-Encoding
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 recursive_author_tests('xt');
 
-repository 'http://github.com/tokuhirom/p5-Furl/';
-bugtracker 'http://github.com/tokuhirom/p5-Furl/issues';
+repository 'http://github.com/tokuhirom/Furl/';
+bugtracker 'http://github.com/tokuhirom/Furl/issues';
 
 if ($Module::Install::AUTHOR) {
     test_requires(
