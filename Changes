@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+0.40
+
+    - fixed meta data(Slaven++)
+      https://github.com/tokuhirom/Furl/issues/35
+
 0.39
 
     - unexpected eof in reading chunked body. It makes busy loop.

@@ -5,7 +5,7 @@ use utf8;
 use Furl::HTTP;
 use Furl::Response;
 use Carp ();
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 use 5.008001;
 
