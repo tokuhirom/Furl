@@ -1,0 +1,3 @@
+language: "perl"
+before_install:
+  - cpanm inc::Module::Install Module::Install::AuthorTests Module::Install::ReadmeMarkdownFromPod
