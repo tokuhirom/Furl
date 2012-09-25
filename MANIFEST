@@ -58,6 +58,7 @@ t/100_low/29_completion_slash.t
 t/100_low/30_user_agent.t
 t/100_low/31_chunked_unexpected_eof.t
 t/300_high/01_simple.t
+t/300_high/02_agent.t
 t/300_high/04_http_request.t
 t/300_high/05_suppress_dup_host_header.t
 t/300_high/99_error.t

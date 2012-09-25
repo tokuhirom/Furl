@@ -31,3 +31,4 @@ cover_db
 nytprof
 perltidy.ERR$
 ^MYMETA\.
+^\.travis\.yml$

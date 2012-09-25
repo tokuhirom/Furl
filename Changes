@@ -1,5 +1,11 @@
 Revision history for Perl extension Furl
 
+0.41
+
+    [BUG FIX]
+    - Furl#agent does not works in past version.
+     (Syohei YOSHIDA)
+
 0.40
 
     - fixed meta data(Slaven++)
