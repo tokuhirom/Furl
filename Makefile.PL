@@ -2,6 +2,8 @@ use inc::Module::Install;
 use Module::Install::AuthorTests;
 use Module::Install::ReadmeMarkdownFromPod;
 
+$Module::Install::AUTHOR = 0 if $ENV{TRAVIS};
+
 name 'Furl';
 
 all_from 'lib/Furl.pm';
