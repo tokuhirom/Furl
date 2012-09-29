@@ -4,8 +4,9 @@ use warnings;
 use base qw/Exporter/;
 use 5.008001;
 
+our $VERSION = '0.41';
+
 use Carp ();
-use Furl;
 use Furl::ConnectionCache;
 
 use Scalar::Util ();
@@ -40,7 +41,7 @@ sub new {
     my %args = @_ == 1 ? %{$_[0]} : @_;
 
     my @headers = (
-        'User-Agent' => (delete($args{agent}) || __PACKAGE__ . '/' . $Furl::VERSION),
+        'User-Agent' => (delete($args{agent}) || __PACKAGE__ . '/' . $Furl::HTTP::VERSION),
     );
     my $connection_header = 'keep-alive';
     if(defined $args{headers}) {
