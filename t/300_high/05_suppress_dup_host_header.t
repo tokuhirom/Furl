@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Furl::HTTP;
+use Furl;
 use Test::TCP;
 use Test::More;
 use Test::Requires qw(Plack::Request HTTP::Body), 'HTTP::Request';
