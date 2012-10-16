@@ -29,6 +29,7 @@ MANIFEST			This list of files
 META.yml
 README.mkdn
 t/00_compile.t
+t/01_version.t
 t/100_low/01_simple.t
 t/100_low/03_redirect.t
 t/100_low/04_chunked.t

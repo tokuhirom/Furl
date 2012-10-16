@@ -1,5 +1,13 @@
 Revision history for Perl extension Furl
 
+0.42
+
+    [INCOMPATIBLE CHANGE]
+    - Furl::HTTP is no longer reading Furl.pm.
+      This change may breaks your code.
+      If you are using Furl class without loading Furl::HTTP,
+      it will fail after this release.
+
 0.41
 
     [BUG FIX]
