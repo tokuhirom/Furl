@@ -33,8 +33,6 @@ Furl is yet another HTTP client library. LWP is the de facto standard HTTP
 client for Perl5, but it is too slow for some critical jobs, and too complex
 for weekend hacking. Furl resolves these issues. Enjoy it!
 
-This library is an __beta__ software. Any API may change without notice.
-
 # INTERFACE
 
 ## Class Methods

@@ -5,7 +5,7 @@ use utf8;
 use Furl::HTTP;
 use Furl::Response;
 use Carp ();
-our $VERSION = '0.42';
+our $VERSION = '1.00';
 
 use 5.008001;
 
@@ -100,8 +100,6 @@ Furl - Lightning-fast URL fetcher
 Furl is yet another HTTP client library. LWP is the de facto standard HTTP
 client for Perl5, but it is too slow for some critical jobs, and too complex
 for weekend hacking. Furl resolves these issues. Enjoy it!
-
-This library is an B<beta> software. Any API may change without notice.
 
 =head1 INTERFACE
 
