@@ -1165,6 +1165,26 @@ Although Furl itself supports timeout, some underlying modules / functions do no
         inet_aton => sub { Net::DNS::Lite::inet_aton(@_) },
     );
 
+=item How can I replace Host header instead of hostname?
+
+Furl::HTTP does not support to replace Host header for performance reason.
+
+But you can replace DNS resolver routine. It works fine.
+
+    my $furl = Furl::HTTP->new(
+        inet_aton => sub {
+            my ($hostname, $timeout) = @_;
+            $hostname = +{
+                'the-host' => 'yahoo.com'
+            }->{$hostname} || $hostname;
+            Socket::inet_aton($hostname);
+        },
+    );
+    my ($minor_version, $code, $msg, $headers, $body) = $furl->request(
+        url => 'http://the-host/',
+        method => 'GET'
+    );
+
 =back
 
 =head1 TODO
