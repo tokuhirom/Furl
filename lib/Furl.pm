@@ -310,6 +310,31 @@ You can limit the content length by callback function.
         }
     );
 
+=item HTTPS requests claims warnings!
+
+When you make https requests, IO::Socket::SSL may complain about it like:
+
+    *******************************************************************
+     Using the default of SSL_verify_mode of SSL_VERIFY_NONE for client
+     is depreciated! Please set SSL_verify_mode to SSL_VERIFY_PEER
+     together with SSL_ca_file|SSL_ca_path for verification.
+     If you really don't want to verify the certificate and keep the
+     connection open to Man-In-The-Middle attacks please set
+     SSL_verify_mode explicitly to SSL_VERIFY_NONE in your application.
+    *******************************************************************
+
+You should set C<SSL_verify_mode> explicitly with Furl's C<ssl_opts>.
+
+    use IO::Socket::SSL;
+
+    my $ua = Furl->new(
+        ssl_opts => {
+            SSL_verify_mode => SSL_VERIFY_PEER(),
+        },
+    });
+
+See L<IO::Socket::SSL> for details.
+
 =back
 
 =head1 AUTHOR
@@ -337,6 +362,8 @@ audreyt
 =head1 SEE ALSO
 
 L<LWP>
+
+L<IO::Socket::SSL>
 
 L<Furl::HTTP>
 

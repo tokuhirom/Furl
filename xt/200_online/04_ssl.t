@@ -4,6 +4,7 @@ use utf8;
 use Test::More;
 use Test::Requires qw(Plack::Request HTTP::Body), qw(IO::Socket::SSL);
 use Furl;
+use IO::Socket::SSL;
 use t::Util;
 
 # this test moved to xt/ since mixi's ssl sucks.
@@ -11,11 +12,15 @@ use t::Util;
 
 skip_if_offline();
 
-my $furl = Furl->new();
+my $furl = Furl->new(
+    ssl_opts => {
+        SSL_verify_mode => SSL_VERIFY_PEER(),
+    },
+);
 $furl->env_proxy();
 for my $url('https://mixi.jp/', 'https://mixi.jp') {
     my $res = $furl->get($url);
-    ok $res->is_success or diag $res->status_line;
+    ok $res->is_success, $url or diag $res->status_line;
 }
 
 done_testing;
