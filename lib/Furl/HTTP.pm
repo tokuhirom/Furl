@@ -67,6 +67,7 @@ sub new {
         header_format => HEADERS_AS_ARRAYREF,
         stop_if       => sub {},
         inet_aton      => sub { Socket::inet_aton($_[0]) },
+        ssl_opts      => {},
         %args
     }, $class;
 }
@@ -578,6 +579,7 @@ sub connect_ssl {
         PeerHost => $host,
         PeerPort => $port,
         Timeout  => $timeout,
+        %{ $self->{ssl_opts} },
     ) or return (undef, "Cannot create SSL connection: $!");
     _set_sockopts($sock);
     $sock;
