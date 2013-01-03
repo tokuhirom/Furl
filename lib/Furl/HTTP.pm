@@ -986,9 +986,11 @@ SSL configuration used on https requests, passed directly to C<< IO::Socket::SSL
 
 for example:
 
-    my $furl = Furl::HTTP->new(
+    use IO::Socket::SSL;
+
+    my $ua = Furl::HTTP->new(
         ssl_opts => {
-            SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_PEER(),
+            SSL_verify_mode => SSL_VERIFY_PEER(),
         },
     });
 
