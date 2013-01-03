@@ -966,19 +966,33 @@ B<HEADERS_AS_ARRAYREF> is a default value. This makes B<$headers> as ArrayRef.
 
 B<HEADERS_NONE> makes B<$headers> as undef. Furl does not return parsing result of headers. You should take needed headers from B<special_headers>.
 
-=item connection_pool
+=item connection_pool :Object
 
 This is the connection pool object for keep-alive requests. By default, it is a instance of L<Furl::ConnectionCache>.
 
 You may not customize this variable otherwise to use L<Coro>. This attribute requires a duck type object. It has two methods, C<< $obj->steal($host, $port >> and C<< $obj->push($host, $port, $sock) >>.
 
-=item stop_if
+=item stop_if :CodeRef
 
 A callback function that is called by Furl after when a blocking function call returns EINTR. Furl will abort the HTTP request and return immediately if the callback returns true. Otherwise the operation is continued (the default behaviour).
 
-=item inet_aton
+=item inet_aton :CodeRef
 
 A callback function to customize name resolution. Takes two arguments: ($hostname, $timeout_in_seconds). If omitted, Furl calls L<Socket::inet_aton>.
+
+=item ssl_opts :HashRef
+
+SSL configuration used on https requests, passed directly to C<< IO::Socket::SSL->new() >>,
+
+for example:
+
+    my $furl = Furl::HTTP->new(
+        ssl_opts => {
+            SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_PEER(),
+        },
+    });
+
+See L<IO::Socket::SSL> for details.
 
 =back
 
