@@ -19,7 +19,7 @@ note 'name resolution error';
             port => 80,
             path_query => '/foo',
         );
-    is $code, 500, "nameerror/$_";
+    is $code, 500, "nameerror";
     like $msg, qr/Internal Response: Cannot resolve host name: a/;
     is ref($headers), 'ARRAY';
     ok $content, "content: $content";
@@ -27,7 +27,12 @@ note 'name resolution error';
 
 note 'refused error';
 {
-    my $furl = Furl::HTTP->new(timeout => 60);
+    my $furl = Furl::HTTP->new(
+        timeout => 60,
+        ssl_opts => {
+            SSL_verify_mode => IO::Socket::SSL::SSL_VERIFY_PEER(),
+        },
+    );
     for my $scheme (qw(http https)) {
         for (1 .. $n) {
             my $start_at = time;
