@@ -60,36 +60,36 @@ _%args_ might be:
 
 - scheme :Str = "http"
 
-Protocol scheme. May be `http` or `https`.
+    Protocol scheme. May be `http` or `https`.
 
 - host :Str
 
-Server host to connect.
+    Server host to connect.
 
-You must specify at least `host` or `url`.
+    You must specify at least `host` or `url`.
 
 - port :Int = 80
 
-Server port to connect. The default is 80 on `scheme => 'http'`,
-or 443 on `scheme => 'https'`.
+    Server port to connect. The default is 80 on `scheme => 'http'`,
+    or 443 on `scheme => 'https'`.
 
 - path\_query :Str = "/"
 
-Path and query to request.
+    Path and query to request.
 
 - url :Str
 
-URL to request.
+    URL to request.
 
-You can use `url` instead of `scheme`, `host`, `port` and `path_query`.
+    You can use `url` instead of `scheme`, `host`, `port` and `path_query`.
 
 - headers :ArrayRef
 
-HTTP request headers. e.g. `headers => [ 'Accept-Encoding' => 'gzip' ]`.
+    HTTP request headers. e.g. `headers => [ 'Accept-Encoding' => 'gzip' ]`.
 
 - content : Str | ArrayRef\[Str\] | HashRef\[Str\] | FileHandle
 
-Content to request.
+    Content to request.
 
 If the number of arguments is an odd number, this method assumes that the
 first argument is an instance of `HTTP::Request`. Remaining arguments
@@ -141,84 +141,108 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 - Does Furl depends on XS modules?
 
-No. Although some optional features require XS modules, basic features are
-available without XS modules.
+    No. Although some optional features require XS modules, basic features are
+    available without XS modules.
 
-Note that Furl requires HTTP::Parser::XS, which seems an XS module
-but includes a pure Perl backend, HTTP::Parser::XS::PP.
+    Note that Furl requires HTTP::Parser::XS, which seems an XS module
+    but includes a pure Perl backend, HTTP::Parser::XS::PP.
 
 - I need more speed.
 
-See [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP), which provides the low level interface of [Furl](http://search.cpan.org/perldoc?Furl).
-It is faster than `Furl.pm` since [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP) does not create response objects.
+    See [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP), which provides the low level interface of [Furl](http://search.cpan.org/perldoc?Furl).
+    It is faster than `Furl.pm` since [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP) does not create response objects.
 
 - How do you use cookie\_jar?
 
-Furl does not directly support the cookie\_jar option available in LWP. You can use [HTTP::Cookies](http://search.cpan.org/perldoc?HTTP::Cookies), [HTTP::Request](http://search.cpan.org/perldoc?HTTP::Request), [HTTP::Response](http://search.cpan.org/perldoc?HTTP::Response) like following.
+    Furl does not directly support the cookie\_jar option available in LWP. You can use [HTTP::Cookies](http://search.cpan.org/perldoc?HTTP::Cookies), [HTTP::Request](http://search.cpan.org/perldoc?HTTP::Request), [HTTP::Response](http://search.cpan.org/perldoc?HTTP::Response) like following.
 
-    my $f = Furl->new();
-    my $cookies = HTTP::Cookies->new();
-    my $req = HTTP::Request->new(...);
-    $cookies->add_cookie_header($req);
-    my $res = H$f->request_with_http_request($req)->as_http_response;
-    $res->request($req);
-    $cookies->extract_cookies($res);
-    # and use $res.
+        my $f = Furl->new();
+        my $cookies = HTTP::Cookies->new();
+        my $req = HTTP::Request->new(...);
+        $cookies->add_cookie_header($req);
+        my $res = H$f->request_with_http_request($req)->as_http_response;
+        $res->request($req);
+        $cookies->extract_cookies($res);
+        # and use $res.
 
 - How do you limit the response content length?
 
-You can limit the content length by callback function.
+    You can limit the content length by callback function.
 
-    my $f = Furl->new();
-    my $content = '';
-    my $limit = 1_000_000;
-    my %special_headers = ('content-length' => undef);
-    my $res = $f->request(
-        method          => 'GET',
-        url             => $url,
-        special_headers => \%special_headers,
-        write_code      => sub {
-            my ( $status, $msg, $headers, $buf ) = @_;
-            if (($special_headers{'content-length'}||0) > $limit || length($content) > $limit) {
-                die "over limit: $limit";
+        my $f = Furl->new();
+        my $content = '';
+        my $limit = 1_000_000;
+        my %special_headers = ('content-length' => undef);
+        my $res = $f->request(
+            method          => 'GET',
+            url             => $url,
+            special_headers => \%special_headers,
+            write_code      => sub {
+                my ( $status, $msg, $headers, $buf ) = @_;
+                if (($special_headers{'content-length'}||0) > $limit || length($content) > $limit) {
+                    die "over limit: $limit";
+                }
+                $content .= $buf;
             }
-            $content .= $buf;
-        }
-    );
+        );
 
 - How do you display the progress bar?
 
-    my $bar = Term::ProgressBar->new({count => 1024, ETA => 'linear'});
-    $bar->minor(0);
-    $bar->max_update_rate(1);
+        my $bar = Term::ProgressBar->new({count => 1024, ETA => 'linear'});
+        $bar->minor(0);
+        $bar->max_update_rate(1);
 
-    my $f = Furl->new();
-    my $content = '';
-    my %special_headers = ('content-length' => undef);;
-    my $did_set_target = 0;
-    my $received_size = 0;
-    my $next_update  = 0;
-    $f->request(
-        method          => 'GET',
-        url             => $url,
-        special_headers => \%special_headers,
-        write_code      => sub {
-            my ( $status, $msg, $headers, $buf ) = @_;
-            unless ($did_set_target) {
-                if ( my $cl = $special_headers{'content-length'} ) {
-                    $bar->target($cl);
-                    $did_set_target++;
+        my $f = Furl->new();
+        my $content = '';
+        my %special_headers = ('content-length' => undef);;
+        my $did_set_target = 0;
+        my $received_size = 0;
+        my $next_update  = 0;
+        $f->request(
+            method          => 'GET',
+            url             => $url,
+            special_headers => \%special_headers,
+            write_code      => sub {
+                my ( $status, $msg, $headers, $buf ) = @_;
+                unless ($did_set_target) {
+                    if ( my $cl = $special_headers{'content-length'} ) {
+                        $bar->target($cl);
+                        $did_set_target++;
+                    }
+                    else {
+                        $bar->target( $received_size + 2 * length($buf) );
+                    }
                 }
-                else {
-                    $bar->target( $received_size + 2 * length($buf) );
-                }
+                $received_size += length($buf);
+                $content .= $buf;
+                $next_update = $bar->update($received_size)
+                if $received_size >= $next_update;
             }
-            $received_size += length($buf);
-            $content .= $buf;
-            $next_update = $bar->update($received_size)
-            if $received_size >= $next_update;
-        }
-    );
+        );
+- HTTPS requests claims warnings!
+
+    When you make https requests, IO::Socket::SSL may complain about it like:
+
+        *******************************************************************
+         Using the default of SSL_verify_mode of SSL_VERIFY_NONE for client
+         is depreciated! Please set SSL_verify_mode to SSL_VERIFY_PEER
+         together with SSL_ca_file|SSL_ca_path for verification.
+         If you really don't want to verify the certificate and keep the
+         connection open to Man-In-The-Middle attacks please set
+         SSL_verify_mode explicitly to SSL_VERIFY_NONE in your application.
+        *******************************************************************
+
+    You should set `SSL_verify_mode` explicitly with Furl's `ssl_opts`.
+
+        use IO::Socket::SSL;
+
+        my $ua = Furl->new(
+            ssl_opts => {
+                SSL_verify_mode => SSL_VERIFY_PEER(),
+            },
+        });
+
+    See [IO::Socket::SSL](http://search.cpan.org/perldoc?IO::Socket::SSL) for details.
 
 # AUTHOR
 
@@ -245,6 +269,8 @@ audreyt
 # SEE ALSO
 
 [LWP](http://search.cpan.org/perldoc?LWP)
+
+[IO::Socket::SSL](http://search.cpan.org/perldoc?IO::Socket::SSL)
 
 [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP)
 
