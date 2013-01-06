@@ -580,7 +580,7 @@ sub connect_ssl {
         PeerPort => $port,
         Timeout  => $timeout,
         %{ $self->{ssl_opts} },
-    ) or return (undef, "Cannot create SSL connection: $!");
+    ) or return (undef, "Cannot create SSL connection: " . IO::Socket::SSL::errstr());
     _set_sockopts($sock);
     $sock;
 }
