@@ -71,3 +71,8 @@ EINTR
 XS
 backend
 audreyt
+https
+HTTPS
+Furl's
+DNS
+hostname
