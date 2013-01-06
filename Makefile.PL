@@ -10,6 +10,7 @@ all_from 'lib/Furl.pm';
 readme_markdown_from 'lib/Furl.pm';
 
 requires 'HTTP::Parser::XS' => 0.11;
+requires 'Mozilla::CA';
 
 test_requires 'Test::More' => 0.96;    # done_testing, subtest
 test_requires 'Test::TCP'  => 1.06;

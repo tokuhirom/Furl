@@ -575,11 +575,19 @@ sub connect_ssl {
     my $timeout = $timeout_at - time;
     return (undef, "Cannot create SSL connection: timeout")
         if $timeout <= 0;
+
+    my $ssl_opts = $self->{ssl_opts};
+    if ($ssl_opts->{SSL_verify_mode}) {
+        unless (exists $ssl_opts->{SSL_ca_file} || exists $ssl_opts->{SSL_ca_path}) {
+            require Mozilla::CA;
+            $ssl_opts->{SSL_ca_file} = Mozilla::CA::SSL_ca_file();
+        }
+    }
     my $sock = IO::Socket::SSL->new(
         PeerHost => $host,
         PeerPort => $port,
         Timeout  => $timeout,
-        %{ $self->{ssl_opts} },
+        %$ssl_opts,
     ) or return (undef, "Cannot create SSL connection: " . IO::Socket::SSL::errstr());
     _set_sockopts($sock);
     $sock;
