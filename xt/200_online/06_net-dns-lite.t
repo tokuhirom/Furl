@@ -29,11 +29,13 @@ my $n = shift(@ARGV) || 2;
 
 note 'dns timeout';
 {
+    my $called_inet_aton = 0;
     my $furl = Furl::HTTP->new(
         timeout   => 1,
         inet_aton => sub {
             # mimic timeout
             my ($name, $timeout) = @_;
+            $called_inet_aton++;
             sleep $timeout;
             return undef;
         }
@@ -51,6 +53,7 @@ note 'dns timeout';
         is ref($headers), 'ARRAY';
         ok $content, "content: $content";
         ok 0.5 <= $elapsed && $elapsed < 1.5, "elapsed: $elapsed";
+        note "inet_aton calling count: $called_inet_aton";
     }
 }
 
