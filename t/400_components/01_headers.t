@@ -30,7 +30,7 @@ subtest 'total test' => sub {
     $h->remove_header('x-foo');
     is(join(',', sort $h->keys), 'x-bar,x-poo');
     is(join(',', sort $h->header_field_names), 'x-bar,x-poo', 'header_field_names');
-    is($h->as_string, "x-bar: 2\015\012x-poo: san\015\012x-poo: winnie\015\012", 'header_field_names');
+    is_deeply([sort split /\015\012/, $h->as_string], [sort split /\015\012/, "x-bar: 2\015\012x-poo: san\015\012x-poo: winnie\015\012"], 'as_string');
     is(join(',', sort $h->flatten), '2,san,winnie,x-bar,x-poo,x-poo');
 
     my $hh = $h->as_http_headers;
