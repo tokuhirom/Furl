@@ -1,5 +1,11 @@
 Revision history for Perl extension Furl
 
+1.02
+
+    - Use Mozilla::CA if SSL_ca_file and SSL_ca_path is not set.
+      This behavior respects LWP::Protocol::https.
+      (tokuhirom)
+
 1.01
 
     - added `ssl_opts` option to configuring IO::Socket::SSL
