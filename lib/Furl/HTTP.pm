@@ -565,6 +565,18 @@ sub connect :method {
     $sock;
 }
 
+sub _ssl_opts {
+    my $self = shift;
+    my $ssl_opts = $self->{ssl_opts};
+    if ($ssl_opts->{SSL_verify_mode}) {
+        unless (exists $ssl_opts->{SSL_ca_file} || exists $ssl_opts->{SSL_ca_path}) {
+            require Mozilla::CA;
+            $ssl_opts->{SSL_ca_file} = Mozilla::CA::SSL_ca_file();
+        }
+    }
+    $ssl_opts;
+}
+
 # connect SSL socket.
 # You can override this methond in your child class, if you want to use Crypt::SSLeay or some other library.
 # @return file handle like object
@@ -576,13 +588,7 @@ sub connect_ssl {
     return (undef, "Cannot create SSL connection: timeout")
         if $timeout <= 0;
 
-    my $ssl_opts = $self->{ssl_opts};
-    if ($ssl_opts->{SSL_verify_mode}) {
-        unless (exists $ssl_opts->{SSL_ca_file} || exists $ssl_opts->{SSL_ca_path}) {
-            require Mozilla::CA;
-            $ssl_opts->{SSL_ca_file} = Mozilla::CA::SSL_ca_file();
-        }
-    }
+    my $ssl_opts = $self->_ssl_opts;
     my $sock = IO::Socket::SSL->new(
         PeerHost => $host,
         PeerPort => $port,
@@ -617,7 +623,9 @@ sub connect_ssl_over_proxy {
     my $timeout = $timeout_at - time;
     return (undef, "Cannot start SSL connection: timeout")
         if $timeout_at <= 0;
-    IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout )
+
+    my $ssl_opts = $self->_ssl_opts;
+    IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout, %$ssl_opts )
       or return (
           undef, "Cannot start SSL connection: " . _strerror_or_timeout());
     _set_sockopts($sock); # just in case (20101118 kazuho)
