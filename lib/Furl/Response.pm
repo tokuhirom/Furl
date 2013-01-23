@@ -33,6 +33,12 @@ sub header           { shift->headers->header(@_) }
 
 sub protocol { "HTTP/1." . $_[0]->{minor_version} }
 
+sub decoded_content {
+    my $self = shift;
+    $self->{decoded_content} ||=
+        $self->as_http_response->decoded_content;
+}
+
 sub as_http_response {
     my ($self) = @_;
     require HTTP::Response;
@@ -89,6 +95,8 @@ Returns instance of L<Furl::Headers>
 =item $res->body
 
 Returns response body in scalar.
+
+=item $res->decoded_content
 
 =item $res->content_length
 
