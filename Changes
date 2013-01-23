@@ -1,5 +1,17 @@
 Revision history for Perl extension Furl
 
+2.01 2013-01-23T19:17:47
+
+
+    * pass SSL_verifycn_name on connecting ssl over proxy.
+      IO::Socket::SSL detects host name from PeerHost, but it can't when user
+      is using proxy.
+      (aska++)
+    * SSL_verifycn_scheme is not required if skipping verification
+      if skip verification, does not requires SSL_verifycn_scheme
+      (kazeburo++)
+
+
 2.00 2013-01-23T15:46:46
 
     *** VERY IMPORTANT INCOMPATIBLE CHANGE ***
