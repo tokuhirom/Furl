@@ -568,6 +568,11 @@ sub connect :method {
 sub _ssl_opts {
     my $self = shift;
     my $ssl_opts = $self->{ssl_opts};
+    unless (exists $ssl_opts->{SSL_verify_mode} && exists $ssl_opts->{SSL_verifycn_scheme}) {
+        # set SSL_VERIFY_PEER as default.
+        $ssl_opts->{SSL_verify_mode}     = IO::Socket::SSL::SSL_VERIFY_PEER();
+        $ssl_opts->{SSL_verifycn_scheme} = 'www'
+    }
     if ($ssl_opts->{SSL_verify_mode}) {
         unless (exists $ssl_opts->{SSL_ca_file} || exists $ssl_opts->{SSL_ca_path}) {
             require Mozilla::CA;
