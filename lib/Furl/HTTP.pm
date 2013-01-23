@@ -632,6 +632,9 @@ sub connect_ssl_over_proxy {
         if $timeout_at <= 0;
 
     my $ssl_opts = $self->_ssl_opts;
+    unless (exists $ssl_opts->{SSL_verifycn_name}) {
+        $ssl_opts->{SSL_verifycn_name} = $host;
+    }
     IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout, %$ssl_opts )
       or return (
           undef, "Cannot start SSL connection: " . _strerror_or_timeout());

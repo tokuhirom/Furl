@@ -12,11 +12,7 @@ use t::Util;
 
 skip_if_offline();
 
-my $furl = Furl->new(
-    ssl_opts => {
-        SSL_verify_mode => SSL_VERIFY_PEER(),
-    },
-);
+my $furl = Furl->new();
 $furl->env_proxy();
 for my $url('https://mixi.jp/', 'https://mixi.jp') {
     my $res = $furl->get($url);
