@@ -1,5 +1,13 @@
 Revision history for Perl extension Furl
 
+2.00 2013-01-23T15:46:46
+
+    *** VERY IMPORTANT INCOMPATIBLE CHANGE ***
+    - Furl verify SSL certs by default.
+      If it's fail, furl returns error response.
+      (tokuhirom)
+    *** VERY IMPORTANT INCOMPATIBLE CHANGE ***
+
 1.04
 
     - use `ssl_opts` option in SSL over http proxy
