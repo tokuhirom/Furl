@@ -35,5 +35,16 @@ is $hres->content_type, 'text/html';
 is $hres->content, 'hit man';
 is $hres->protocol, 'HTTP/1.1';
 
+subtest decoded_content => sub {
+    my $res = Furl::Response->new(
+        1, 200, 'OK',
+        +{
+            'content-type' => ['text/plain; charset=UTF-8'],
+        },
+        "\343\201\202\343\201\204\343\201\206\343\201\210\343\201\212",
+    );
+    is $res->decoded_content, "\x{3042}\x{3044}\x{3046}\x{3048}\x{304a}";
+};
+
 done_testing;
 
