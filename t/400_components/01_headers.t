@@ -66,6 +66,17 @@ subtest 'shorthand' => sub {
     is $h->content_length,    4444;
 };
 
+subtest 'clone' => sub {
+    my $h1 = Furl::Headers->new([
+         expires => 1111,
+    ]);
+    my $h2 = $h1->clone();
+    is $h2->expires, '1111';
+    $h2->last_modified('2222');
+    is $h2->last_modified, '2222';
+    isnt $h1->last_modified, '2222';
+};
+
 # TODO make from hashref
 
 done_testing;

@@ -86,6 +86,11 @@ sub content_type      { [ shift->header( 'Content-Type'      => @_ ) ]->[0] }
 sub content_length    { [ shift->header( 'Content-Length'    => @_ ) ]->[0] }
 sub content_encoding  { [ shift->header( 'Content-Encoding'  => @_ ) ]->[0] }
 
+sub clone {
+    require Storable;
+    Storable::dclone($_[0]);
+}
+
 1;
 __END__
 
@@ -166,6 +171,10 @@ Return the header fields as a formatted MIME header.
 =item my $val = $headers->content_encoding()
 
 These methods are shortcut for popular headers.
+
+=item $headers->clone();
+
+Returns a copy of this "Furl::Headers" object.
 
 =back
 
