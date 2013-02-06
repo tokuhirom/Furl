@@ -271,17 +271,21 @@ sub request {
         if ($proxy) {
             my (undef, $proxy_user, $proxy_pass, $proxy_host, $proxy_port, undef)
                 = $self->_parse_url($proxy);
+            my $proxy_authorization;
             if (defined $proxy_user) {
                 _requires('MIME/Base64.pm',
                     'Basic auth');
-                $self->{proxy_authorization} = 'Basic ' . MIME::Base64::encode_base64("$proxy_user:$proxy_pass");
+                $proxy_authorization = 'Basic ' . MIME::Base64::encode_base64("$proxy_user:$proxy_pass");
             }
             if ($scheme eq 'http') {
                 ($sock, $err_reason)
                     = $self->connect($proxy_host, $proxy_port, $timeout_at);
+                if (defined $proxy_authorization) {
+                    $self->{proxy_authorization} = $proxy_authorization;
+                }
             } else {
                 ($sock, $err_reason) = $self->connect_ssl_over_proxy(
-                    $proxy_host, $proxy_port, $host, $port, $timeout_at);
+                    $proxy_host, $proxy_port, $host, $port, $timeout_at, $proxy_authorization);
             }
         } else {
             if ($scheme eq 'http') {
@@ -625,12 +629,16 @@ sub connect_ssl {
 }
 
 sub connect_ssl_over_proxy {
-    my ($self, $proxy_host, $proxy_port, $host, $port, $timeout_at) = @_;
+    my ($self, $proxy_host, $proxy_port, $host, $port, $timeout_at, $proxy_authorization) = @_;
     _requires('IO/Socket/SSL.pm', 'SSL');
 
     my $sock = $self->connect($proxy_host, $proxy_port, $timeout_at);
 
-    my $p = "CONNECT $host:$port HTTP/1.0\015\012Server: $host\015\012\015\012";
+    my $p = "CONNECT $host:$port HTTP/1.0\015\012Server: $host\015\012";
+    if (defined $proxy_authorization) {
+        $p .= "Proxy-Authorization: $proxy_authorization\015\012";
+    }
+    $p .= "\015\012";
     $self->write_all($sock, $p, $timeout_at)
         or return $self->_r500(
             "Failed to send HTTP request to proxy: " . _strerror_or_timeout());
