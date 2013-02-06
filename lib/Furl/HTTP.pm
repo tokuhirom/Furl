@@ -173,11 +173,17 @@ sub _parse_url {
     $url =~ m{\A
         ([a-z]+)                    # scheme
         ://
+        (?:
+            ([^/:@?]+) # user
+            :
+            ([^/:@?]+) # password
+            @
+        )?
         ([^/:?]+)                   # host
         (?: : (\d+) )?              # port
         (?: ( /? \? .* | / .*)  )?  # path_query
     \z}xms or Carp::croak("Passed malformed URL: $url");
-    return( $1, $2, $3, $4 );
+    return( $1, $2, $3, $4, $5, $6 );
 }
 
 sub make_x_www_form_urlencoded {
@@ -211,9 +217,9 @@ sub request {
 
     my $timeout_at = time + $self->{timeout};
 
-    my ($scheme, $host, $port, $path_query);
+    my ($scheme, $username, $password, $host, $port, $path_query);
     if (defined(my $url = $args{url})) {
-        ($scheme, $host, $port, $path_query) = $self->_parse_url($url);
+        ($scheme, $username, $password, $host, $port, $path_query) = $self->_parse_url($url);
     }
     else {
         ($scheme, $host, $port, $path_query) = @args{qw/scheme host port path_query/};
@@ -263,8 +269,13 @@ sub request {
     if(!$in_keepalive) {
         my $err_reason;
         if ($proxy) {
-            my (undef, $proxy_host, $proxy_port, undef)
+            my (undef, $proxy_user, $proxy_pass, $proxy_host, $proxy_port, undef)
                 = $self->_parse_url($proxy);
+            if (defined $proxy_user) {
+                _requires('MIME/Base64.pm',
+                    'Basic auth');
+                $self->{proxy_authorization} = 'Basic ' . MIME::Base64::encode_base64("$proxy_user:$proxy_pass");
+            }
             if ($scheme eq 'http') {
                 ($sock, $err_reason)
                     = $self->connect($proxy_host, $proxy_port, $timeout_at);
@@ -316,6 +327,13 @@ sub request {
             }
         }
         unshift @headers, 'Connection', $connection_header;
+        if (exists $self->{proxy_authorization}) {
+            push @headers, 'Proxy-Authorization', $self->{proxy_authorization};
+        }
+        if (defined $username) {
+            _requires('MIME/Base64.pm', 'Basic auth');
+            push @headers, 'Authorization', 'Basic ' . MIME::Base64::encode_base64("${username}:${password}");
+        }
 
         my $content       = $args{content};
         my $content_is_fh = 0;
