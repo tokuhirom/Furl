@@ -1,5 +1,12 @@
 Revision history for Perl extension Furl
 
+2.02 2013-02-06T17:25:11
+
+    * Added Furl::Response#decoded_content
+      (xaicron++)
+    * Added Furl::Headers#clone
+      (tokuhirom)
+
 2.01 2013-01-23T19:17:47
 
 
