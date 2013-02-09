@@ -19,6 +19,8 @@ test_parse_url(
     'http://example.com/',
     [
         'http',
+        undef,
+        undef,
         'example.com',
         undef,
         '/',
@@ -30,6 +32,8 @@ test_parse_url(
     'http://example.com',
     [
         'http',
+        undef,
+        undef,
         'example.com',
         undef,
         undef,
@@ -41,6 +45,8 @@ test_parse_url(
     'http://example.com/?foo=bar',
     [
         'http',
+        undef,
+        undef,
         'example.com',
         undef,
         '/?foo=bar',
@@ -52,6 +58,8 @@ test_parse_url(
     'http://example.com?foo=bar',
     [
         'http',
+        undef,
+        undef,
         'example.com',
         undef,
         '?foo=bar',
@@ -63,6 +71,8 @@ test_parse_url(
     'http://example.com:5000/',
     [
         'http',
+        undef,
+        undef,
         'example.com',
         5000,
         '/',
@@ -74,6 +84,8 @@ test_parse_url(
     'http://example.com:5000',
     [
         'http',
+        undef,
+        undef,
         'example.com',
         5000,
         undef,
@@ -85,6 +97,8 @@ test_parse_url(
     'http://example.com:5000/?foo=bar',
     [
         'http',
+        undef,
+        undef,
         'example.com',
         5000,
         '/?foo=bar',
@@ -96,6 +110,8 @@ test_parse_url(
     'http://example.com:5000?foo=bar',
     [
         'http',
+        undef,
+        undef,
         'example.com',
         5000,
         '?foo=bar',
@@ -107,11 +123,39 @@ test_parse_url(
     'http://example.com:5000/hoge/fuga?foo=bar',
     [
         'http',
+        undef,
+        undef,
         'example.com',
         5000,
         '/hoge/fuga?foo=bar',
     ],
     'popular url',
+);
+
+test_parse_url(
+    'http://user:pass@example.com/',
+    [
+        'http',
+        'user',
+        'pass',
+        'example.com',
+        undef,
+        '/',
+    ],
+    'auth url without port number',
+);
+
+test_parse_url(
+    'http://user:pass@example.com:5000/hoge/fuga?foo=bar',
+    [
+        'http',
+        'user',
+        'pass',
+        'example.com',
+        5000,
+        '/hoge/fuga?foo=bar',
+    ],
+    'auth & popular url',
 );
 
 test_parse_url(
