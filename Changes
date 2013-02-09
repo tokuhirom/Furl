@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+2.03 2013-02-09T18:17:13
+
+    - Support URL based authorization. Both Proxy-Authorization and Basic Authorization.
+
 2.02 2013-02-06T17:25:11
 
     * Added Furl::Response#decoded_content
