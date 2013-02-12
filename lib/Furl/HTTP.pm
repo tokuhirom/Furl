@@ -859,6 +859,7 @@ sub _r500 {
         [
             'Content-Length' => length($message),
             'Client-Warning' => 'Internal Response',
+            # XXX ^^ EXPERIMENTAL header. Do not depend to this.
         ], $message
     );
 }
