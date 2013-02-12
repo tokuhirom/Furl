@@ -57,7 +57,7 @@ test_tcp(
             is $code, 500, "request()/$_";
             like $msg, qr/Internal Response: Failed to send content: timeout/;
             is ref($headers), "ARRAY";
-            is Plack::Util::header_get($headers, 'Client-Warning'), 'Internal Response';
+            is Plack::Util::header_get($headers, 'X-Internal-Response'), 1;
             ok $content, 'content: ' . $content;
             ok 0.4 <= $elapsed && $elapsed <= 1;
         }
