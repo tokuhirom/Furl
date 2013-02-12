@@ -856,7 +856,11 @@ sub _r500 {
     my($self, $message) = @_;
     $message = Carp::shortmess($message); # add lineno and filename
     return(0, 500, "Internal Response: $message",
-        ['Content-Length' => length($message)], $message);
+        [
+            'Content-Length' => length($message),
+            'Client-Warning' => 'Internal Response',
+        ], $message
+    );
 }
 
 sub _strerror_or_timeout {
