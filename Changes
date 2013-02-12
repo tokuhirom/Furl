@@ -1,5 +1,13 @@
 Revision history for Perl extension Furl
 
+2.05 2013-02-12T15:00:31
+
+    [EXPERIMENTAL FEATURE]
+    - Add "X-Internal-Respponse: 1" header for
+      Internal response. It's compatible with LWP.
+      (tokuhirom)
+    - Reverted Client-Warning header introduced in 2.04
+
 2.04 2013-02-12T14:28:53
 
     [EXPERIMENTAL FEATURE]
