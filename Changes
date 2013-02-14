@@ -1,5 +1,9 @@
 Revision history for Perl extension Furl
 
+2.06 2013-02-14T19:01:27
+
+    - Added Furl::Response#as_hashref
+
 2.05 2013-02-12T15:00:31
 
     [EXPERIMENTAL FEATURE]
