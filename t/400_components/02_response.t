@@ -35,6 +35,29 @@ is $hres->content_type, 'text/html';
 is $hres->content, 'hit man';
 is $hres->protocol, 'HTTP/1.1';
 
+subtest 'as_hashref' => sub {
+    my $dat = $res->as_hashref;
+    my $headers = delete $dat->{headers};
+    is_deeply(
+        $dat, {
+            message => 'OK',
+            code => 200,
+            content => 'hit man',
+            protocol => 'HTTP/1.1',
+        }
+    );
+    is_deeply(
+        [sort @{$headers}],
+        [sort qw(
+            content-type text/html
+            x-foo yay
+            x-bar hoge
+            content-length 9
+            content-encoding chunked
+        )]
+    );
+};
+
 subtest decoded_content => sub {
     my $res = Furl::Response->new(
         1, 200, 'OK',

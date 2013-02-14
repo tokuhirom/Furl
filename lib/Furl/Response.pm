@@ -48,6 +48,18 @@ sub as_http_response {
     return $res;
 }
 
+sub as_hashref {
+    my $self = shift;
+
+    return +{
+        code    => $self->code,
+        message => $self->message,
+        protocol => $self->protocol,
+        headers => [$self->headers->flatten],
+        content => $self->content,
+    };
+}
+
 sub is_success { substr( $_[0]->code, 0, 1 ) eq '2' }
 sub status_line { $_[0]->code . ' ' . $_[0]->message }
 
@@ -118,6 +130,18 @@ Returns HTTP protocol in string.
 =item $res->as_http_response
 
 Make instance of L<HTTP::Response> from L<Furl::Response>.
+
+=item $res->as_hashref()
+
+Convert resopnse object to HashRef.
+
+Format is following: 
+
+    code: Int
+    message: Str
+    protocol: Str
+    headers: ArrayRef[Str]
+    content: Str
 
 =item $res->is_success
 
