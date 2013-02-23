@@ -180,8 +180,8 @@ way to really utilize them, so don't use it)
     my $req = HTTP::Request->new(...);
     my $res = $furl->request($req);
 
-You can also specify an object other than HTTP::Request, but the object
-must implement the following methods:
+You can also specify an object other than HTTP::Request (e.g. Furl::Request),
+but the object must implement the following methods:
 
 =over 4
 
