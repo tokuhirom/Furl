@@ -17,6 +17,27 @@ sub new {
     } => $class;
 }
 
+sub parse {
+    my $class = shift;
+    my $raw_request = shift;
+
+    return unless $raw_request =~ s!^(.+) (.+) HTTP/1.(\d+)\s*!!;
+    my ($method, $uri, $minor) = ($1, $2, $3);
+
+    my ($header_str, $content) = split /\x0d?\x0a\x0d?\x0a/, $raw_request, 2;
+
+    my $headers = +{};
+    for (split /\x0d?\x0a/ => $header_str) {
+        tr/\x0d\x0a//d;
+        my ($k, $v) = split /\s*:\s*/, $_, 2;
+        $headers->{$k} = $v;
+    }
+
+    # TODO: construct URI from Host header
+
+    return $class->new($minor, $method, $uri, $headers, $content);
+}
+
 # accessors
 sub method  { shift->{method} }
 sub uri     { shift->{uri} }
@@ -90,6 +111,10 @@ This is a HTTP request object in Furl.
 =head1 CONSTRUCTOR
 
     my $req = Furl::Request->new($minor_version, $method, $uri, \%headers, $content);
+
+    # or
+
+    my $req = Furl::Request->parse($http_request_raw_string);
 
 =head1 INSTANCE METHODS
 
