@@ -31,9 +31,16 @@ sub parse {
         tr/\x0d\x0a//d;
         my ($k, $v) = split /\s*:\s*/, $_, 2;
         $headers->{$k} = $v;
+
+        # complete host_port
+        if (lc $k eq 'host') {
+            $uri = $v . $uri;
+        }
     }
 
-    # TODO: construct URI from Host header
+    unless ($uri =~ /^http/) {
+        $uri = "http://$uri";
+    }
 
     return $class->new($minor, $method, $uri, $headers, $content);
 }
