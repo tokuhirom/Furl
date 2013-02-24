@@ -569,6 +569,7 @@ sub request {
     }
 
     if ($self->_keep_request) {
+        _requires('Furl/Request.pm', 'keep related request for response', 'Furl::Request');
         $request = Furl::Request->parse($request_headers . $request_content);
     }
 
