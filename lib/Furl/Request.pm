@@ -66,7 +66,11 @@ sub protocol {
 
 sub request_line {
     my $self = shift;
-    sprintf '%s %s %s' => $self->method, $self->uri, $self->protocol;
+
+    my $path_query = $self->uri . ''; # for URI.pm
+    $path_query =~ s!^https?://[^/]+!!;
+
+    sprintf '%s %s %s' => $self->method, $path_query, $self->protocol;
 }
 
 sub as_http_request {
