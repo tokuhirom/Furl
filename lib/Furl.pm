@@ -119,6 +119,8 @@ I<%args> might be:
 
 =item max_redirects :Int = 7
 
+=item keep_request :Int = 0
+
 =item proxy :Str
 
 =item no_proxy :Str
