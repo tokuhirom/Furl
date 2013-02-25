@@ -28,11 +28,11 @@ sub parse {
     return unless $raw_request =~ s!^(.+) (.+) HTTP/1.(\d+)\s*!!;
     my ($method, $uri, $minor) = ($1, $2, $3);
 
-    my ($header_str, $content) = split /\x0d?\x0a\x0d?\x0a/, $raw_request, 2;
+    my ($header_str, $content) = split /\015?\012\015?\012/, $raw_request, 2;
 
     my $headers = +{};
-    for (split /\x0d?\x0a/ => $header_str) {
-        tr/\x0d\x0a//d;
+    for (split /\015?\012/ => $header_str) {
+        tr/\015\012//d;
         my ($k, $v) = split /\s*:\s*/, $_, 2;
         $headers->{$k} = $v;
 
