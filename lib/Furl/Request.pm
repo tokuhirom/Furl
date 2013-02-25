@@ -21,6 +21,10 @@ sub parse {
     my $class = shift;
     my $raw_request = shift;
 
+    # I didn't use HTTP::Parser::XS for following reasons:
+    # 1. parse_http_request() function omits request content, but need to deal it.
+    # 2. this function parses header to PSGI env, but env/header mapping is troublesome.
+
     return unless $raw_request =~ s!^(.+) (.+) HTTP/1.(\d+)\s*!!;
     my ($method, $uri, $minor) = ($1, $2, $3);
 
