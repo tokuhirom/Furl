@@ -48,6 +48,15 @@ sub as_http_response {
     return $res;
 }
 
+sub to_psgi {
+    my ($self) = @_;
+    return [
+        $self->code,
+        [$self->headers->flatten],
+        [$self->content]
+    ];
+}
+
 sub as_hashref {
     my $self = shift;
 
@@ -130,6 +139,10 @@ Returns HTTP protocol in string.
 =item $res->as_http_response
 
 Make instance of L<HTTP::Response> from L<Furl::Response>.
+
+=item $res->to_psgi()
+
+Convert object to L<PSGI> response. It's very useful to make proxy.
 
 =item $res->as_hashref()
 

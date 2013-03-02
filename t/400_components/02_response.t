@@ -58,6 +58,23 @@ subtest 'as_hashref' => sub {
     );
 };
 
+subtest 'to_psgi' => sub {
+    my $dat = $res->to_psgi;
+    is(0+@$dat, 3);
+    is($dat->[0], 200);
+    is_deeply(
+        [sort @{$dat->[1]}],
+        [sort qw(
+            content-type text/html
+            x-foo yay
+            x-bar hoge
+            content-length 9
+            content-encoding chunked
+        )]
+    );
+    is_deeply($dat->[2], ['hit man']);
+};
+
 subtest decoded_content => sub {
     my $res = Furl::Response->new(
         1, 200, 'OK',
