@@ -10,12 +10,14 @@ test_tcp(
     client => sub {
         my $port = shift;
 
-        subtest 'return request' => sub {
+        subtest 'return request info' => sub {
             my $furl = Furl::HTTP->new(keep_request => 1);
             my @res = $furl->request( url => "http://127.0.0.1:$port/1", );
-            my $req = pop @res;
 
-            isa_ok $req, 'Furl::Request';
+            my $content = pop @res;
+            my $headers = pop @res;
+            my $req = Furl::Request->parse($headers . $content);
+
             is $req->method, 'GET';
             is $req->uri, "http://127.0.0.1:$port/1";
         };

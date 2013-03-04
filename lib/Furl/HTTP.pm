@@ -70,7 +70,7 @@ sub new {
         stop_if           => sub {},
         inet_aton         => sub { Socket::inet_aton($_[0]) },
         ssl_opts          => {},
-        keep_request      => 0,
+        keep_request      => defined $args{keep_request} ? $args{keep_request} : $KeepRequest,
         %args
     }, $class;
 }
@@ -213,11 +213,6 @@ sub env_proxy {
     $self;
 }
 
-sub _keep_request {
-    my $self = shift;
-    return $KeepRequest || $self->{keep_request};
-}
-
 sub request {
     my $self = shift;
     my %args = @_;
@@ -308,7 +303,7 @@ sub request {
     }
 
     # keep request dump
-    my ($request, $request_headers, $request_content) = (undef, "", "");
+    my ($req_headers, $req_content) = ("", "");
 
     # write request
     my $method = $args{method} || 'GET';
@@ -386,8 +381,8 @@ sub request {
             or return $self->_r500(
                 "Failed to send HTTP request: " . _strerror_or_timeout());
 
-        if ($self->_keep_request) {
-            $request_headers = $p;
+        if ($self->{keep_request}) {
+            $req_headers = $p;
         }
 
         if (defined $content) {
@@ -406,8 +401,8 @@ sub request {
                             "Failed to send content: " . _strerror_or_timeout()
                         );
 
-                    if ($self->_keep_request) {
-                        $request_content .= $buf;
+                    if ($self->{keep_request}) {
+                        $req_content .= $buf;
                     }
                 }
             } else { # simple string
@@ -417,8 +412,8 @@ sub request {
                             "Failed to send content: " . _strerror_or_timeout()
                         );
 
-                    if ($self->_keep_request) {
-                        $request_content = $content;
+                    if ($self->{keep_request}) {
+                        $req_content = $content;
                     }
                 }
             }
@@ -568,12 +563,10 @@ sub request {
         $res_content = $res_content->get_response_string;
     }
 
-    if ($self->_keep_request) {
-        require Furl::Request;
-        $request = Furl::Request->parse($request_headers . $request_content);
-    }
-
-    return ($res_minor_version, $res_status, $res_msg, $res_headers, $res_content, $request);
+    return (
+        $res_minor_version, $res_status, $res_msg, $res_headers, $res_content,
+        $req_headers, $req_content,
+    );
 }
 
 # connects to $host:$port and returns $socket
