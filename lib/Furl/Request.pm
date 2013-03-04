@@ -14,7 +14,7 @@ sub new {
         uri           => $uri,
         headers       => Furl::Headers->new($headers),
         content       => $content,
-    } => $class;
+    }, $class;
 }
 
 sub parse {
@@ -31,7 +31,7 @@ sub parse {
     my ($header_str, $content) = split /\015?\012\015?\012/, $raw_request, 2;
 
     my $headers = +{};
-    for (split /\015?\012/ => $header_str) {
+    for (split /\015?\012/, $header_str) {
         tr/\015\012//d;
         my ($k, $v) = split /\s*:\s*/, $_, 2;
         $headers->{$k} = $v;
