@@ -129,7 +129,7 @@ I<%args> might be:
 
 =item max_redirects :Int = 7
 
-=item keep_request :Int = 0
+=item keep_request :Bool
 
 =item proxy :Str
 

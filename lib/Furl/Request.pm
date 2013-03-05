@@ -146,25 +146,25 @@ This is a HTTP request object in Furl.
 
 =over 4
 
-=item $req->method( $method )
+=item $req->method($method)
 
 Gets/Sets HTTP request method
 
-=item $req->uri( $uri )
+=item $req->uri($uri)
 
 Gets/Sets request uri
 
-=item $req->headers( $headers )
+=item $req->headers($headers)
 
 Gets/Sets instance of L<Furl::Headers>
 
-=item $req->content( $content )
+=item $req->content($content)
 
-=item $req->body( $content )
+=item $req->body($content)
 
 Gets/Sets request body in scalar.
 
-=item $req->protocol( $protocol )
+=item $req->protocol($protocol)
 
     $req->protocol('HTTP/1.1');
     print $req->protocol; #=> "HTTP/1.1"
