@@ -8,6 +8,8 @@ use Test::Requires qw(Plack::Request HTTP::Body), 'Plack::Loader', 'Plack::Reque
 use Plack::Loader;
 use Plack::Request;
 
+$ENV{LANG} = 'C';
+
 test_tcp(
     client => sub {
         my $port = shift;
