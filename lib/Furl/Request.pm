@@ -3,17 +3,28 @@ package Furl::Request;
 use strict;
 use warnings;
 use utf8;
+use Class::Accessor::Lite;
 use Furl::Headers;
 
+Class::Accessor::Lite->mk_accessors(qw/ method uri protocol headers content /);
+
 sub new {
-    my ($class, $minor_version, $method, $uri, $headers, $content) = @_;
+    my $class = shift;
+    my ($method, $uri, $headers, $content) = @_;
+
+    unless (defined $headers) {
+        $headers = +{};
+    }
+
+    unless (defined $content) {
+        $content = '';
+    }
 
     bless +{
-        minor_version => $minor_version,
-        method        => $method,
-        uri           => $uri,
-        headers       => Furl::Headers->new($headers),
-        content       => $content,
+        method  => $method,
+        uri     => $uri,
+        headers => Furl::Headers->new($headers),
+        content => $content,
     }, $class;
 }
 
@@ -25,8 +36,8 @@ sub parse {
     # 1. parse_http_request() function omits request content, but need to deal it.
     # 2. this function parses header to PSGI env, but env/header mapping is troublesome.
 
-    return unless $raw_request =~ s!^(.+) (.+) HTTP/1.(\d+)\s*!!;
-    my ($method, $uri, $minor) = ($1, $2, $3);
+    return unless $raw_request =~ s!^(.+) (.+) (HTTP/1.\d+)\s*!!;
+    my ($method, $uri, $protocol) = ($1, $2, $3);
 
     my ($header_str, $content) = split /\015?\012\015?\012/, $raw_request, 2;
 
@@ -34,7 +45,7 @@ sub parse {
     for (split /\015?\012/, $header_str) {
         tr/\015\012//d;
         my ($k, $v) = split /\s*:\s*/, $_, 2;
-        $headers->{$k} = $v;
+        $headers->{lc $k} = $v;
 
         # complete host_port
         if (lc $k eq 'host') {
@@ -46,27 +57,18 @@ sub parse {
         $uri = "http://$uri";
     }
 
-    return $class->new($minor, $method, $uri, $headers, $content);
+    my $req = $class->new($method, $uri, $headers, $content);
+    $req->protocol($protocol);
+    return $req;
 }
 
-# accessors
-sub method  { shift->{method} }
-sub uri     { shift->{uri} }
-sub headers { shift->{headers} }
-sub content { shift->{content} }
-
 # alias
-sub body { shift->content }
+*body = \&content;
 
 # shorthand
 sub content_length { shift->headers->content_length }
 sub content_type   { shift->headers->content_type }
 sub header         { shift->headers->header(@_) }
-
-sub protocol {
-    my $self = shift;
-    sprintf 'HTTP/1.%d' => $self->{minor_version};
-}
 
 sub request_line {
     my $self = shift;
@@ -74,7 +76,10 @@ sub request_line {
     my $path_query = $self->uri . ''; # for URI.pm
     $path_query =~ s!^https?://[^/]+!!;
 
-    sprintf '%s %s %s' => $self->method, $path_query, $self->protocol;
+    my $method   = $self->method   || '';
+    my $protocol = $self->protocol || '';
+
+    return "$method $path_query $protocol";
 }
 
 sub as_http_request {
@@ -113,9 +118,11 @@ Furl::Request - Request object for Furl
 
 =head1 SYNOPSIS
 
-    my $req = Furl::Request->new($minor_version, $method, $uri, $headers, $content);
-    print $req->request_line, "\n";
+    my $f = Furl->new;
+    my $req = Furl::Request->new($method, $uri, $headers, $content);
+    my $res = $f->request($req);
 
+    print $req->request_line, "\n";
     my $http_req = $req->as_http_request;
     my $req_hash = $req->as_hashref;
 
@@ -125,9 +132,13 @@ This is a HTTP request object in Furl.
 
 =head1 CONSTRUCTOR
 
-    my $req = Furl::Request->new($minor_version, $method, $uri, \%headers, $content);
-
+    my $req = Furl::Request->new($method, $uri);
     # or
+    my $req = Furl::Request->new($method, $uri, \%headers);
+    # or
+    my $req = Furl::Request->new($method, $uri, \%headers, $content);
+
+    # and
 
     my $req = Furl::Request->parse($http_request_raw_string);
 
@@ -135,23 +146,30 @@ This is a HTTP request object in Furl.
 
 =over 4
 
-=item $req->method
+=item $req->method( $method )
 
-Returns HTTP request method
+Gets/Sets HTTP request method
 
-=item $req->uri
+=item $req->uri( $uri )
 
-Returns request uri
+Gets/Sets request uri
 
-=item $req->headers
+=item $req->headers( $headers )
 
-Returns instance of L<Furl::Headers>
+Gets/Sets instance of L<Furl::Headers>
 
-=item $req->content
+=item $req->content( $content )
 
-=item $req->body
+=item $req->body( $content )
 
-Returns request body in scalar.
+Gets/Sets request body in scalar.
+
+=item $req->protocol( $protocol )
+
+    $req->protocol('HTTP/1.1');
+    print $req->protocol; #=> "HTTP/1.1"
+
+Gets/Sets HTTP protocol in string.
 
 =item $req->content_length
 
@@ -160,12 +178,6 @@ Returns request body in scalar.
 =item $req->header
 
 Shorthand to access L<Furl::Headers>.
-
-=item $req->protocol
-
-    print $req->protocol; #=> "HTTP/1.1"
-
-Returns HTTP protocol in string.
 
 =item $req->as_http_request
 
@@ -177,7 +189,7 @@ Convert request object to HashRef.
 
 Format is following:
 
-    method: Strt
+    method: Str
     uri: Str
     protocol: Str
     headers: ArrayRef[Str]
