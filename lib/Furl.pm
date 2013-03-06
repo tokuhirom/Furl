@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use utf8;
 use Furl::HTTP;
+use Furl::Request;
 use Furl::Response;
 use Carp ();
 our $VERSION = '2.07';
@@ -57,8 +58,17 @@ sub request {
         $args{content} = $req->content;
         $args{headers} = $headers;
     }
+
     local $Carp::CarpLevel = $Carp::CarpLevel + 1;
-    Furl::Response->new(${$self}->request(%args));
+    my ($res_minor_version, $res_status, $res_msg, $res_headers, $res_content, $req_headers, $req_content)
+        = ${$self}->request(%args);
+
+    my $req;
+    if ($req_headers) {
+        $req = Furl::Request->parse($req_headers . $req_content);
+    }
+
+    return Furl::Response->new($res_minor_version, $res_status, $res_msg, $res_headers, $res_content, $req);
 }
 
 1;
@@ -118,6 +128,8 @@ I<%args> might be:
 =item timeout :Int = 10
 
 =item max_redirects :Int = 7
+
+=item keep_request :Bool
 
 =item proxy :Str
 
@@ -180,8 +192,8 @@ way to really utilize them, so don't use it)
     my $req = HTTP::Request->new(...);
     my $res = $furl->request($req);
 
-You can also specify an object other than HTTP::Request, but the object
-must implement the following methods:
+You can also specify an object other than HTTP::Request (e.g. Furl::Request),
+but the object must implement the following methods:
 
 =over 4
 
