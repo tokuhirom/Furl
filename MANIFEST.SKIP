@@ -32,3 +32,4 @@ nytprof
 perltidy.ERR$
 ^MYMETA\.
 ^\.travis\.yml$
+^Furl-[0-9.]+/

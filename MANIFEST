@@ -22,6 +22,7 @@ lib/Furl.pm
 lib/Furl/ConnectionCache.pm
 lib/Furl/Headers.pm
 lib/Furl/HTTP.pm
+lib/Furl/Request.pm
 lib/Furl/Response.pm
 lib/Furl/ZlibStream.pm
 Makefile.PL
@@ -60,13 +61,16 @@ t/100_low/30_user_agent.t
 t/100_low/31_chunked_unexpected_eof.t
 t/100_low/32_proxy_auth.t
 t/100_low/33_basic_auth.t
+t/100_low/34_keep_request.t
 t/300_high/01_simple.t
 t/300_high/02_agent.t
 t/300_high/04_http_request.t
 t/300_high/05_suppress_dup_host_header.t
+t/300_high/06_keep_request.t
 t/300_high/99_error.t
 t/400_components/01_headers.t
 t/400_components/02_response.t
+t/400_components/03_request.t
 t/999_intrenal/parse_url.t
 t/HTTPServer.pm
 t/Slowloris.pm

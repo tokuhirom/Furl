@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+2.08 2013-03-06T18:42:22
+
+    - Added Furl::Request
+      (ikasam_a)
+
 2.07 2013-03-02T18:52:33
 
     - added Furl::Response#to_psgi

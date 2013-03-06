@@ -4,7 +4,7 @@ use warnings;
 use base qw/Exporter/;
 use 5.008001;
 
-our $VERSION = '2.07';
+our $VERSION = '2.08';
 
 use Carp ();
 use Furl::ConnectionCache;
