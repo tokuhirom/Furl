@@ -1,5 +1,10 @@
 Revision history for Perl extension Furl
 
+2.09 2013-03-07T06:59:44
+
+    - switch to cpanfile(no feature changes)
+      (tokuhirom)
+
 2.08 2013-03-06T18:42:22
 
     - Added Furl::Request
