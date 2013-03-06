@@ -36,8 +36,6 @@ my %COMPRESSED = map { $_ => undef } qw(gzip x-gzip deflate);
 my $HTTP_TOKEN         = '[^\x00-\x31\x7F]+';
 my $HTTP_QUOTED_STRING = q{"([^"]+|\\.)*"};
 
-our $KeepRequest = 0;
-
 sub new {
     my $class = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
@@ -70,7 +68,7 @@ sub new {
         stop_if           => sub {},
         inet_aton         => sub { Socket::inet_aton($_[0]) },
         ssl_opts          => {},
-        keep_request      => defined $args{keep_request} ? $args{keep_request} : $KeepRequest,
+        keep_request      => $args{keep_request} || 0,
         %args
     }, $class;
 }
