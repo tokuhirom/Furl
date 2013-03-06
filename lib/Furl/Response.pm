@@ -5,13 +5,14 @@ use utf8;
 use Furl::Headers;
 
 sub new {
-    my ($class, $minor_version, $code, $message, $headers, $content) = @_;
+    my ($class, $minor_version, $code, $message, $headers, $content, $request) = @_;
     bless {
         minor_version => $minor_version,
         code    => $code,
         message => $message,
         headers => Furl::Headers->new($headers),
-        content => $content
+        content => $content,
+        request => $request,
     }, $class;
 }
 
@@ -20,6 +21,7 @@ sub code    { shift->{code} }
 sub message { shift->{message} }
 sub headers { shift->{headers} }
 sub content { shift->{content} }
+sub request { shift->{request} }
 
 # alias
 sub status { shift->code() }
@@ -45,6 +47,11 @@ sub as_http_response {
         [ $self->headers->flatten ],
         $self->content );
     $res->protocol($self->protocol);
+
+    if (my $req = $self->request) {
+        $res->request($req->as_http_request);
+    }
+
     return $res;
 }
 
@@ -120,6 +127,10 @@ Returns response body in scalar.
 
 This will return the content after any C<< Content-Encoding >> and charsets have been decoded. See L<< HTTP::Message >> for details
 
+=item $res->request
+
+Returns instance of L<Furl::Request> related this response.
+
 =item $res->content_length
 
 =item $res->content_type
@@ -148,7 +159,7 @@ Convert object to L<PSGI> response. It's very useful to make proxy.
 
 Convert resopnse object to HashRef.
 
-Format is following: 
+Format is following:
 
     code: Int
     message: Str
@@ -161,7 +172,7 @@ Format is following:
 Returns true if status code is 2xx.
 
 =item $res->status_line
-    
+
     $res->status_line() # => "200 OK"
 
 Returns status line.
