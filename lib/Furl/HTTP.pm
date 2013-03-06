@@ -56,18 +56,19 @@ sub new {
         }
     }
     bless {
-        timeout       => 10,
-        max_redirects => 7,
-        bufsize       => 10*1024, # no mmap
-        headers       => \@headers,
+        timeout           => 10,
+        max_redirects     => 7,
+        bufsize           => 10*1024, # no mmap
+        headers           => \@headers,
         connection_header => $connection_header,
-        proxy         => '',
-        no_proxy      => '',
-        connection_pool     => Furl::ConnectionCache->new(),
-        header_format => HEADERS_AS_ARRAYREF,
-        stop_if       => sub {},
-        inet_aton      => sub { Socket::inet_aton($_[0]) },
-        ssl_opts      => {},
+        proxy             => '',
+        no_proxy          => '',
+        connection_pool   => Furl::ConnectionCache->new(),
+        header_format     => HEADERS_AS_ARRAYREF,
+        stop_if           => sub {},
+        inet_aton         => sub { Socket::inet_aton($_[0]) },
+        ssl_opts          => {},
+        keep_request      => $args{keep_request} || 0,
         %args
     }, $class;
 }
@@ -210,7 +211,6 @@ sub env_proxy {
     $self;
 }
 
-
 sub request {
     my $self = shift;
     my %args = @_;
@@ -300,23 +300,13 @@ sub request {
             unless $sock;
     }
 
+    # keep request dump
+    my ($req_headers, $req_content) = ("", "");
+
     # write request
     my $method = $args{method} || 'GET';
     my $connection_header = $self->{connection_header};
     {
-        my $p = $proxy
-            ? "$method $scheme://$host:$port$path_query HTTP/1.1\015\012"
-            : "$method $path_query HTTP/1.1\015\012";
-
-        if($port == $default_port) {
-            # NOTE: some servers refuse host headers with the default port
-            $p .= "Host: $host";
-        }
-        else {
-            $p .= "Host: $host:$port";
-        }
-        $p .= "\015\012";
-
         my @headers = @{$self->{headers}};
         $connection_header = 'close'
             if $method eq 'HEAD';
@@ -372,6 +362,12 @@ sub request {
             }
         }
 
+        # finally, set Host header
+        push @headers, 'Host' => (($port == $default_port) ? $host : "$host:$port");
+
+        my $request_uri = $proxy ? "$scheme://$host:$port$path_query" : $path_query;
+
+        my $p = "$method $request_uri HTTP/1.1\015\012";
         for (my $i = 0; $i < @headers; $i += 2) {
             my $val = $headers[ $i + 1 ];
             # the de facto standard way to handle [\015\012](by kazuho-san)
@@ -382,6 +378,11 @@ sub request {
         $self->write_all($sock, $p, $timeout_at)
             or return $self->_r500(
                 "Failed to send HTTP request: " . _strerror_or_timeout());
+
+        if ($self->{keep_request}) {
+            $req_headers = $p;
+        }
+
         if (defined $content) {
             if ($content_is_fh) {
                 my $ret;
@@ -397,6 +398,10 @@ sub request {
                         or return $self->_r500(
                             "Failed to send content: " . _strerror_or_timeout()
                         );
+
+                    if ($self->{keep_request}) {
+                        $req_content .= $buf;
+                    }
                 }
             } else { # simple string
                 if (length($content) > 0) {
@@ -404,6 +409,10 @@ sub request {
                         or return $self->_r500(
                             "Failed to send content: " . _strerror_or_timeout()
                         );
+
+                    if ($self->{keep_request}) {
+                        $req_content = $content;
+                    }
                 }
             }
         }
@@ -547,11 +556,15 @@ sub request {
     }
 
     # return response.
+
     if (ref $res_content) {
-        return ($res_minor_version, $res_status, $res_msg, $res_headers, $res_content->get_response_string);
-    } else {
-        return ($res_minor_version, $res_status, $res_msg, $res_headers, $res_content);
+        $res_content = $res_content->get_response_string;
     }
+
+    return (
+        $res_minor_version, $res_status, $res_msg, $res_headers, $res_content,
+        $req_headers, $req_content,
+    );
 }
 
 # connects to $host:$port and returns $socket
