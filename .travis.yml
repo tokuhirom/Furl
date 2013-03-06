@@ -1,5 +1,5 @@
 language: perl
 before_install:
-  - cpanm inc::Module::Install Module::Install::AuthorTests Module::Install::ReadmeMarkdownFromPod Plack::Request HTTP::Body Net::DNS::Lite
+  - cpanm inc::Module::Install Module::Install::AuthorTests Module::Install::ReadmeMarkdownFromPod Plack::Request HTTP::Body Net::DNS::Lite Net::IDN::Encode HTTP::Proxy Starlet IO::Callback Plack::Middleware::Deflater HTTP::Proxy
 perl:
   - "5.14"
