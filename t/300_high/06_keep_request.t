@@ -12,15 +12,33 @@ use Test::Requires qw(Plack::Request HTTP::Body), 'HTTP::Request';
 test_tcp(
     client => sub {
         my $port = shift;
-        my $furl = Furl->new(keep_request => 1);
-        my $res = $furl->request(url => "http://127.0.0.1:$port/foo", method => "GET");
-        is $res->code, 200, "request()";
-        can_ok $res => 'request';
 
-        my $req = $res->request;
-        isa_ok $req => 'Furl::Request';
-        is $req->uri => "http://127.0.0.1:$port/foo";
-        is $req->method => 'GET';
+        my $furl = Furl->new(keep_request => 1);
+
+        # GET
+        {
+            my $res = $furl->request(url => "http://127.0.0.1:$port/foo", method => "GET");
+            is $res->code, 200, "request()";
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'GET';
+        }
+
+        # POST
+        {
+            my $res = $furl->request(url => "http://127.0.0.1:$port/foo", method => "POST", content => 'GAH');
+            is $res->code, 200, "request()";
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'POST';
+            is $req->content => 'GAH';
+        }
 
         done_testing;
     },
