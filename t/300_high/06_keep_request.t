@@ -15,7 +15,7 @@ test_tcp(
 
         my $furl = Furl->new(keep_request => 1);
 
-        # GET
+        # request(GET)
         {
             my $res = $furl->request(url => "http://127.0.0.1:$port/foo", method => "GET");
             is $res->code, 200, "request()";
@@ -27,9 +27,22 @@ test_tcp(
             is $req->method => 'GET';
         }
 
-        # POST
+        # request(POST)
         {
             my $res = $furl->request(url => "http://127.0.0.1:$port/foo", method => "POST", content => 'GAH');
+            is $res->code, 200, "request()";
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'POST';
+            is $req->content => 'GAH';
+        }
+
+        # ->post
+        {
+            my $res = $furl->post("http://127.0.0.1:$port/foo", [], 'GAH');
             is $res->code, 200, "request()";
             can_ok $res => 'request';
 
