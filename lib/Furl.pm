@@ -15,16 +15,53 @@ sub new {
     bless \(Furl::HTTP->new(header_format => Furl::HTTP::HEADERS_AS_HASHREF(), @_)), $class;
 }
 
-{
-    no strict 'refs';
-    for my $meth (qw/get head post delete put/) {
-        *{__PACKAGE__ . '::' . $meth} = sub {
-            my $self = shift;
-            local $Carp::CarpLevel = $Carp::CarpLevel + 1;
-            Furl::Response->new(${$self}->$meth(@_));
-        }
-    }
+sub get {
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'GET',
+        url     => $url,
+        headers => $headers
+    );
 }
+
+sub head {
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'HEAD',
+        url     => $url,
+        headers => $headers
+    );
+}
+
+sub post {
+    my ( $self, $url, $headers, $content ) = @_;
+    $self->request(
+        method  => 'POST',
+        url     => $url,
+        headers => $headers,
+        content => $content
+    );
+}
+
+sub put {
+    my ( $self, $url, $headers, $content ) = @_;
+    $self->request(
+        method  => 'PUT',
+        url     => $url,
+        headers => $headers,
+        content => $content
+    );
+}
+
+sub delete {
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'DELETE',
+        url     => $url,
+        headers => $headers
+    );
+}
+
 
 sub agent {
     @_ == 2 ? ${$_[0]}->agent($_[1]) : ${$_[0]}->agent;
