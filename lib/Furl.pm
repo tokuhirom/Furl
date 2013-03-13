@@ -10,6 +10,8 @@ our $VERSION = '2.09';
 
 use 5.008001;
 
+$Carp::Internal{+__PACKAGE__} = 1;
+
 sub new {
     my $class = shift;
     bless \(Furl::HTTP->new(header_format => Furl::HTTP::HEADERS_AS_HASHREF(), @_)), $class;
@@ -96,7 +98,6 @@ sub request {
         $args{headers} = $headers;
     }
 
-    local $Carp::CarpLevel = $Carp::CarpLevel + 1;
     my ($res_minor_version, $res_status, $res_msg, $res_headers, $res_content, $req_headers, $req_content)
         = ${$self}->request(%args);
 
