@@ -19,6 +19,7 @@ test_tcp(
         {
             my $res = $furl->request(url => "http://127.0.0.1:$port/foo", method => "GET");
             is $res->code, 200, "request()";
+            is $res->body, 'OK';
             can_ok $res => 'request';
 
             my $req = $res->request;
@@ -31,6 +32,7 @@ test_tcp(
         {
             my $res = $furl->request(url => "http://127.0.0.1:$port/foo", method => "POST", content => 'GAH');
             is $res->code, 200, "request()";
+            is $res->body, 'OK';
             can_ok $res => 'request';
 
             my $req = $res->request;
@@ -40,10 +42,73 @@ test_tcp(
             is $req->content => 'GAH';
         }
 
+        # ->get
+        {
+            my $res = $furl->get("http://127.0.0.1:$port/foo");
+            is $res->code, 200, "request()";
+            is $res->body, 'OK';
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'GET';
+            is $req->content => '';
+        }
+
+        # ->get with headers
+        {
+            my $res = $furl->get("http://127.0.0.1:$port/foo", [
+                'X-Furl-Requst' => 1,
+            ]);
+            is $res->code, 200, "request()";
+            is $res->body, 'OK';
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'GET';
+            is $req->content => '';
+            is $req->header('X-Furl-Requst'), 1;
+        }
+
+        # ->head
+        {
+            my $res = $furl->head("http://127.0.0.1:$port/foo");
+            is $res->code, 200, "request()";
+            is $res->body, '';
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'HEAD';
+            is $req->content => '';
+        }
+
+        # ->head with headers
+        {
+            my $res = $furl->head("http://127.0.0.1:$port/foo", [
+                'X-Furl-Requst' => 1,
+            ]);
+            is $res->code, 200, "request()";
+            is $res->body, '';
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'HEAD';
+            is $req->content => '';
+            is $req->header('X-Furl-Requst'), 1;
+        }
+
         # ->post
         {
             my $res = $furl->post("http://127.0.0.1:$port/foo", [], 'GAH');
             is $res->code, 200, "request()";
+            is $res->body, 'OK';
             can_ok $res => 'request';
 
             my $req = $res->request;
@@ -51,6 +116,85 @@ test_tcp(
             is $req->uri => "http://127.0.0.1:$port/foo";
             is $req->method => 'POST';
             is $req->content => 'GAH';
+        }
+
+        # ->post with headers
+        {
+            my $res = $furl->post("http://127.0.0.1:$port/foo", [
+                'X-Furl-Requst' => 1,
+            ], 'GAH');
+            is $res->code, 200, "request()";
+            is $res->body, 'OK';
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'POST';
+            is $req->content => 'GAH';
+            is $req->header('X-Furl-Requst'), 1;
+        }
+
+        # ->put
+        {
+            my $res = $furl->put("http://127.0.0.1:$port/foo", [], 'GAH');
+            is $res->code, 200, "request()";
+            is $res->body, 'OK';
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'PUT';
+            is $req->content => 'GAH';
+        }
+
+        # ->put with headers
+        {
+            my $res = $furl->put("http://127.0.0.1:$port/foo", [
+                'X-Furl-Requst' => 1,
+            ], 'GAH');
+            is $res->code, 200, "request()";
+            is $res->body, 'OK';
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'PUT';
+            is $req->content => 'GAH';
+            is $req->header('X-Furl-Requst'), 1;
+        }
+
+        # ->delete
+        {
+            my $res = $furl->delete("http://127.0.0.1:$port/foo");
+            is $res->code, 200, "request()";
+            is $res->body, 'OK';
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'DELETE';
+            is $req->content => '';
+        }
+
+        # ->delete with headers
+        {
+            my $res = $furl->delete("http://127.0.0.1:$port/foo", [
+                'X-Furl-Requst' => 1,
+            ]);
+            is $res->code, 200, "request()";
+            is $res->body, 'OK';
+            can_ok $res => 'request';
+
+            my $req = $res->request;
+            isa_ok $req => 'Furl::Request';
+            is $req->uri => "http://127.0.0.1:$port/foo";
+            is $req->method => 'DELETE';
+            is $req->content => '';
+            is $req->header('X-Furl-Requst'), 1;
         }
 
         done_testing;
