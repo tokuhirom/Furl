@@ -1,6 +1,6 @@
 language: perl
 before_install:
-  - perlbrew install-cpanm
+  - perlbrew -f install-cpanm
   - cpanm Plack::Request HTTP::Body Net::DNS::Lite Net::IDN::Encode HTTP::Proxy Starlet IO::Callback Plack::Middleware::Deflater HTTP::Proxy
 perl:
   - "5.14"
