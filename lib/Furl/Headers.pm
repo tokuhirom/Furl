@@ -10,7 +10,7 @@ sub new {
     if (ref $headers eq 'ARRAY') {
         my @h = @$headers; # copy
         while (my ($k, $v) = splice @h, 0, 2) {
-            push @{$self->{$k}}, $v;
+            push @{$self->{lc $k}}, $v;
         }
     }
     elsif(ref $headers eq 'HASH') {

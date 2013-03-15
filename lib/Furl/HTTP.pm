@@ -68,7 +68,7 @@ sub new {
         stop_if           => sub {},
         inet_aton         => sub { Socket::inet_aton($_[0]) },
         ssl_opts          => {},
-        keep_request      => $args{keep_request} || 0,
+        capture_request   => $args{capture_request} || 0,
         %args
     }, $class;
 }
@@ -379,7 +379,7 @@ sub request {
             or return $self->_r500(
                 "Failed to send HTTP request: " . _strerror_or_timeout());
 
-        if ($self->{keep_request}) {
+        if ($self->{capture_request}) {
             $req_headers = $p;
         }
 
@@ -399,7 +399,7 @@ sub request {
                             "Failed to send content: " . _strerror_or_timeout()
                         );
 
-                    if ($self->{keep_request}) {
+                    if ($self->{capture_request}) {
                         $req_content .= $buf;
                     }
                 }
@@ -410,7 +410,7 @@ sub request {
                             "Failed to send content: " . _strerror_or_timeout()
                         );
 
-                    if ($self->{keep_request}) {
+                    if ($self->{capture_request}) {
                         $req_content = $content;
                     }
                 }

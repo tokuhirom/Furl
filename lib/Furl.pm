@@ -81,6 +81,8 @@ sub request {
     if (@_ % 2 == 0) {
         %args = @_;
     } else {
+        # convert HTTP::Request to hash for Furl::HTTP.
+
         my $req = shift;
         %args = @_;
         my $req_headers= $req->headers;
@@ -98,15 +100,18 @@ sub request {
         $args{headers} = $headers;
     }
 
-    my ($res_minor_version, $res_status, $res_msg, $res_headers, $res_content, $req_headers, $req_content)
-        = ${$self}->request(%args);
+    my (
+        $res_minor_version,
+        $res_status,
+        $res_msg,
+        $res_headers,
+        $res_content,
+        $captured_req_headers,
+        $captured_req_content ) = ${$self}->request(%args);
 
-    my $req;
-    if ($req_headers) {
-        $req = Furl::Request->parse($req_headers . $req_content);
-    }
-
-    return Furl::Response->new($res_minor_version, $res_status, $res_msg, $res_headers, $res_content, $req);
+    my $res = Furl::Response->new($res_minor_version, $res_status, $res_msg, $res_headers, $res_content);
+    $res->set_request_info(\%args, $captured_req_headers, $captured_req_content);
+    return $res;
 }
 
 1;
@@ -167,7 +172,7 @@ I<%args> might be:
 
 =item max_redirects :Int = 7
 
-=item keep_request :Bool
+=item caputre_request :Bool
 
 =item proxy :Str
 

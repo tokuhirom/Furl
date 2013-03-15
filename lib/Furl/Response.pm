@@ -5,15 +5,41 @@ use utf8;
 use Furl::Headers;
 
 sub new {
-    my ($class, $minor_version, $code, $message, $headers, $content, $request) = @_;
+    my ($class, $minor_version, $code, $message, $headers, $content) = @_;
     bless {
         minor_version => $minor_version,
         code    => $code,
         message => $message,
         headers => Furl::Headers->new($headers),
         content => $content,
-        request => $request,
     }, $class;
+}
+
+# DO NOT CALL this method DIRECTLY.
+sub set_request_info {
+    my ($self, $request_src, $captured_req_headers, $captured_req_content) = @_;
+    $self->{request_src} = $request_src;
+    if (defined $captured_req_headers) {
+        $self->{captured_req_headers} = $captured_req_headers;
+        $self->{captured_req_content} = $captured_req_content;
+    }
+    return;
+}
+
+sub captured_req_headers {
+    my $self = shift;
+    unless (exists $self->{captured_req_headers}) {
+        Carp::croak("You can't call cpatured_req_headers method without 'capture_request' options for Furl#new");
+    }
+    return $self->{captured_req_headers};
+}
+
+sub captured_req_content {
+    my $self = shift;
+    unless (exists $self->{captured_req_content}) {
+        Carp::croak("You can't call cpatured_req_content method without 'capture_request' options for Furl#new");
+    }
+    return $self->{captured_req_content};
 }
 
 # accessors
@@ -21,7 +47,23 @@ sub code    { shift->{code} }
 sub message { shift->{message} }
 sub headers { shift->{headers} }
 sub content { shift->{content} }
-sub request { shift->{request} }
+sub request {
+    my $self = shift;
+    if (!exists $self->{request}) {
+        if (!exists $self->{request_src}) {
+            Carp::croak("This request object does not have a request information");
+        }
+
+        # my ($method, $uri, $headers, $content) = @_;
+        $self->{request} = Furl::Request->new(
+            $self->{request_src}->{method},
+            $self->{request_src}->{url},
+            $self->{request_src}->{headers},
+            $self->{request_src}->{content},
+        );
+    }
+    return $self->{request};
+}
 
 # alias
 sub status { shift->code() }
@@ -48,8 +90,10 @@ sub as_http_response {
         $self->content );
     $res->protocol($self->protocol);
 
-    if (my $req = $self->request) {
-        $res->request($req->as_http_request);
+    if ($self->{request_src} || $self->{request}) {
+        if (my $req = $self->request) {
+            $res->request($req->as_http_request);
+        }
     }
 
     return $res;

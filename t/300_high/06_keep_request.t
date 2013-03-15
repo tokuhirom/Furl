@@ -5,6 +5,7 @@ use Test::TCP;
 use Test::Requires qw(Plack::Request HTTP::Body), 'Plack';
 use Plack::Loader;
 use Test::More;
+use Data::Dumper;
 
 use Plack::Request;
 use Test::Requires qw(Plack::Request HTTP::Body), 'HTTP::Request';
@@ -13,7 +14,7 @@ test_tcp(
     client => sub {
         my $port = shift;
 
-        my $furl = Furl->new(keep_request => 1);
+        my $furl = Furl->new(capture_request => 1);
 
         # request(GET)
         {
@@ -70,7 +71,9 @@ test_tcp(
             is $req->uri => "http://127.0.0.1:$port/foo";
             is $req->method => 'GET';
             is $req->content => '';
-            is $req->header('X-Furl-Requst'), 1;
+            is($req->headers->header('X-Furl-Requst'), 1) or diag Dumper($req->headers);
+            is($req->header('X-Furl-Requst'), 1) or diag Dumper($req->headers);
+            is join(',', $req->headers->keys), 'x-furl-requst';
         }
 
         # ->head
