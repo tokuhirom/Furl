@@ -3,7 +3,6 @@ use warnings;
 use Module::Build::Pluggable qw(
     CPANfile
     GithubMeta
-    ReadmeMarkdownFromPod
 );
 
 my $build = Module::Build::Pluggable->new(

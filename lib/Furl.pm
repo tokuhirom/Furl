@@ -6,7 +6,7 @@ use Furl::HTTP;
 use Furl::Request;
 use Furl::Response;
 use Carp ();
-our $VERSION = '2.09';
+our $VERSION = '2.10';
 
 use 5.008001;
 
@@ -172,7 +172,10 @@ I<%args> might be:
 
 =item max_redirects :Int = 7
 
-=item caputre_request :Bool
+=item capture_request :Bool = false
+
+If this parameter is true, L<Furl::HTTP> captures raw request string.
+You can get it by C<< $res->captured_req_headers >> and C<< $res->captured_req_content >>.
 
 =item proxy :Str
 

@@ -1,5 +1,12 @@
 Revision history for Perl extension Furl
 
+2.10 2013-03-18T16:08:02
+
+    [INCOMPATIBLE CHANGES]
+    - 'keep_request' parameter introduced in 2.08 was *removed*.
+    - Furl::Response#request is always useful if you are using highlevel API.
+    - Added Furl::Response#captured_req_content and Furl::Response#captured_req_headers
+
 2.09 2013-03-07T06:59:44
 
     - switch to cpanfile(no feature changes)

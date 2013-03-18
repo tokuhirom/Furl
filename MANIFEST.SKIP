@@ -34,4 +34,4 @@ perltidy.ERR$
 ^\.travis\.yml$
 ^Furl-[0-9.]+/
 ^_build/
-
+^README.pod$

@@ -21,7 +21,6 @@ MANIFEST			This list of files
 META.json
 META.yml
 README
-README.mkdn
 t/00_compile.t
 t/01_version.t
 t/100_low/01_simple.t
