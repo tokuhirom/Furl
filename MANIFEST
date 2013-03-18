@@ -5,23 +5,10 @@ benchmark/byown.pl
 benchmark/note.mkdn
 benchmark/profile.pl
 benchmark/simple.pl
+Build.PL
 Changes
 cpanfile
 example/get.pl
-inc/Module/CPANfile.pm
-inc/Module/Install.pm
-inc/Module/Install/AuthorTests.pm
-inc/Module/Install/Base.pm
-inc/Module/Install/Can.pm
-inc/Module/Install/CPANfile.pm
-inc/Module/Install/Fetch.pm
-inc/Module/Install/Include.pm
-inc/Module/Install/Makefile.pm
-inc/Module/Install/Metadata.pm
-inc/Module/Install/ReadmeMarkdownFromPod.pm
-inc/Module/Install/Win32.pm
-inc/Module/Install/WriteAll.pm
-inc/Pod/Markdown.pm
 lib/Furl.pm
 lib/Furl/ConnectionCache.pm
 lib/Furl/Headers.pm
@@ -29,10 +16,11 @@ lib/Furl/HTTP.pm
 lib/Furl/Request.pm
 lib/Furl/Response.pm
 lib/Furl/ZlibStream.pm
-Makefile.PL
+LICENSE
 MANIFEST			This list of files
 META.json
 META.yml
+README
 README.mkdn
 t/00_compile.t
 t/01_version.t
