@@ -76,3 +76,5 @@ HTTPS
 Furl's
 DNS
 hostname
+walf
+charsets

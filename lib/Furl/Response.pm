@@ -201,7 +201,7 @@ Convert object to L<PSGI> response. It's very useful to make proxy.
 
 =item $res->as_hashref()
 
-Convert resopnse object to HashRef.
+Convert response object to HashRef.
 
 Format is following:
 
@@ -220,5 +220,21 @@ Returns true if status code is 2xx.
     $res->status_line() # => "200 OK"
 
 Returns status line.
+
+=item my $headers = $res->captured_req_headers() : Str
+
+Captured request headers in raw string.
+
+This method is only for debugging.
+
+You can use this method if you are using C<< capture_request >> parameter is true.
+
+=item my $content = $res->captured_req_content() : Str
+
+Captured request content in raw string.
+
+This method is only for debugging.
+
+You can use this method if you are using C<< capture_request >> parameter is true.
 
 =back
