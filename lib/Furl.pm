@@ -10,21 +10,60 @@ our $VERSION = '2.09';
 
 use 5.008001;
 
+$Carp::Internal{+__PACKAGE__} = 1;
+
 sub new {
     my $class = shift;
     bless \(Furl::HTTP->new(header_format => Furl::HTTP::HEADERS_AS_HASHREF(), @_)), $class;
 }
 
-{
-    no strict 'refs';
-    for my $meth (qw/get head post delete put/) {
-        *{__PACKAGE__ . '::' . $meth} = sub {
-            my $self = shift;
-            local $Carp::CarpLevel = $Carp::CarpLevel + 1;
-            Furl::Response->new(${$self}->$meth(@_));
-        }
-    }
+sub get {
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'GET',
+        url     => $url,
+        headers => $headers
+    );
 }
+
+sub head {
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'HEAD',
+        url     => $url,
+        headers => $headers
+    );
+}
+
+sub post {
+    my ( $self, $url, $headers, $content ) = @_;
+    $self->request(
+        method  => 'POST',
+        url     => $url,
+        headers => $headers,
+        content => $content
+    );
+}
+
+sub put {
+    my ( $self, $url, $headers, $content ) = @_;
+    $self->request(
+        method  => 'PUT',
+        url     => $url,
+        headers => $headers,
+        content => $content
+    );
+}
+
+sub delete {
+    my ( $self, $url, $headers ) = @_;
+    $self->request(
+        method  => 'DELETE',
+        url     => $url,
+        headers => $headers
+    );
+}
+
 
 sub agent {
     @_ == 2 ? ${$_[0]}->agent($_[1]) : ${$_[0]}->agent;
@@ -42,6 +81,8 @@ sub request {
     if (@_ % 2 == 0) {
         %args = @_;
     } else {
+        # convert HTTP::Request to hash for Furl::HTTP.
+
         my $req = shift;
         %args = @_;
         my $req_headers= $req->headers;
@@ -59,16 +100,18 @@ sub request {
         $args{headers} = $headers;
     }
 
-    local $Carp::CarpLevel = $Carp::CarpLevel + 1;
-    my ($res_minor_version, $res_status, $res_msg, $res_headers, $res_content, $req_headers, $req_content)
-        = ${$self}->request(%args);
+    my (
+        $res_minor_version,
+        $res_status,
+        $res_msg,
+        $res_headers,
+        $res_content,
+        $captured_req_headers,
+        $captured_req_content ) = ${$self}->request(%args);
 
-    my $req;
-    if ($req_headers) {
-        $req = Furl::Request->parse($req_headers . $req_content);
-    }
-
-    return Furl::Response->new($res_minor_version, $res_status, $res_msg, $res_headers, $res_content, $req);
+    my $res = Furl::Response->new($res_minor_version, $res_status, $res_msg, $res_headers, $res_content);
+    $res->set_request_info(\%args, $captured_req_headers, $captured_req_content);
+    return $res;
 }
 
 1;
@@ -129,7 +172,7 @@ I<%args> might be:
 
 =item max_redirects :Int = 7
 
-=item keep_request :Bool
+=item caputre_request :Bool
 
 =item proxy :Str
 

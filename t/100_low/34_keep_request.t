@@ -11,7 +11,7 @@ test_tcp(
         my $port = shift;
 
         subtest 'return request info' => sub {
-            my $furl = Furl::HTTP->new(keep_request => 1);
+            my $furl = Furl::HTTP->new(capture_request => 1);
             my @res = $furl->request( url => "http://127.0.0.1:$port/1", );
 
             my $content = pop @res;

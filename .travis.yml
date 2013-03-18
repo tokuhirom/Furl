@@ -1,6 +1,6 @@
 language: perl
 before_install:
-  - cpanm --self-upgrade
-  - cpanm Plack::Request HTTP::Body Net::DNS::Lite Net::IDN::Encode HTTP::Proxy Starlet IO::Callback Plack::Middleware::Deflater HTTP::Proxy
+  - perlbrew -f install-cpanm
+  - "perl -e 'use Module::CPANfile;print $_,$/ for keys Module::CPANfile->load(q!cpanfile!)->prereq_specs->{configure}->{requires}' | cpanm --notest"
 perl:
   - "5.14"
