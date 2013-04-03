@@ -12,12 +12,7 @@ on test => sub {
     requires 'Test::TCP'  => 1.06;
     requires 'Test::Requires';
     requires 'Test::Fake::HTTPD';
+    recommends 'Plack';
+    # Starlet IO::Socket::SSL Test::Perl::Critic Test::Pod Test::LeakTrace Net::DNS::Lite Net::IDN::Encode HTTP::Proxy Plack ::Middleware::Deflater IO::Callback
 };
 
-on configure => sub {
-    requires 'Module::Build' => 0.40;
-    requires 'Module::Build::Pluggable';
-    requires 'Module::Build::Pluggable::GithubMeta';
-    requires 'Module::Build::Pluggable::CPANfile';
-    requires 'Module::Build::Pluggable::ReadmeMarkdownFromPod';
-};

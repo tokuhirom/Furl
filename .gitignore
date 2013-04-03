@@ -20,3 +20,9 @@ nytprof*
 core
 perltidy.ERR
 MYMETA.json
+/Furl-*
+/.build
+/_build_params
+/Build
+!Build/
+!META.json

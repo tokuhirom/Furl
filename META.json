@@ -1,0 +1,100 @@
+{
+   "abstract" : "Lightning-fast URL fetcher",
+   "author" : [
+      "Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Minilla/v0.0.49, CPAN::Meta::Converter version 2.120921",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Furl",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "xt",
+         "inc",
+         "share",
+         "eg",
+         "examples"
+      ]
+   },
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "CPAN::Meta" : "0",
+            "CPAN::Meta::Prereqs" : "0",
+            "Module::Build" : "0.4",
+            "Module::Build::Pluggable" : "0",
+            "Module::Build::Pluggable::CPANfile" : "0",
+            "Module::Build::Pluggable::GithubMeta" : "0",
+            "Module::Build::Pluggable::ReadmeMarkdownFromPod" : "0"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "Pod::Wordlist::hanekomu" : "0",
+            "Test::CPAN::Meta" : "0",
+            "Test::MinimumVersion" : "0.10108",
+            "Test::Pod" : "1.41",
+            "Test::Spelling" : "0"
+         }
+      },
+      "runtime" : {
+         "recommends" : {
+            "Compress::Raw::Zlib" : "0",
+            "IO::Socket::SSL" : "0",
+            "Net::IDN::Encode" : "0"
+         },
+         "requires" : {
+            "Class::Accessor::Lite" : "0",
+            "HTTP::Parser::XS" : "0.11",
+            "MIME::Base64" : "0",
+            "Mozilla::CA" : "0",
+            "perl" : "5.008001"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::Fake::HTTPD" : "0",
+            "Test::More" : "0.96",
+            "Test::Requires" : "0",
+            "Test::TCP" : "1.06"
+         }
+      }
+   },
+   "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/tokuhirom/Furl/issues"
+      },
+      "homepage" : "https://github.com/tokuhirom/Furl",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/tokuhirom/Furl.git",
+         "web" : "https://github.com/tokuhirom/Furl"
+      }
+   },
+   "version" : "2.10",
+   "x_contributors" : [
+      "Keiji, Yoshimi <walf443@gmail.com>",
+      "Fuji, Goro <gfuji@cpan.org>",
+      "lestrrat <lestrrat+github@gmail.com>",
+      "Audrey Tang <audreyt@audreyt.org>",
+      "mattn <mattn.jp@gmail.com>",
+      "Fuji Goro <fuji.goro@dena.jp>",
+      "bayashi <bayashi@cpan.org>",
+      "Syohei YOSHIDA <syohex@gmail.com>",
+      "Kazuho Oku <kazuhooku@gmail.com>",
+      "Fuji, Goro <g.psy.va@gmail.com>",
+      "s-aska <s.aska.org@gmail.com>",
+      "Masahiro Nagano <kazeburo@gmail.com>",
+      "ikasam_a <masaki.nakagawa@gmail.com>",
+      "xaicron <xaicron@gmail.com>",
+      "tokuhirom <tokuhirom@gmail.com>"
+   ]
+}
