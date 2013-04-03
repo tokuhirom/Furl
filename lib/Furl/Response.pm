@@ -123,6 +123,50 @@ sub as_hashref {
 sub is_success { substr( $_[0]->code, 0, 1 ) eq '2' }
 sub status_line { $_[0]->code . ' ' . $_[0]->message }
 
+sub charset {
+    my $self = shift;
+
+    return $self->{__charset} if exists $self->{__charset};
+    if ($self->can('content_charset')){
+        # To suppress:
+        # Parsing of undecoded UTF-8 will give garbage when decoding entities
+        local $SIG{__WARN__} = sub {};
+        my $charset = $self->content_charset;
+        $self->{__charset} = $charset;
+        return $charset;
+    }
+
+    my $content_type = $self->headers->header('Content-Type');
+    return unless $content_type;
+    $content_type =~ /charset=([A-Za-z0-9_\-]+)/io;
+    $self->{__charset} = $1 || undef;
+
+    # Detect charset from HTML
+    unless (defined($self->{__charset}) && $self->content_type =~ m{text/html}) {
+        # I guess, this is not so perfect regexp. patches welcome.
+        #
+        # <meta http-equiv="Content-Type" content="text/html; charset=EUC-JP"/>
+        $self->content =~ m!<meta\s+http-equiv\s*=["']Content-Type["']\s+content\s*=\s*["']text/html;\s*charset=([^'">/]+)['"]\s*/?>!smi;
+        $self->{__charset} = $1;
+    }
+
+    $self->{__charset};
+}
+
+sub encoder {
+    require Encode;
+    my $self = shift;
+    return $self->{__encoder} if exists $self->{__encoder};
+    my $charset = $self->charset or return;
+    my $enc = Encode::find_encoding($charset);
+    $self->{__encoder} = $enc;
+}
+
+sub encoding {
+    my $enc = shift->encoder or return;
+    $enc->name;
+}
+
 1;
 __END__
 
