@@ -1,4 +1,4 @@
-package Slowloris;
+package t::Slowloris;
 use strict;
 use warnings;
 use Test::SharedFork;
