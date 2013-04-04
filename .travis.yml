@@ -2,6 +2,6 @@ language: perl
 before_install:
   - perlbrew -f install-cpanm
   - 'cpanm Module::CPANfile'
-  - "perl -e 'use Module::CPANfile;print $_,$/ for keys Module::CPANfile->load(q!cpanfile!)->prereq_specs->{configure}->{requires}' | cpanm --notest"
+  - "perl -e 'use Module::CPANfile;print $_,$/ for keys Module::CPANfile->load(q!cpanfile!)->prereq_specs->{test}->{recommends}' | cpanm --notest"
 perl:
   - "5.14"
