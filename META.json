@@ -84,6 +84,7 @@
             "Plack::Request" : "0",
             "Starlet::Server" : "0",
             "Test::SharedFork" : "0",
+            "Test::Valgrind" : "0",
             "URI" : "0",
             "parent" : "0"
          },
