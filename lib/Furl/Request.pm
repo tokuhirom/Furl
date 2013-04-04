@@ -152,7 +152,7 @@ Gets/Sets HTTP request method
 
 =item $req->uri($uri)
 
-Gets/Sets request uri
+Gets/Sets request URI
 
 =item $req->headers($headers)
 

@@ -151,7 +151,7 @@ Furl - Lightning-fast URL fetcher
 =head1 DESCRIPTION
 
 Furl is yet another HTTP client library. LWP is the de facto standard HTTP
-client for Perl5, but it is too slow for some critical jobs, and too complex
+client for Perl 5, but it is too slow for some critical jobs, and too complex
 for weekend hacking. Furl resolves these issues. Enjoy it!
 
 =head1 INTERFACE
@@ -397,7 +397,7 @@ See L<IO::Socket::SSL> for details.
 
 =head1 AUTHOR
 
-Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>
+Tokuhiro Matsuno E<lt>tokuhirom @gmail COME<gt>
 
 Fuji, Goro (gfx)
 

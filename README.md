@@ -30,7 +30,7 @@ Furl - Lightning-fast URL fetcher
 # DESCRIPTION
 
 Furl is yet another HTTP client library. LWP is the de facto standard HTTP
-client for Perl5, but it is too slow for some critical jobs, and too complex
+client for Perl 5, but it is too slow for some critical jobs, and too complex
 for weekend hacking. Furl resolves these issues. Enjoy it!
 
 # INTERFACE
@@ -251,7 +251,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 # AUTHOR
 
-Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>
+Tokuhiro Matsuno <tokuhirom @gmail COM>
 
 Fuji, Goro (gfx)
 

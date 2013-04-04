@@ -248,7 +248,7 @@ sub request {
         $path_query = "/$path_query"; # Compensate for slash (?foo=bar => /?foo=bar)
     }
 
-    # Note. '_' is a invalid character for uri, but some servers using fucking underscore for domain name. Then, I accept the '_' character for domain name.
+    # Note. '_' is a invalid character for URI, but some servers using fucking underscore for domain name. Then, I accept the '_' character for domain name.
     if ($host =~ /[^A-Za-z0-9._-]/) {
         _requires('Net/IDN/Encode.pm',
             'Internationalized Domain Name (IDN)');
@@ -528,14 +528,14 @@ sub request {
             $self->{connection_pool}->push($host, $port, $sock);
         }
     }
-    # explicitely close here, just after returning the socket to the pool,
+    # explicitly close here, just after returning the socket to the pool,
     # since it might be reused in the upcoming recursive call
     undef $sock;
 
     if ($do_redirect) {
         my $location = $special_headers->{location};
         unless ($location =~ m{^[a-z0-9]+://}) {
-            # RFC 2616 14.30 says Location header is absoluteURI.
+            # RFC 2616 14.30 says Location header is absolute URI.
             # But, a lot of servers return relative URI.
             _requires("URI.pm", "redirect with relative url");
             $location = URI->new_abs($location, "$scheme://$host:$port$path_query")->as_string;
@@ -620,7 +620,7 @@ sub _ssl_opts {
 }
 
 # connect SSL socket.
-# You can override this methond in your child class, if you want to use Crypt::SSLeay or some other library.
+# You can override this method in your child class, if you want to use Crypt::SSLeay or some other library.
 # @return file handle like object
 sub connect_ssl {
     my ($self, $host, $port, $timeout_at) = @_;
@@ -695,7 +695,7 @@ sub _read_body_chunked {
                             $HTTP_TOKEN
                             =
                             (?: $HTTP_TOKEN | $HTTP_QUOTED_STRING )
-                        )*               # optional chunk-extentions
+                        )*               # optional chunk-extensions
                         [ ]*             # www.yahoo.com adds spaces here.
                                          # Is this valid?
                         \015\012         # CR+LF
@@ -820,10 +820,10 @@ sub read_timeout {
         defined($ret = sysread($sock, $$buf, $len, $off))
             and return $ret;
         if ($! == EAGAIN || $! == EWOULDBLOCK || (WIN32 && $! == EISCONN)) {
-            # pass thru
+            # passthru
         } elsif ($! == EINTR) {
             return undef if $self->{stop_if}->();
-            # otherwise pass thru
+            # otherwise passthru
         } else {
             return undef;
         }
@@ -841,10 +841,10 @@ sub write_timeout {
         defined($ret = syswrite($sock, $buf, $len, $off))
             and return $ret;
         if ($! == EAGAIN || $! == EWOULDBLOCK || (WIN32 && $! == EISCONN)) {
-            # pass thru
+            # passthru
         } elsif ($! == EINTR) {
             return undef if $self->{stop_if}->();
-            # otherwise pass thru
+            # otherwise passthru
         } else {
             return undef;
         }
@@ -997,7 +997,7 @@ Furl::HTTP - Low level interface to Furl
 =head1 DESCRIPTION
 
 Furl is yet another HTTP client library. LWP is the de facto standard HTTP
-client for Perl5, but it is too slow for some critical jobs, and too complex
+client for Perl 5, but it is too slow for some critical jobs, and too complex
 for weekend hacking. Furl resolves these issues. Enjoy it!
 
 =head1 INTERFACE

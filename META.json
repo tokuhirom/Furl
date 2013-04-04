@@ -1,7 +1,7 @@
 {
    "abstract" : "Lightning-fast URL fetcher",
    "author" : [
-      "Tokuhiro Matsuno <tokuhirom AAJKLFJEF GMAIL COM>"
+      "Tokuhiro Matsuno <tokuhirom @gmail COM>"
    ],
    "dynamic_config" : 0,
    "generated_by" : "Minilla/v0.0.49, CPAN::Meta::Converter version 2.120921",
