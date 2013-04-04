@@ -30,6 +30,7 @@ on test => sub {
     recommends 'URI';
     recommends 'parent';
     recommends 'Plack';
+    recommends 'Test::Valgrind';
 };
 
 on develop => sub {
