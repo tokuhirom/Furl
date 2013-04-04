@@ -2,6 +2,11 @@ Revision history for Perl extension Furl
 
 {{$NEXT}}
 
+2.11 2013-04-04T03:02:13Z
+
+    - [EXPERIMENTAL] Added Furl::Response#encoding
+      (tokuhirom)
+
 2.10 2013-03-18T16:08:02
 
     [INCOMPATIBLE CHANGES]
