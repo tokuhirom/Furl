@@ -1,7 +1,7 @@
 language: perl
 before_install:
   - perlbrew -f install-cpanm
-  - 'cpanm Module::CPANfile'
-  - "perl -e 'use Module::CPANfile;print $_,$/ for keys Module::CPANfile->load(q!cpanfile!)->prereq_specs->{test}->{recommends}' | cpanm --notest"
+  - 'cpanm App::mymeta_requires'
+  - "mymeta-requires --test --recommends | cpanm"
 perl:
   - "5.14"
