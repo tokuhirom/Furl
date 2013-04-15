@@ -7,9 +7,9 @@ requires 'Scalar::Util';
 requires 'Socket';
 requires 'Time::HiRes';
 
-recommends 'HTTP::Headers'; # Furl::Headers
-recommends 'HTTP::Request'; # Furl::Request
-recommends 'HTTP::Response'; # Furl::Response
+suggests 'HTTP::Headers'; # Furl::Headers
+suggests 'HTTP::Request'; # Furl::Request
+suggests 'HTTP::Response'; # Furl::Response
 
 recommends 'Net::IDN::Encode';    # for International Domain Name
 recommends 'IO::Socket::SSL';     # for SSL
@@ -20,32 +20,32 @@ on test => sub {
     requires 'Test::TCP'  => 1.06;
     requires 'Test::Requires';
     requires 'Test::Fake::HTTPD';
-    recommends 'File::Temp';
-    recommends 'HTTP::Proxy';
-    recommends 'HTTP::Server::PSGI';
-    recommends 'Plack::Loader';
-    recommends 'Plack::Request';
-    recommends 'Starlet::Server';
-    recommends 'Test::SharedFork';
-    recommends 'URI';
-    recommends 'parent';
-    recommends 'Plack';
-    recommends 'Test::Valgrind';
+    suggests 'File::Temp';
+    suggests 'HTTP::Proxy';
+    suggests 'HTTP::Server::PSGI';
+    suggests 'Plack::Loader';
+    suggests 'Plack::Request';
+    suggests 'Starlet::Server';
+    suggests 'Test::SharedFork';
+    suggests 'URI';
+    suggests 'parent';
+    suggests 'Plack';
+    suggests 'Test::Valgrind';
 };
 
 on develop => sub {
-    requires 'Child';
-    requires 'Getopt::Long';
-    requires 'HTTP::Lite';
-    requires 'LWP::UserAgent';
-    requires 'Plack::Loader';
-    requires 'Starman';
-    requires 'Test::More';
-    requires 'Test::Requires';
-    requires 'Test::TCP';
-    requires 'URI';
-    requires 'WWW::Curl::Easy', '4.14';
-    requires 'autodie';
-    requires 'parent';
+    suggests 'Child';
+    suggests 'Getopt::Long';
+    suggests 'HTTP::Lite';
+    suggests 'LWP::UserAgent';
+    suggests 'Plack::Loader';
+    suggests 'Starman';
+    suggests 'Test::More';
+    suggests 'Test::suggests';
+    suggests 'Test::TCP';
+    suggests 'URI';
+    suggests 'WWW::Curl::Easy', '4.14';
+    suggests 'autodie';
+    suggests 'parent';
 };
 
