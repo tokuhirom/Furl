@@ -2,6 +2,13 @@ Revision history for Perl extension Furl
 
 {{$NEXT}}
 
+2.12 2013-04-15T08:38:49Z
+
+    - Clean up dependencies.
+    I confused about 'recommends' and 'suggests'.
+      Do not use 'recommends' for optional things.
+      (tokuhirom)
+
 2.11 2013-04-04T03:02:13Z
 
     - [EXPERIMENTAL] Added Furl::Response#encoding
