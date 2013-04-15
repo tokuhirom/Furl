@@ -19,7 +19,7 @@ on test => sub {
     requires 'Test::More' => 0.96;    # done_testing, subtest
     requires 'Test::TCP'  => 1.06;
     requires 'Test::Requires';
-    requires 'Test::Fake::HTTPD';
+    suggests 'Test::Fake::HTTPD';
     suggests 'File::Temp';
     suggests 'HTTP::Proxy';
     suggests 'HTTP::Server::PSGI';

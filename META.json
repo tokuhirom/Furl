@@ -4,7 +4,7 @@
       "Tokuhiro Matsuno <tokuhirom @gmail COM>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.0.49, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Minilla/v0.0.53, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -20,7 +20,8 @@
          "inc",
          "share",
          "eg",
-         "examples"
+         "examples",
+         "author"
       ]
    },
    "prereqs" : {
@@ -33,20 +34,22 @@
       },
       "develop" : {
          "requires" : {
+            "Pod::Wordlist::hanekomu" : "0",
+            "Test::CPAN::Meta" : "0",
+            "Test::MinimumVersion" : "0.10108",
+            "Test::Pod" : "1.41",
+            "Test::Spelling" : "0"
+         },
+         "suggests" : {
             "Child" : "0",
             "Getopt::Long" : "0",
             "HTTP::Lite" : "0",
             "LWP::UserAgent" : "0",
             "Plack::Loader" : "0",
-            "Pod::Wordlist::hanekomu" : "0",
             "Starman" : "0",
-            "Test::CPAN::Meta" : "0",
-            "Test::MinimumVersion" : "0.10108",
             "Test::More" : "0",
-            "Test::Pod" : "1.41",
-            "Test::Requires" : "0",
-            "Test::Spelling" : "0",
             "Test::TCP" : "0",
+            "Test::suggests" : "0",
             "URI" : "0",
             "WWW::Curl::Easy" : "4.14",
             "autodie" : "0",
@@ -56,9 +59,6 @@
       "runtime" : {
          "recommends" : {
             "Compress::Raw::Zlib" : "0",
-            "HTTP::Headers" : "0",
-            "HTTP::Request" : "0",
-            "HTTP::Response" : "0",
             "IO::Socket::SSL" : "0",
             "Net::IDN::Encode" : "0"
          },
@@ -72,10 +72,20 @@
             "Socket" : "0",
             "Time::HiRes" : "0",
             "perl" : "5.008001"
+         },
+         "suggests" : {
+            "HTTP::Headers" : "0",
+            "HTTP::Request" : "0",
+            "HTTP::Response" : "0"
          }
       },
       "test" : {
-         "recommends" : {
+         "requires" : {
+            "Test::More" : "0.96",
+            "Test::Requires" : "0",
+            "Test::TCP" : "1.06"
+         },
+         "suggests" : {
             "File::Temp" : "0",
             "HTTP::Proxy" : "0",
             "HTTP::Server::PSGI" : "0",
@@ -83,16 +93,11 @@
             "Plack::Loader" : "0",
             "Plack::Request" : "0",
             "Starlet::Server" : "0",
+            "Test::Fake::HTTPD" : "0",
             "Test::SharedFork" : "0",
             "Test::Valgrind" : "0",
             "URI" : "0",
             "parent" : "0"
-         },
-         "requires" : {
-            "Test::Fake::HTTPD" : "0",
-            "Test::More" : "0.96",
-            "Test::Requires" : "0",
-            "Test::TCP" : "1.06"
          }
       }
    },

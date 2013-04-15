@@ -8,6 +8,7 @@ use Encode;
 use Cwd;
 use URI;
 use Test::More tests => 13;
+use Test::Requires 'Test::Fake::HTTPD';
 use Test::TCP;
 use Test::Fake::HTTPD;
 
