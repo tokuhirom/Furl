@@ -4,7 +4,7 @@ use warnings;
 use base qw/Exporter/;
 use 5.008001;
 
-our $VERSION = '2.12';
+our $VERSION = '2.13';
 
 use Carp ();
 use Furl::ConnectionCache;
@@ -1205,7 +1205,7 @@ You can use L<IO::Callback> for this purpose.
 
 Add an B<Accept-Encoding> header to your request. Furl inflates response bodies transparently according to the B<Content-Encoding> response header.
 
-=item How do you use mutipart/form-data?
+=item How do you use multipart/form-data?
 
 You can use multipart/form-data with L<HTTP::Request::Common>.
 

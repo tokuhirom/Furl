@@ -2,6 +2,11 @@ Revision history for Perl extension Furl
 
 {{$NEXT}}
 
+2.13 2013-04-17T07:52:37Z
+
+    - Tiny test fix.
+      (tokuhirom)
+
 2.12 2013-04-15T08:38:49Z
 
     - Clean up dependencies.
