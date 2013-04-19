@@ -6,7 +6,7 @@ use Furl::HTTP;
 use Furl::Request;
 use Furl::Response;
 use Carp ();
-our $VERSION = '2.13';
+our $VERSION = '2.14';
 
 use 5.008001;
 
@@ -397,7 +397,7 @@ See L<IO::Socket::SSL> for details.
 
 =head1 AUTHOR
 
-Tokuhiro Matsuno E<lt>tokuhirom @gmail COME<gt>
+Tokuhiro Matsuno E<lt>tokuhirom@gmail.comE<gt>
 
 Fuji, Goro (gfx)
 

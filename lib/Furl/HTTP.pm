@@ -4,7 +4,7 @@ use warnings;
 use base qw/Exporter/;
 use 5.008001;
 
-our $VERSION = '2.13';
+our $VERSION = '2.14';
 
 use Carp ();
 use Furl::ConnectionCache;
@@ -1116,7 +1116,7 @@ Content to request.
 
 If this parameter is set, the response content will be saved here instead of in the response object.
 
-It's like a ':content_file' in L<LWP::UserAgent>.
+It's like a C<:content_file> in L<LWP::UserAgent>.
 
 =item write_code : CodeRef
 
@@ -1124,7 +1124,7 @@ If a callback is provided with the "write_code" option
 then this function will be called for each chunk of the response
 content as it is received from the server.
 
-It's like a ':content_cb' in L<LWP::UserAgent>.
+It's like a C<:content_cb> in L<LWP::UserAgent>.
 
 =back
 
@@ -1313,7 +1313,7 @@ To get picohttpparser:
 
 =head2 HOW TO CONTRIBUTE
 
-Please send the pull-req via L<http://github.com/tokuhirom/p5-Furl/>.
+Please send the pull request via L<http://github.com/tokuhirom/p5-Furl/>.
 
 =head1 SEE ALSO
 

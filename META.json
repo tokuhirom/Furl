@@ -1,7 +1,7 @@
 {
    "abstract" : "Lightning-fast URL fetcher",
    "author" : [
-      "Tokuhiro Matsuno <tokuhirom @gmail COM>"
+      "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
    "generated_by" : "Minilla/v0.0.53, CPAN::Meta::Converter version 2.130880",
@@ -113,7 +113,7 @@
          "web" : "https://github.com/tokuhirom/Furl"
       }
    },
-   "version" : "2.13",
+   "version" : "2.14",
    "x_contributors" : [
       "Keiji, Yoshimi <walf443@gmail.com>",
       "Fuji, Goro <gfuji@cpan.org>",
@@ -128,7 +128,6 @@
       "s-aska <s.aska.org@gmail.com>",
       "Masahiro Nagano <kazeburo@gmail.com>",
       "ikasam_a <masaki.nakagawa@gmail.com>",
-      "xaicron <xaicron@gmail.com>",
-      "tokuhirom <tokuhirom@gmail.com>"
+      "xaicron <xaicron@gmail.com>"
    ]
 }

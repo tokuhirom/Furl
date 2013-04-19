@@ -251,7 +251,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 # AUTHOR
 
-Tokuhiro Matsuno <tokuhirom @gmail COM>
+Tokuhiro Matsuno <tokuhirom@gmail.com>
 
 Fuji, Goro (gfx)
 
