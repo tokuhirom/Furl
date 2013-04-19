@@ -6,9 +6,9 @@ use Furl;
 use File::Spec;
 use Encode;
 use Cwd;
+use Test::Requires 'Test::Fake::HTTPD', 'URI';
 use URI;
 use Test::More tests => 13;
-use Test::Requires 'Test::Fake::HTTPD', 'URI';
 use Test::TCP;
 use Test::Fake::HTTPD;
 
