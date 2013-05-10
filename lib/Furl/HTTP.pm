@@ -4,7 +4,7 @@ use warnings;
 use base qw/Exporter/;
 use 5.008001;
 
-our $VERSION = '2.14';
+our $VERSION = '2.15';
 
 use Carp ();
 use Furl::ConnectionCache;
@@ -1244,7 +1244,7 @@ C<If-Modified-Sinse> are more suitable to cache HTTP contents.
 
 =item Why does Furl take longer than specified until it returns a timeout error?
 
-Although Furl itself supports timeout, some underlying modules / functions do not. And the most noticeable one is L<Socket::inet_aton>, the function used for name resolution (a function that converts hostnames to IP addresses). If you need accurate and short timeout for name resolution, the use of L<Net::DNS::Lite> is recommended. The following code snippet describes how to use the module in conjunction with Furl.
+Although Furl itself supports timeout, some underlying modules / functions do not. And the most noticeable one is L<Socket::inet_aton>, the function used for name resolution (a function that converts host names to IP addresses). If you need accurate and short timeout for name resolution, the use of L<Net::DNS::Lite> is recommended. The following code snippet describes how to use the module in conjunction with Furl.
 
     use Net::DNS::Lite qw();
 

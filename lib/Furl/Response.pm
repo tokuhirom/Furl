@@ -180,6 +180,10 @@ sub encoding {
 1;
 __END__
 
+=encoding utf-8
+
+=for stopwords charsets
+
 =head1 NAME
 
 Furl::Response - Response object for Furl

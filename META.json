@@ -4,7 +4,7 @@
       "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.0.53, CPAN::Meta::Converter version 2.130880",
+   "generated_by" : "Minilla/v0.4.2, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -34,11 +34,10 @@
       },
       "develop" : {
          "requires" : {
-            "Pod::Wordlist::hanekomu" : "0",
             "Test::CPAN::Meta" : "0",
             "Test::MinimumVersion" : "0.10108",
             "Test::Pod" : "1.41",
-            "Test::Spellunker" : "v0.0.3"
+            "Test::Spellunker" : "v0.2.2"
          },
          "suggests" : {
             "Child" : "0",
@@ -113,7 +112,7 @@
          "web" : "https://github.com/tokuhirom/Furl"
       }
    },
-   "version" : "2.14",
+   "version" : "2.15",
    "x_contributors" : [
       "Keiji, Yoshimi <walf443@gmail.com>",
       "Fuji, Goro <gfuji@cpan.org>",
