@@ -108,6 +108,16 @@ sub to_psgi {
     ];
 }
 
+sub as_string {
+    my ($self) = @_;
+    return join("",
+        $self->status_line . "\015\012",
+        $self->headers->as_string,
+        "\015\012",
+        $self->content,
+    );
+}
+
 sub as_hashref {
     my $self = shift;
 

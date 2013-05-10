@@ -54,7 +54,7 @@ sub flatten {
     return @ret;
 }
 
-sub keys {
+sub keys :method {
     my $self = shift;
     keys %$self;
 }
@@ -63,8 +63,8 @@ sub header_field_names { shift->keys }
 sub as_string {
     my $self = shift;
     my $ret = '';
-    while (my ($k, $v) = each %$self) {
-        for my $e (@$v) {
+    for my $k (sort keys %$self) {
+        for my $e (@{$self->{$k}}) {
             $ret .= "$k: $e\015\012";
         }
     }

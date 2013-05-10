@@ -86,5 +86,31 @@ subtest decoded_content => sub {
     is $res->decoded_content, "\x{3042}\x{3044}\x{3046}\x{3048}\x{304a}";
 };
 
+subtest 'as_string' => sub {
+    my $res = Furl::Response->new(
+        1, 200, 'OK',
+        +{
+            'x-foo'            => ['yay'],
+            'x-bar'            => ['hoge'],
+            'content-length'   => [9],
+            'content-type'     => ['text/html'],
+            'content-encoding' => ['chunked'],
+        },
+        'hit man'
+    );
+    my $expected = join("\015\012",
+        '200 OK',
+        'content-encoding: chunked',
+        'content-length: 9',
+        'content-type: text/html',
+        'x-bar: hoge',
+        'x-foo: yay',
+        '',
+        'hit man',
+    );
+    is($res->as_string, $expected);
+    is(length($res->as_string), length($expected));
+};
+
 done_testing;
 
