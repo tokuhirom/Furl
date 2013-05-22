@@ -2,6 +2,13 @@ Revision history for Perl extension Furl
 
 {{$NEXT}}
 
+2.16 2013-05-22T07:48:21Z
+
+    - Fix timeout problem(#56) on recent Linux(3.8 or later)
+      (syohex)
+    - Added Furl::Request#as_string
+      (tokuhirom)
+
 2.15 2013-05-10T08:40:10Z
 
     - Added Furl::Response#as_string.
