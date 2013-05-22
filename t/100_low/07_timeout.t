@@ -47,8 +47,8 @@ test_tcp(
                     method     => 'POST',
                     path_query => '/foo',
                     content    => do {
-                        # should be larger than SO_SNDBUF (we use 1MB)
-                        my $content = "0123456789abcdef" x 64 x 1024;
+                        # should be larger than SO_SNDBUF (we use 2MB)
+                        my $content = "0123456789abcdef" x 64 x 2048;
                         open my $fh, '<', \$content or die "oops";
                         $fh;
                     },
