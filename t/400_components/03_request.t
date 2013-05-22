@@ -114,5 +114,31 @@ subtest 'as_hashref' => sub {
     );
 };
 
+subtest 'as_string' => sub {
+    my $req = Furl::Request->new(
+        'POST',
+        'http://example.com/foo?q=bar',
+        +{
+            'x-foo'            => ['yay'],
+            'x-bar'            => ['hoge'],
+            'content-length'   => [7],
+            'content-type'     => ['text/plain'],
+        },
+        'hit man'
+    );
+    $req->protocol('HTTP/1.1');
+
+    my $expected = join("\015\012",
+        'POST http://example.com/foo?q=bar HTTP/1.1',
+        'content-length: 7',
+        'content-type: text/plain',
+        'x-bar: hoge',
+        'x-foo: yay',
+        '',
+        'hit man',
+    );
+    is($req->as_string, $expected);
+};
+
 done_testing;
 

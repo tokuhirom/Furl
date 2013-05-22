@@ -109,6 +109,16 @@ sub as_hashref {
     };
 }
 
+sub as_string {
+    my $self = shift;
+
+    join("\015\012",
+        $self->method . ' ' . $self->uri . ' ' . $self->protocol,
+        $self->headers->as_string,
+        $self->content,
+    );
+}
+
 1;
 __END__
 
