@@ -1,3 +1,5 @@
+requires 'perl', 5.008_001;
+
 requires 'HTTP::Parser::XS' => 0.11;
 requires 'Mozilla::CA';
 requires 'MIME::Base64';
@@ -19,8 +21,8 @@ on test => sub {
     requires 'Test::More' => 0.96;    # done_testing, subtest
     requires 'Test::TCP'  => 1.06;
     requires 'Test::Requires';
+    requires 'File::Temp';
     suggests 'Test::Fake::HTTPD';
-    suggests 'File::Temp';
     suggests 'HTTP::Proxy';
     suggests 'HTTP::Server::PSGI';
     suggests 'Plack::Loader';
