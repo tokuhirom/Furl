@@ -22,6 +22,9 @@ sub set_request_info {
     if (defined $captured_req_headers) {
         $self->{captured_req_headers} = $captured_req_headers;
         $self->{captured_req_content} = $captured_req_content;
+    } else {
+        $self->{captured_req_headers} = undef;
+        $self->{captured_req_content} = undef;
     }
     return;
 }
