@@ -5,6 +5,7 @@ use warnings;
 use utf8;
 use Class::Accessor::Lite;
 use Furl::Headers;
+use Furl::HTTP;
 
 Class::Accessor::Lite->mk_accessors(qw/ method uri protocol headers content /);
 
@@ -113,9 +114,9 @@ sub as_string {
     my $self = shift;
 
     join("\015\012",
-        $self->method . ' ' . $self->uri . ' ' . $self->protocol,
+        $self->method . ' ' . $self->uri . (defined($self->protocol) ? ' ' . $self->protocol : ''),
         $self->headers->as_string,
-        $self->content,
+        ref($self->content) =~ qr{\A(?:ARRAY|HASH)\z} ? Furl::HTTP->make_x_www_form_urlencoded($self->content) : $self->content,
     );
 }
 
