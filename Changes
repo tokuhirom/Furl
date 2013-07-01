@@ -2,6 +2,11 @@ Revision history for Perl extension Furl
 
 {{$NEXT}}
 
+2.17 2013-07-01T03:11:49Z
+
+    - Fix Furl::Request#as_string the request contains ARRAY or HASH.
+      (tokuhirom)
+
 2.16 2013-05-22T07:48:21Z
 
     - Fix timeout problem(#56) on recent Linux(3.8 or later)

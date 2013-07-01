@@ -6,7 +6,7 @@ use Furl::HTTP;
 use Furl::Request;
 use Furl::Response;
 use Carp ();
-our $VERSION = '2.16';
+our $VERSION = '2.17';
 
 use 5.008001;
 
