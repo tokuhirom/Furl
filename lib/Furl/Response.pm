@@ -83,6 +83,11 @@ sub protocol { "HTTP/1." . $_[0]->{minor_version} }
 sub decoded_content {
     my $self = shift;
     my $cloned = $self->headers->clone;
+
+    # 'HTTP::Message::decoded_content' tries to decompress content
+    # if response header contains 'Content-Encoding' field.
+    # However 'Furl' decompresses content by itself, 'Content-Encoding' field
+    # whose value is supported encoding type should be removed from response header.
     my @removed = grep { ! m{\b(?:gzip|x-gzip|deflate)\b} } $cloned->header('content-encoding');
     $cloned->header('content-encoding', \@removed);
 
