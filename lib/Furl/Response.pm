@@ -82,14 +82,27 @@ sub protocol { "HTTP/1." . $_[0]->{minor_version} }
 
 sub decoded_content {
     my $self = shift;
-    $self->as_http_response->decoded_content(@_);
+    my $cloned = $self->headers->clone;
+    my @removed = map {
+        (my $encoding = $_) =~ s/\b(?:gzip|x-gzip|deflate)\b//g;
+        $encoding;
+    } $cloned->header('content-encoding');
+    $cloned->header('content-encoding', \@removed);
+
+    $self->_as_http_response_internal([ $cloned->flatten ])->decoded_content(@_);
 }
 
 sub as_http_response {
     my ($self) = @_;
+    return $self->_as_http_response_internal([ $self->headers->flatten ])
+}
+
+sub _as_http_response_internal {
+    my ($self, $flatten_headers) = @_;
+
     require HTTP::Response;
     my $res = HTTP::Response->new( $self->code, $self->message,
-        [ $self->headers->flatten ],
+        $flatten_headers,
         $self->content );
     $res->protocol($self->protocol);
 
