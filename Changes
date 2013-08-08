@@ -2,6 +2,13 @@ Revision history for Perl extension Furl
 
 {{$NEXT}}
 
+2.18 2013-08-08T07:11:30Z
+
+    - Furl::Response::decoded_content returns undef if user specifies
+      'Accept-Encoding' for data compression. Because content is already
+      inflated, so HTTP::Message::decoded_content failed and return undef.
+      (syohex)
+
 2.17 2013-07-01T03:11:49Z
 
     - Fix Furl::Request#as_string the request contains ARRAY or HASH.
