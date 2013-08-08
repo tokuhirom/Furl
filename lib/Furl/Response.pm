@@ -83,10 +83,7 @@ sub protocol { "HTTP/1." . $_[0]->{minor_version} }
 sub decoded_content {
     my $self = shift;
     my $cloned = $self->headers->clone;
-    my @removed = map {
-        (my $encoding = $_) =~ s/\b(?:gzip|x-gzip|deflate)\b//g;
-        $encoding;
-    } $cloned->header('content-encoding');
+    my @removed = grep { ! m{\b(?:gzip|x-gzip|deflate)\b} } $cloned->header('content-encoding');
     $cloned->header('content-encoding', \@removed);
 
     $self->_as_http_response_internal([ $cloned->flatten ])->decoded_content(@_);
