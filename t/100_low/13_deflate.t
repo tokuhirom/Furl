@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::Requires qw(Plack::Request HTTP::Body), 'Plack';
 use Test::Requires qw(Plack::Request HTTP::Body), 'Plack::Middleware::Deflater', 'Compress::Raw::Zlib';
+use Furl;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
@@ -55,6 +56,15 @@ test_tcp(
                 is $code, 200, "request()";
                 is Furl::HTTP::_header_get($headers, 'content-encoding'), $encoding;
                 is($content, $CONTENT) or do { require Devel::Peek; Devel::Peek::Dump($content) };
+            }
+
+            for(1 .. $n){
+                note "decoded_content $_";
+                my $res = Furl->new(
+                    headers => ['Accept-Encoding' => $encoding]
+                )->get("http://127.0.0.1:$port/");
+
+                ok defined($res->decoded_content);
             }
         }
 
