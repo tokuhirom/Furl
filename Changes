@@ -2,6 +2,12 @@ Revision history for Perl extension Furl
 
 {{$NEXT}}
 
+2.19 2013-08-26T02:10:09Z
+
+    - Testing fix for Starlet >= 0.20.
+      force response HTTP/1.0. Starlet >= 0.20 support HTTP/1.1
+      (kazeburo)
+
 2.18 2013-08-08T07:11:30Z
 
     - Furl::Response::decoded_content returns undef if user specifies
