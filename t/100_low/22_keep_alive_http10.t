@@ -49,6 +49,7 @@ test_tcp(
             max_keepalive_reqs => 10,
         )->run(sub {
             my $env = shift;
+            $env->{SERVER_PROTOCOL} = 'HTTP/1.0'; #force response HTTP/1.0
             return [ 200,
                 [ 'Content-Length' => length($env->{REQUEST_URI}) ],
                 [$env->{REQUEST_URI}]
