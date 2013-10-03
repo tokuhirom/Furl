@@ -1,4 +1,4 @@
-Revision history for Perl extension Furl
+Revision history for Perl module Furl
 
 {{$NEXT}}
 
@@ -44,7 +44,7 @@ Revision history for Perl extension Furl
 2.12 2013-04-15T08:38:49Z
 
     - Clean up dependencies.
-    I confused about 'recommends' and 'suggests'.
+      I confused about 'recommends' and 'suggests'.
       Do not use 'recommends' for optional things.
       (tokuhirom)
 
@@ -58,7 +58,8 @@ Revision history for Perl extension Furl
     [INCOMPATIBLE CHANGES]
     - 'keep_request' parameter introduced in 2.08 was *removed*.
     - Furl::Response#request is always useful if you are using highlevel API.
-    - Added Furl::Response#captured_req_content and Furl::Response#captured_req_headers
+    - Added Furl::Response#captured_req_content and
+      Furl::Response#captured_req_headers
 
 2.09 2013-03-07T06:59:44
 
@@ -96,23 +97,24 @@ Revision history for Perl extension Furl
 
 2.03 2013-02-09T18:17:13
 
-    - Support URL based authorization. Both Proxy-Authorization and Basic Authorization.
+    - Support URL based authorization.
+      Both Proxy-Authorization and Basic Authorization.
 
 2.02 2013-02-06T17:25:11
 
-    * Added Furl::Response#decoded_content
+    - Added Furl::Response#decoded_content
       (xaicron++)
-    * Added Furl::Headers#clone
+    - Added Furl::Headers#clone
       (tokuhirom)
 
 2.01 2013-01-23T19:17:47
 
 
-    * pass SSL_verifycn_name on connecting ssl over proxy.
+    - pass SSL_verifycn_name on connecting ssl over proxy.
       IO::Socket::SSL detects host name from PeerHost, but it can't when user
       is using proxy.
       (aska++)
-    * SSL_verifycn_scheme is not required if skipping verification
+    - SSL_verifycn_scheme is not required if skipping verification
       if skip verification, does not requires SSL_verifycn_scheme
       (kazeburo++)
 
@@ -125,32 +127,32 @@ Revision history for Perl extension Furl
       (tokuhirom)
     *** VERY IMPORTANT INCOMPATIBLE CHANGE ***
 
-1.04
+1.04 2013-01-22
 
     - use `ssl_opts` option in SSL over http proxy
       (aska++)
 
-1.03
+1.03 2013-01-12
 
     - fixed testing issue on perl 5.18 hash randomization
       (gfx)
 
-1.02
+1.02 2013-01-07
 
     - Use Mozilla::CA if SSL_ca_file and SSL_ca_path is not set.
       This behavior respects LWP::Protocol::https.
       (tokuhirom)
 
-1.01
+1.01 2013-01-03
 
     - added `ssl_opts` option to configuring IO::Socket::SSL
       (gfx)
 
-1.00
+1.00 2012-10-19
 
     - Bump up version
 
-0.42
+0.42 2012-10-15
 
     [INCOMPATIBLE CHANGE]
     - Furl::HTTP is no longer reading Furl.pm.
@@ -158,215 +160,230 @@ Revision history for Perl extension Furl
       If you are using Furl class without loading Furl::HTTP,
       it will fail after this release.
 
-0.41
+0.41 2012-09-25
 
     [BUG FIX]
     - Furl#agent does not works in past version.
      (Syohei YOSHIDA)
 
-0.40
+0.40 2012-06-04
 
     - fixed meta data(Slaven++)
       https://github.com/tokuhirom/Furl/issues/35
 
-0.39
+0.39 2012-05-29
 
     - unexpected eof in reading chunked body. It makes busy loop.
       (kazeburo++)
 
-0.38
+0.38 2011-09-05
 
     - added ->agent method(bayashi++)
 
-0.37
+0.37 2011-08-24
 
     - fixed SSL closing issue
       (reported by sugyan++, resolved by kazuho++, and implemented by gfx++)
 
-0.36
+0.36 2011-08-23
 
     - win32 ssl proxy fix(mattn++)
 
-0.35
+0.35 2011-08-11
 
     - Compensate for slash of path-query.(xaicron)
       'http://example.com?foo=bar' → 'http://example.com/?foo=bar'
 
-0.34
+0.34 2011-07-15
 
     - accept the domain using '_' charcter(xaicron)
 
-0.33
+0.33 2011-07-13
 
-    - support url doesn't have trailing slash like 'http://example.com?gfx=isogashi'
+    - support url doesn't have trailing slash
+      like 'http://example.com?gfx=isogashi'
       (xaicron++)
 
-0.32
+0.32 2011-05-30
 
     - remove duplicated Host header on high level API(xaicron)
 
-0.31
+0.31 2011-02-25
 
     - CarpLevel++(xaicron)
 
-0.30
+0.30 2011-02-25
 
     - allow '0000000' as end of chunked response.
 
-0.29
+0.29 2011-02-23
 
 
     - move live tests to xt/.
 
-0.28
+0.28 2011-02-22
 
     - fixed bug on proxy with redirect(mattn)
 
-0.27
+0.27 2011-02-20
 
-    - Add support for 307 (it was not handled as a redirect), with tests for all redirects.
-      (307 is implemented the same as 301, preserving the original requesting method.)
+    - Add support for 307 (it was not handled as a redirect),
+      with tests for all redirects.
+      (307 is implemented the same as 301,
+      preserving the original requesting method.)
       (audreyt++)
 
-0.26
+0.26 2011-02-17
 
     - tiny pod fix(tokuhirom)
 
-0.25
+0.25 2011-02-16
 
     - move fucking ssl test to xt/.
 
-0.24
+0.24 2011-02-08
 
     - workaround for windows (mattn++, xaicron++)
 
-0.23
+0.23 2011-01-30
 
-    - properly implement Furl::env_proxy as a delegate to Furl::HTTP::env_proxy (as was already documented)
+    - properly implement Furl::env_proxy as
+      a delegate to Furl::HTTP::env_proxy (as was already documented)
       (lestrrat)
 
-0.22
+0.22 2011-01-25
 
     - Remove default ports from the Host header
 
-0.21
+0.21 2011-01-11
 
-    - use keep-alive on redirection, do not activate the "write_code" or the "write_func" feature when redirection(kazuho)
-    - silently try to resend a request only when the server returned no respnose at all(kazuho)
+    - use keep-alive on redirection, do not activate the "write_code"
+      or the "write_func" feature when redirection(kazuho)
+    - silently try to resend a request only when the server returned
+      no respnose at all(kazuho)
 
-0.20
+0.20 2010-12-20
 
     - add internal error response message to status message
       (tokuhirom)
 
-0.19
+0.19 2010-12-20
 
     - fixed documentation bug(tokuhirom)
-    - errorneously returned 500 error when closing of the socket was used to indicate eof (i.e. no Content-Encoding or Content-Length)
+    - errorneously returned 500 error when closing of the socket was used
+      to indicate eof (i.e. no Content-Encoding or Content-Length)
       (Kazuho Oku)
 
-0.18
+0.18 2010-12-06
 
 
     - fixed testing issue(reported by many people)
 
-0.17
+0.17 2010-12-03
 
-    - only send the connection header with the highest precedence (Furl::request => Furl::new)
+    - only send the connection header with the highest precedence
+      (Furl::request => Furl::new)
       (Kazuho Oku)
-    - close the connection when furl requested as such, even if the server sent "connection: keep-alive"
+    - close the connection when furl requested as such,
+      even if the server sent "connection: keep-alive"
       (Kazuho Oku)
-    - support keep-alive for $furl->request(method => 'HEAD', headers => [ qw(connection keep-alive) ])
+    - support keep-alive for
+      $furl->request(method => 'HEAD', headers => [ qw(connection keep-alive) ])
       (Kazuho Oku)
-    - always send the connection header (support for automatic keep-alive with HTTP/1.0 servers)
+    - always send the connection header
+      (support for automatic keep-alive with HTTP/1.0 servers)
       (Kazuho Oku)
 
-0.16
+0.16 2010-12-01
 
-        - support for status codes wo. content(kazuho oku)
+    - support for status codes wo. content(kazuho oku)
 
-0.15
+0.15 2010-11-28
 
-        - doc enhancements(tokuhirom)
+    - doc enhancements(tokuhirom)
 
-0.14
+0.14 2010-11-22
 
-        - changed the semantics of the "timeout" parameter from per-IO timeout
-          to request timeout(Kazuho Oku)
-        - optional support for name resolution timeouts using Net::DNS::Lite(Kazuho Oku)
-        - make blocking operations cancellable (through the "stop_if"
-          callback)(Kazuho Oku)
+    - changed the semantics of the "timeout" parameter from per-IO timeout
+      to request timeout(Kazuho Oku)
+    - optional support for name resolution timeouts
+      using Net::DNS::Lite(Kazuho Oku)
+    - make blocking operations cancellable (through the "stop_if"
+      callback)(Kazuho Oku)
 
-0.13
+0.13 2010-11-15
 
-        - do not die when $content is empty string.
+    - do not die when $content is empty string.
 
-0.12
+0.12 2010-11-10
 
-        - fixed testing issue.
+    - fixed testing issue.
 
-0.11
+0.11 2010-11-04
 
-        - fixed testing issue gh#6
-          (reported by ichesnokov)
+    - fixed testing issue gh#6
+      (reported by ichesnokov)
 
-0.10
+0.10 2010-11-02
 
-        - change request() to accept HTTP::Request, and remove request_with_http_request(lestrrat)
-        - Furl::ConnPool.pm was renamed to Furl::ConnectionCache.pm(tokuhirom)
+    - change request() to accept HTTP::Request,
+      and remove request_with_http_request(lestrrat)
+    - Furl::ConnPool.pm was renamed to Furl::ConnectionCache.pm(tokuhirom)
 
-0.09
+0.09 2010-11-01
 
-        - fixed packaging.
+    - fixed packaging.
 
-0.08
+0.08 2010-11-01
 
-        - rewrote connection pooling strategy(tokuhirom)
-          (suggested by kazuho++)
-        - updated docs(tokuhirom)
-        - support relative url in redirection #5(tokuhirom)
+    - rewrote connection pooling strategy(tokuhirom)
+      (suggested by kazuho++)
+    - updated docs(tokuhirom)
+    - support relative url in redirection #5(tokuhirom)
 
-0.07
+0.07 2010-11-01
 
-        - Do not use reference_from, it makes installing issue(reported by y).
-          http://github.com/tokuhirom/p5-Furl/issues#issue/4
+    - Do not use reference_from, it makes installing issue(reported by y).
+      http://github.com/tokuhirom/p5-Furl/issues#issue/4
 
-0.06
+0.06 2010-10-31
 
-        - now Perl 5.8.1 or later is required.(tokuhirom)
-        - High level interface is now available(tokuhirom)
-        - Keep alive on HTTP/1.0(kazuho, gfx)
-        - Retry requests if the connection is closed while in keep-alive(gfx)
+    - now Perl 5.8.1 or later is required.(tokuhirom)
+    - High level interface is now available(tokuhirom)
+    - Keep alive on HTTP/1.0(kazuho, gfx)
+    - Retry requests if the connection is closed while in keep-alive(gfx)
 
-0.05
+0.05 2010-10-30
 
-        - use HTTP::Parser::XS
-        - optimization
-        - users can be set your own special headers.
-        - fixed Deep recursion when redirect over max_redirects.
-        - now, header_get is not public api.
+    - use HTTP::Parser::XS
+    - optimization
+    - users can be set your own special headers.
+    - fixed Deep recursion when redirect over max_redirects.
+    - now, header_get is not public api.
 
-0.04
+0.04 2010-10-26
 
-        - fixed retval handling around Compress::Raw::Zlib(gfx)
-        - Change chuked tests not to use Starman(gfx)
-        - use binmode() for fucking win32(gfx)
+    - fixed retval handling around Compress::Raw::Zlib(gfx)
+    - Change chuked tests not to use Starman(gfx)
+    - use binmode() for fucking win32(gfx)
 
-0.03
+0.03 2010-10-25
 
-        - support no_proxy
-        - fixed keep-alive issue
-        - fix ppport issue for perl < 5.12
-        - THX fix
-        - doc fix
-        - micro optimization
-        - a lot of tweaks
+    - support no_proxy
+    - fixed keep-alive issue
+    - fix ppport issue for perl < 5.12
+    - THX fix
+    - doc fix
+    - micro optimization
+    - a lot of tweaks
 
-0.02
+    [0.02 not released]
 
-        - doc enhancements
-        - micro optimization
-        - more test cases
+    - doc enhancements
+    - micro optimization
+    - more test cases
 
-0.01    Fri Oct 15 17:03:09 2010
-        - original version
+0.01 2010-10-24
+
+    - original version
+
