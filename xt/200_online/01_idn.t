@@ -8,7 +8,7 @@ use Test::Requires qw(Plack::Request HTTP::Body), 'Net::IDN::Encode';
 
 skip_if_offline();
 
-my $url = 'http://例え.テスト/';
+my $url = 'http://日本語.jp/';
 
 my $furl = Furl->new();
 my $res  = $furl->get($url);
