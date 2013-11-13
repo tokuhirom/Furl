@@ -580,7 +580,7 @@ sub connect :method {
         unless $sock_addr;
 
  RETRY:
-    socket($sock, PF_INET, SOCK_STREAM, 0)
+    socket($sock, Socket::sockaddr_family($sock_addr), SOCK_STREAM, 0)
         or Carp::croak("Cannot create socket: $!");
     _set_sockopts($sock);
     if (connect($sock, $sock_addr)) {
