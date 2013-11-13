@@ -636,12 +636,17 @@ sub connect_ssl {
     my ($self, $host, $port, $timeout_at) = @_;
     _requires('IO/Socket/SSL.pm', 'SSL');
 
+    my ($sock, $err_reason) = $self->connect($host, $port, $timeout_at);
+    return (undef, $err_reason)
+        unless $sock;
+
     my $timeout = $timeout_at - time;
     return (undef, "Cannot create SSL connection: timeout")
         if $timeout <= 0;
 
     my $ssl_opts = $self->_ssl_opts;
-    my $sock = IO::Socket::SSL->new(
+    IO::Socket::SSL->start_SSL(
+        $sock,
         PeerHost => $host,
         PeerPort => $port,
         Timeout  => $timeout,
