@@ -56,19 +56,20 @@ sub new {
         }
     }
     bless {
-        timeout           => 10,
-        max_redirects     => 7,
-        bufsize           => 10*1024, # no mmap
-        headers           => \@headers,
-        connection_header => $connection_header,
-        proxy             => '',
-        no_proxy          => '',
-        connection_pool   => Furl::ConnectionCache->new(),
-        header_format     => HEADERS_AS_ARRAYREF,
-        stop_if           => sub {},
-        inet_aton         => sub { Socket::inet_aton($_[0]) },
-        ssl_opts          => {},
-        capture_request   => $args{capture_request} || 0,
+        timeout            => 10,
+        max_redirects      => 7,
+        bufsize            => 10*1024, # no mmap
+        headers            => \@headers,
+        connection_header  => $connection_header,
+        proxy              => '',
+        no_proxy           => '',
+        connection_pool    => Furl::ConnectionCache->new(),
+        header_format      => HEADERS_AS_ARRAYREF,
+        stop_if            => sub {},
+        inet_aton          => sub { Socket::inet_aton($_[0]) },
+        ssl_opts           => {},
+        capture_request    => $args{capture_request} || 0,
+        inactivity_timeout => 600,
         %args
     }, $class;
 }
@@ -801,9 +802,13 @@ sub _read_body_normal_to_string_buffer {
 # returns true if the socket is ready to read, false if timeout has occurred ($! will be cleared upon timeout)
 sub do_select {
     my($self, $is_write, $sock, $timeout_at) = @_;
+    my $now = time;
+    my $inactivity_timeout_at = $now + $self->{inactivity_timeout};
+    $timeout_at = $inactivity_timeout_at
+        if $timeout_at > $inactivity_timeout_at;
     # wait for data
     while (1) {
-        my $timeout = $timeout_at - time;
+        my $timeout = $timeout_at - $now;
         if ($timeout <= 0) {
             $! = 0;
             return 0;
@@ -819,6 +824,7 @@ sub do_select {
         my $nfound   = select($rfd, $wfd, $efd, $timeout);
         return 1 if $nfound > 0;
         return 0 if $nfound == -1 && $! == EINTR && $self->{stop_if}->();
+        $now = time;
     }
     die 'not reached';
 }
@@ -1032,6 +1038,10 @@ I<%args> might be:
 =item timeout :Int = 10
 
 Seconds until the call to $furl->request returns a timeout error (as an internally generated 500 error). The timeout might not be accurate since some underlying modules / built-ins function may block longer than the specified timeout. See the FAQ for how to support timeout during name resolution.
+
+=item inactivity_timeout :Int = 600
+
+An inactivity timer for TCP read/write (in seconds). $furl->request returns a timeout error if no additional data arrives (or is sent) within the specified threshold.
 
 =item max_redirects :Int = 7
 
