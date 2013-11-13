@@ -69,7 +69,7 @@ sub new {
         inet_aton          => sub { Socket::inet_aton($_[0]) },
         ssl_opts           => {},
         capture_request    => $args{capture_request} || 0,
-        inactivity_timeout => 3600,
+        inactivity_timeout => 600,
         %args
     }, $class;
 }
@@ -1039,7 +1039,7 @@ I<%args> might be:
 
 Seconds until the call to $furl->request returns a timeout error (as an internally generated 500 error). The timeout might not be accurate since some underlying modules / built-ins function may block longer than the specified timeout. See the FAQ for how to support timeout during name resolution.
 
-=item inactivity_timeout :Int = 3600
+=item inactivity_timeout :Int = 600
 
 An inactivity timer for TCP read/write (in seconds). $furl->request returns a timeout error if no additional data arrives (or is sent) within the specified threshold.
 
