@@ -604,7 +604,7 @@ sub _get_address {
     if ($self->{get_address}) {
         return $self->{get_address}->($host, $port, $timeout);
     }
-    # default rule
+    # default rule (TODO add support for IPv6)
     my $iaddr = $self->{inet_aton}->($host, $timeout)
         or return (undef, $!);
     pack_sockaddr_in($port, $iaddr);
