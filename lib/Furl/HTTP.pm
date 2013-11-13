@@ -575,13 +575,12 @@ sub connect :method {
     my $timeout = $timeout_at - time;
     return (undef, "Failed to resolve host name: timeout")
         if $timeout <= 0;
-    my $iaddr = $self->{inet_aton}->($host, $timeout)
-        or return (undef, "Cannot resolve host name: $host, $!");
-
-    my $sock_addr = pack_sockaddr_in($port, $iaddr);
+    my ($sock_addr, $err_reason) = $self->_get_address($host, $port, $timeout);
+    return (undef, "Cannot resolve host name: $host (port: $port), " . ($err_reason || $!))
+        unless $sock_addr;
 
  RETRY:
-    socket($sock, PF_INET, SOCK_STREAM, 0)
+    socket($sock, Socket::sockaddr_family($sock_addr), SOCK_STREAM, 0)
         or Carp::croak("Cannot create socket: $!");
     _set_sockopts($sock);
     if (connect($sock, $sock_addr)) {
@@ -598,6 +597,17 @@ sub connect :method {
         return (undef, "Cannot connect to ${host}:${port}: $!");
     }
     $sock;
+}
+
+sub _get_address {
+    my ($self, $host, $port, $timeout) = @_;
+    if ($self->{get_address}) {
+        return $self->{get_address}->($host, $port, $timeout);
+    }
+    # default rule (TODO add support for IPv6)
+    my $iaddr = $self->{inet_aton}->($host, $timeout)
+        or return (undef, $!);
+    pack_sockaddr_in($port, $iaddr);
 }
 
 sub _ssl_opts {
@@ -626,12 +636,17 @@ sub connect_ssl {
     my ($self, $host, $port, $timeout_at) = @_;
     _requires('IO/Socket/SSL.pm', 'SSL');
 
+    my ($sock, $err_reason) = $self->connect($host, $port, $timeout_at);
+    return (undef, $err_reason)
+        unless $sock;
+
     my $timeout = $timeout_at - time;
     return (undef, "Cannot create SSL connection: timeout")
         if $timeout <= 0;
 
     my $ssl_opts = $self->_ssl_opts;
-    my $sock = IO::Socket::SSL->new(
+    IO::Socket::SSL->start_SSL(
+        $sock,
         PeerHost => $host,
         PeerPort => $port,
         Timeout  => $timeout,
@@ -1046,7 +1061,13 @@ You may not customize this variable otherwise to use L<Coro>. This attribute req
 
 A callback function that is called by Furl after when a blocking function call returns EINTR. Furl will abort the HTTP request and return immediately if the callback returns true. Otherwise the operation is continued (the default behaviour).
 
+=item get_address :CodeRef
+
+A callback function to override the default address resolution logic. Takes three arguments: ($hostname, $port, $timeout_in_seconds) and returns: ($sockaddr, $errReason).  If the returned $sockaddr is undef, then the resolution is considered as a failure and $errReason is propagated to the caller.
+
 =item inet_aton :CodeRef
+
+Deprecated.  New applications should use B<get_address> instead.
 
 A callback function to customize name resolution. Takes two arguments: ($hostname, $timeout_in_seconds). If omitted, Furl calls L<Socket::inet_aton>.
 
@@ -1255,21 +1276,21 @@ Although Furl itself supports timeout, some underlying modules / functions do no
 
 =item How can I replace Host header instead of hostname?
 
-Furl::HTTP does not support to replace Host header for performance reason.
+Furl::HTTP does not provide a way to replace the Host header because such a design leads to security issues.
 
-But you can replace DNS resolver routine. It works fine.
+If you want to send HTTP requests to a dedicated server (or a unix socket), you should use the B<get_address> callback to designate the peer to which L<Furl> should connect as B<sockaddr>.
 
-    my $furl = Furl::HTTP->new(
-        inet_aton => sub {
-            my ($hostname, $timeout) = @_;
-            $hostname = +{
-                'the-host' => 'yahoo.com'
-            }->{$hostname} || $hostname;
-            Socket::inet_aton($hostname);
+The example below sends all requests to 127.0.0.1:8080.
+
+    my $ua = Furl::HTTP->new(
+        get_address => sub {
+            my ($host, $port, $timeout) = @_;
+            sockaddr_in(8080, inet_aton("127.0.0.1"));
         },
     );
+
     my ($minor_version, $code, $msg, $headers, $body) = $furl->request(
-        url => 'http://the-host/',
+        url => 'http://example.com/foo',
         method => 'GET'
     );
 
