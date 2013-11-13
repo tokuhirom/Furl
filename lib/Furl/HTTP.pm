@@ -362,8 +362,9 @@ sub request {
             }
         }
 
-        # finally, set Host header
-        push @headers, 'Host' => (($port == $default_port) ? $host : "$host:$port");
+        # finally, set Host header if it was not supplied.
+        push @headers, 'Host' => (($port == $default_port) ? $host : "$host:$port")
+            if !defined _header_get(\@headers, 'Host');
 
         my $request_uri = $proxy ? "$scheme://$host:$port$path_query" : $path_query;
 

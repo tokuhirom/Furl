@@ -11,7 +11,7 @@ test_tcp(
         my $port = shift;
         my $furl = Furl->new();
         my $req = HTTP::Request->new(GET => "http://127.0.0.1:$port/foo");
-        $req->headers->header('Host' => '127.0.0.1');
+        $req->headers->header('Host' => 'foo');
         my $res = $furl->request( $req );
         is $res->code, 200, "HTTP status ok";
     },
@@ -35,7 +35,7 @@ test_tcp(
                 $hash->{$k}++;
             }
             is $hash->{Host}, 1, 'Host header is one';
-            is $env->{HTTP_HOST}, "127.0.0.1:$port", 'Host header is ok';
+            is $env->{HTTP_HOST}, "foo", 'Host header is ok';
             return [200, ['Content-Length' => 2], ['ok']];
         });
     },
