@@ -2,6 +2,17 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.00 2013-11-13T09:39:38Z
+
+    - implement inactivity_timeout (for read / write), requested by autarch++
+      (kazuho)
+    - Implemented a new callback called `get_address`.
+      That fixes the two shortcomings of the existing inet_aton callback listed below.
+
+      * cannot override the port number
+      * cannot support protocols other than IPv4 (e.g. IPv6, unix socket, ...)
+      (kazuho)
+
 2.19 2013-08-26T02:10:09Z
 
     - Testing fix for Starlet >= 0.20.

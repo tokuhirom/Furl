@@ -4,7 +4,7 @@ use warnings;
 use base qw/Exporter/;
 use 5.008001;
 
-our $VERSION = '2.19';
+our $VERSION = '3.00';
 
 use Carp ();
 use Furl::ConnectionCache;
@@ -986,6 +986,8 @@ sub match_no_proxy {
 1;
 __END__
 
+=for stopwords sockaddr
+
 =encoding utf8
 
 =head1 NAME
@@ -1288,7 +1290,7 @@ Although Furl itself supports timeout, some underlying modules / functions do no
 
 Furl::HTTP does not provide a way to replace the Host header because such a design leads to security issues.
 
-If you want to send HTTP requests to a dedicated server (or a unix socket), you should use the B<get_address> callback to designate the peer to which L<Furl> should connect as B<sockaddr>.
+If you want to send HTTP requests to a dedicated server (or a UNIX socket), you should use the B<get_address> callback to designate the peer to which L<Furl> should connect as B<sockaddr>.
 
 The example below sends all requests to 127.0.0.1:8080.
 
