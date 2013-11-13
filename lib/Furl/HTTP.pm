@@ -575,10 +575,9 @@ sub connect :method {
     my $timeout = $timeout_at - time;
     return (undef, "Failed to resolve host name: timeout")
         if $timeout <= 0;
-    my $iaddr = $self->{inet_aton}->($host, $timeout)
-        or return (undef, "Cannot resolve host name: $host, $!");
-
-    my $sock_addr = pack_sockaddr_in($port, $iaddr);
+    my ($sock_addr, $err_reason) = $self->_get_address($host, $port, $timeout);
+    return (undef, "Cannot resolve host name: $host (port: $port), " . ($err_reason || $!))
+        unless $sock_addr;
 
  RETRY:
     socket($sock, PF_INET, SOCK_STREAM, 0)
@@ -598,6 +597,17 @@ sub connect :method {
         return (undef, "Cannot connect to ${host}:${port}: $!");
     }
     $sock;
+}
+
+sub _get_address {
+    my ($self, $host, $port, $timeout) = @_;
+    if ($self->{get_address}) {
+        return $self->{get_address}->($host, $port, $timeout);
+    }
+    # default rule
+    my $iaddr = $self->{inet_aton}->($host, $timeout)
+        or return (undef, $!);
+    pack_sockaddr_in($port, $iaddr);
 }
 
 sub _ssl_opts {
