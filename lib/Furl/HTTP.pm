@@ -1039,6 +1039,10 @@ I<%args> might be:
 
 Seconds until the call to $furl->request returns a timeout error (as an internally generated 500 error). The timeout might not be accurate since some underlying modules / built-ins function may block longer than the specified timeout. See the FAQ for how to support timeout during name resolution.
 
+=item inactivity_timeout :Int = 3600
+
+An inactivity timer for TCP read/write (in seconds). $furl->request returns a timeout error if no additional data arrives (or is sent) within the specified threshold.
+
 =item max_redirects :Int = 7
 
 =item proxy :Str
