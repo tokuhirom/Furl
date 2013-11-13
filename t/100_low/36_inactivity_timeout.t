@@ -3,6 +3,7 @@ use warnings;
 use Socket qw(inet_aton pack_sockaddr_in);
 use Test::More;
 use Test::TCP;
+use Test::Requires qw(HTTP::Server::PSGI);
 
 use Furl::HTTP;
 use t::Slowloris;
