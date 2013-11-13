@@ -4,7 +4,7 @@
       "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.6.3, CPAN::Meta::Converter version 2.131560",
+   "generated_by" : "Minilla/v0.8.4, CPAN::Meta::Converter version 2.132830",
    "license" : [
       "perl_5"
    ],
@@ -21,7 +21,8 @@
          "share",
          "eg",
          "examples",
-         "author"
+         "author",
+         "builder"
       ]
    },
    "prereqs" : {
@@ -121,12 +122,13 @@
       "mattn <mattn.jp@gmail.com>",
       "Fuji Goro <fuji.goro@dena.jp>",
       "bayashi <bayashi@cpan.org>",
-      "Kazuho Oku <kazuhooku@gmail.com>",
       "Fuji, Goro <g.psy.va@gmail.com>",
       "s-aska <s.aska.org@gmail.com>",
       "ikasam_a <masaki.nakagawa@gmail.com>",
       "xaicron <xaicron@gmail.com>",
       "Syohei YOSHIDA <syohex@gmail.com>",
-      "Masahiro Nagano <kazeburo@gmail.com>"
+      "Masahiro Nagano <kazeburo@gmail.com>",
+      "Neil Bowers <neil@bowers.com>",
+      "Kazuho Oku <kazuhooku@gmail.com>"
    ]
 }
