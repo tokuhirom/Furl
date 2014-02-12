@@ -1297,7 +1297,7 @@ The example below sends all requests to 127.0.0.1:8080.
     my $ua = Furl::HTTP->new(
         get_address => sub {
             my ($host, $port, $timeout) = @_;
-            sockaddr_in(8080, inet_aton("127.0.0.1"));
+            pack_sockaddr_in(8080, inet_aton("127.0.0.1"));
         },
     );
 
