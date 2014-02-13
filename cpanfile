@@ -43,11 +43,15 @@ on develop => sub {
     suggests 'Plack::Loader';
     suggests 'Starman';
     suggests 'Test::More';
-    suggests 'Test::suggests';
+    suggests 'Test::Requires';
     suggests 'Test::TCP';
     suggests 'URI';
     suggests 'WWW::Curl::Easy', '4.14';
+    suggests 'IO::Callback';
     suggests 'autodie';
     suggests 'parent';
+    suggests 'Net::IDN::Encode';
+    suggests 'Test::LeakTrace';
+    suggests 'Net::DNS::Lite';
 };
 

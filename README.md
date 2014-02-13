@@ -48,7 +48,7 @@ _%args_ might be:
 - max\_redirects :Int = 7
 - capture\_request :Bool = false
 
-    If this parameter is true, [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP) captures raw request string.
+    If this parameter is true, [Furl::HTTP](https://metacpan.org/pod/Furl::HTTP) captures raw request string.
     You can get it by `$res->captured_req_headers` and `$res->captured_req_content`.
 
 - proxy :Str
@@ -59,7 +59,7 @@ _%args_ might be:
 
 ### `$furl->request([$request,] %args) :Furl::Response`
 
-Sends an HTTP request to a specified URL and returns a instance of [Furl::Response](http://search.cpan.org/perldoc?Furl::Response).
+Sends an HTTP request to a specified URL and returns a instance of [Furl::Response](https://metacpan.org/pod/Furl::Response).
 
 _%args_ might be:
 
@@ -154,12 +154,12 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 - I need more speed.
 
-    See [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP), which provides the low level interface of [Furl](http://search.cpan.org/perldoc?Furl).
-    It is faster than `Furl.pm` since [Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP) does not create response objects.
+    See [Furl::HTTP](https://metacpan.org/pod/Furl::HTTP), which provides the low level interface of [Furl](https://metacpan.org/pod/Furl).
+    It is faster than `Furl.pm` since [Furl::HTTP](https://metacpan.org/pod/Furl::HTTP) does not create response objects.
 
 - How do you use cookie\_jar?
 
-    Furl does not directly support the cookie\_jar option available in LWP. You can use [HTTP::Cookies](http://search.cpan.org/perldoc?HTTP::Cookies), [HTTP::Request](http://search.cpan.org/perldoc?HTTP::Request), [HTTP::Response](http://search.cpan.org/perldoc?HTTP::Response) like following.
+    Furl does not directly support the cookie\_jar option available in LWP. You can use [HTTP::Cookies](https://metacpan.org/pod/HTTP::Cookies), [HTTP::Request](https://metacpan.org/pod/HTTP::Request), [HTTP::Response](https://metacpan.org/pod/HTTP::Response) like following.
 
         my $f = Furl->new();
         my $cookies = HTTP::Cookies->new();
@@ -247,7 +247,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
             },
         });
 
-    See [IO::Socket::SSL](http://search.cpan.org/perldoc?IO::Socket::SSL) for details.
+    See [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) for details.
 
 # AUTHOR
 
@@ -273,13 +273,13 @@ audreyt
 
 # SEE ALSO
 
-[LWP](http://search.cpan.org/perldoc?LWP)
+[LWP](https://metacpan.org/pod/LWP)
 
-[IO::Socket::SSL](http://search.cpan.org/perldoc?IO::Socket::SSL)
+[IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL)
 
-[Furl::HTTP](http://search.cpan.org/perldoc?Furl::HTTP)
+[Furl::HTTP](https://metacpan.org/pod/Furl::HTTP)
 
-[Furl::Response](http://search.cpan.org/perldoc?Furl::Response)
+[Furl::Response](https://metacpan.org/pod/Furl::Response)
 
 # LICENSE
 
