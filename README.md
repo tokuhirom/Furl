@@ -142,6 +142,28 @@ This is an easy-to-use alias to `request()`, sending the `DELETE` method.
 
 Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
+# PACKAGE VARIABLES
+
+- `$Furl::TRACE_FILE`
+
+    __(EXPERIMENTAL)__
+
+    If you set file name to this variable, Furl write the resquest and response to this file.
+
+    It makes easy to debug the request result.
+
+    (The log format may change without notice.)
+
+    You can set this variable by `FURL_TRACE_FILE` environment variable.
+
+# ENVIRONMENT VARIABLES
+
+- FURL\_TRACE\_FILE
+
+    __(EXPERIMENTAL)__
+
+    This environment variable will set to `$Furl::TRACE_FILE` when loaded this module.
+
 # FAQ
 
 - Does Furl depends on XS modules?
@@ -224,6 +246,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
                 if $received_size >= $next_update;
             }
         );
+
 - HTTPS requests claims warnings!
 
     When you make https requests, IO::Socket::SSL may complain about it like:

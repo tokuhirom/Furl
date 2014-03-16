@@ -10,6 +10,8 @@ our $VERSION = '3.01';
 
 use 5.008001;
 
+our $TRACE_FILE = defined($ENV{FURL_TRACE_FILE}) ? $ENV{FURL_TRACE_FILE} : undef;
+
 $Carp::Internal{+__PACKAGE__} = 1;
 
 sub new {
@@ -100,6 +102,8 @@ sub request {
         $args{headers} = $headers;
     }
 
+    local ${$self}->{capture_request} = 1 if defined($TRACE_FILE);
+
     my (
         $res_minor_version,
         $res_status,
@@ -111,6 +115,31 @@ sub request {
 
     my $res = Furl::Response->new($res_minor_version, $res_status, $res_msg, $res_headers, $res_content);
     $res->set_request_info(\%args, $captured_req_headers, $captured_req_content);
+
+    if (defined($TRACE_FILE)) {
+        open my $fh, '>>:utf8:unix', $TRACE_FILE
+            or do {
+            warn "Cannot open '${TRACE_FILE}' for appending: $!";
+            goto END_TRACE;
+        };
+
+        my $log = join("\n",
+            '',
+            '>' x 80,
+            $captured_req_headers,
+            $captured_req_content,
+            '=' x 80,
+            $res->as_string,
+            '<' x 80,
+            '',
+        );
+        $fh->print($log)
+            or warn "Cannot write to ${TRACE_FILE}: $!";
+
+        close $fh;
+    END_TRACE:
+    }
+
     return $res;
 }
 
@@ -282,6 +311,36 @@ This is an easy-to-use alias to C<request()>, sending the C<DELETE> method.
 =head3 C<< $furl->env_proxy() >>
 
 Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
+
+=head1 PACKAGE VARIABLES
+
+=over 4
+
+=item C<< $Furl::TRACE_FILE >>
+
+B<(EXPERIMENTAL)>
+
+If you set file name to this variable, Furl write the resquest and response to this file.
+
+It makes easy to debug the request result.
+
+(The log format may change without notice.)
+
+You can set this variable by C<< FURL_TRACE_FILE >> environment variable.
+
+=back
+
+=head1 ENVIRONMENT VARIABLES
+
+=over 4
+
+=item FURL_TRACE_FILE
+
+B<(EXPERIMENTAL)>
+
+This environment variable will set to C<< $Furl::TRACE_FILE >> when loaded this module.
+
+=back
 
 =head1 FAQ
 
