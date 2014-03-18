@@ -103,7 +103,20 @@ sub request {
     my $cookie_jar = ${$self}->{cookie_jar};
 
     if ($cookie_jar) {
-        push @{$args{headers}}, 'Cookie' => $cookie_jar->cookie_header($args{url});
+        my $url;
+        if ($args{url}) {
+            $url = $args{url};
+        } else {
+            $url = join(
+                '',
+                $args{scheme},
+                '://',
+                $args{host},
+                (exists($args{port}) ? ":$args{port}" : ()),
+                exists($args{path_query}) ? $args{path_query} : '/',
+            );
+        }
+        push @{$args{headers}}, 'Cookie' => $cookie_jar->cookie_header($url);
     }
 
     my (
@@ -214,8 +227,6 @@ You can get it by C<< $res->captured_req_headers >> and C<< $res->captured_req_c
 (EXPERIMENTAL)
 
 An instance of HTTP::CookieJar or equivalent class that supports the add and cookie_header methods
-
-You need to pass C<< $args{url} >> to each method if you want to use cookie_jar feature.
 
 =back
 
