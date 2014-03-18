@@ -16,6 +16,7 @@ suggests 'HTTP::Response'; # Furl::Response
 recommends 'Net::IDN::Encode';    # for International Domain Name
 recommends 'IO::Socket::SSL';     # for SSL
 recommends 'Compress::Raw::Zlib'; # for Content-Encoding
+recommends 'HTTP::CookieJar';
 
 on test => sub {
     requires 'Test::More' => 0.96;    # done_testing, subtest
@@ -33,6 +34,7 @@ on test => sub {
     suggests 'parent';
     suggests 'Plack';
     suggests 'Test::Valgrind';
+    suggests 'HTTP::CookieJar';
 };
 
 on develop => sub {

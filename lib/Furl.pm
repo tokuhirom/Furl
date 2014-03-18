@@ -100,6 +100,12 @@ sub request {
         $args{headers} = $headers;
     }
 
+    my $cookie_jar = ${$self}->{cookie_jar};
+
+    if ($cookie_jar) {
+        push @{$args{headers}}, 'Cookie' => $cookie_jar->cookie_header($args{url});
+    }
+
     my (
         $res_minor_version,
         $res_status,
@@ -107,10 +113,30 @@ sub request {
         $res_headers,
         $res_content,
         $captured_req_headers,
-        $captured_req_content ) = ${$self}->request(%args);
+        $captured_req_content,
+        $captured_res_headers,
+        $captured_res_content,
+        $request_info,
+        ) = ${$self}->request(%args);
 
     my $res = Furl::Response->new($res_minor_version, $res_status, $res_msg, $res_headers, $res_content);
     $res->set_request_info(\%args, $captured_req_headers, $captured_req_content);
+
+    if ($cookie_jar) {
+        my ($scheme, $username, $password, $host, $port, $path_query) = @$request_info;
+        my $req_url = join(
+            '',
+            $scheme,
+            '://',
+            (defined($username) && defined($password) ? "${username}:${password}@" : ()),
+            "$host:${port}${path_query}",
+        );
+        for my $cookie ($res->header('Set-Cookie')) {
+            # Do not use $args{url} as a url. Because the server may redirected.
+            $cookie_jar->add($req_url, $cookie);
+        }
+    }
+
     return $res;
 }
 
@@ -182,6 +208,14 @@ You can get it by C<< $res->captured_req_headers >> and C<< $res->captured_req_c
 =item no_proxy :Str
 
 =item headers :ArrayRef
+
+=item cookie_jar :Object
+
+(EXPERIMENTAL)
+
+An instance of HTTP::CookieJar or equivalent class that supports the add and cookie_header methods
+
+You need to pass C<< $args{url} >> to each method if you want to use cookie_jar feature.
 
 =back
 
