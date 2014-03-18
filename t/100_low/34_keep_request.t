@@ -14,9 +14,19 @@ test_tcp(
             my $furl = Furl::HTTP->new(capture_request => 1);
             my @res = $furl->request( url => "http://127.0.0.1:$port/1", );
 
-            my $content = pop @res;
-            my $headers = pop @res;
-            my $req = Furl::Request->parse($headers . $content);
+            my (
+                $res_minor_version,
+                $res_status,
+                $res_msg,
+                $res_headers,
+                $res_content,
+                $captured_req_headers,
+                $captured_req_content,
+                $captured_res_headers,
+                $captured_res_content,
+                $request_info,
+            ) = @res;
+            my $req = Furl::Request->parse($captured_req_headers . $captured_req_content);
 
             is $req->method, 'GET';
             is $req->uri, "http://127.0.0.1:$port/1";

@@ -564,7 +564,7 @@ sub request {
 
     return (
         $res_minor_version, $res_status, $res_msg, $res_headers, $res_content,
-        $req_headers, $req_content,
+        $req_headers, $req_content, undef, undef, [$scheme, $username, $password, $host, $port, $path_query],
     );
 }
 
