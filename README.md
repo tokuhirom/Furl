@@ -54,6 +54,11 @@ _%args_ might be:
 - proxy :Str
 - no\_proxy :Str
 - headers :ArrayRef
+- cookie\_jar :Object
+
+    (EXPERIMENTAL)
+
+    An instance of HTTP::CookieJar or equivalent class that supports the add and cookie\_header methods
 
 ## Instance Methods
 
@@ -224,6 +229,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
                 if $received_size >= $next_update;
             }
         );
+
 - HTTPS requests claims warnings!
 
     When you make https requests, IO::Socket::SSL may complain about it like:

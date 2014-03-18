@@ -4,7 +4,7 @@
       "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.11.0, CPAN::Meta::Converter version 2.133380",
+   "generated_by" : "Minilla/v0.12.0, CPAN::Meta::Converter version 2.133380",
    "license" : [
       "perl_5"
    ],
@@ -63,6 +63,7 @@
       "runtime" : {
          "recommends" : {
             "Compress::Raw::Zlib" : "0",
+            "HTTP::CookieJar" : "0",
             "IO::Socket::SSL" : "0",
             "Net::IDN::Encode" : "0"
          },
@@ -91,6 +92,7 @@
             "Test::TCP" : "1.06"
          },
          "suggests" : {
+            "HTTP::CookieJar" : "0",
             "HTTP::Proxy" : "0",
             "HTTP::Server::PSGI" : "0",
             "Plack" : "0",
@@ -117,7 +119,7 @@
          "web" : "https://github.com/tokuhirom/Furl"
       }
    },
-   "version" : "3.01",
+   "version" : "3.02",
    "x_contributors" : [
       "Keiji, Yoshimi <walf443@gmail.com>",
       "Fuji, Goro <gfuji@cpan.org>",
