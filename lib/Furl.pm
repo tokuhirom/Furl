@@ -6,7 +6,7 @@ use Furl::HTTP;
 use Furl::Request;
 use Furl::Response;
 use Carp ();
-our $VERSION = '3.02';
+our $VERSION = '3.03';
 
 use 5.008001;
 
@@ -353,7 +353,7 @@ Furl does not directly support the cookie_jar option available in LWP. You can u
     my $cookies = HTTP::Cookies->new();
     my $req = HTTP::Request->new(...);
     $cookies->add_cookie_header($req);
-    my $res = H$f->request_with_http_request($req)->as_http_response;
+    my $res = $f->request($req)->as_http_response;
     $res->request($req);
     $cookies->extract_cookies($res);
     # and use $res.

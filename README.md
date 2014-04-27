@@ -170,7 +170,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
         my $cookies = HTTP::Cookies->new();
         my $req = HTTP::Request->new(...);
         $cookies->add_cookie_header($req);
-        my $res = H$f->request_with_http_request($req)->as_http_response;
+        my $res = $f->request($req)->as_http_response;
         $res->request($req);
         $cookies->extract_cookies($res);
         # and use $res.
