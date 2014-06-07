@@ -9,40 +9,6 @@ use Test::Requires qw(Plack::Util Plack::Request HTTP::Body), 'Plack::Request', 
 
 use t::Slowloris;
 
-sub inspect_so_sndbuf {
-    ## https://gist.github.com/kazuho/5624785
-    require IO::Socket::INET;
-    require Socket;
-    require Net::EmptyPort;
-    
-    my $listen_sock = IO::Socket::INET->new(
-        Listen => Net::EmptyPort::empty_port(),
-        LocalPort => 0,
-        LocalHost => '127.0.0.1',
-        Proto => 'tcp',
-        ReuseAddr => 1,
-    ) or die $!;
-    my $conn = IO::Socket::INET->new(
-        PeerHost => '127.0.0.1',
-        PeerPort => $listen_sock->sockport,
-        Proto => 'tcp',
-    ) or die $!;
-    return $conn->sockopt(Socket::SO_SNDBUF());
-}
-
-sub content_for_write_timeout {
-    my $so_sndbuf = eval { inspect_so_sndbuf() };
-    if($so_sndbuf) {
-        note("SO_SNDBUF = $so_sndbuf");
-        my $len = $so_sndbuf * 2;
-        note("Use content of $len Byte");
-        return "A" x $len;
-    }else {
-        note("Failed to get SO_SNDBUF. Use 2MiB content.");
-        return "0123456789abcdef" x 64 x 2048;
-    }
-}
-
 my $n = shift(@ARGV) || 2;
 
 $Slowloris::SleepBeforeRead  = 1;
@@ -72,22 +38,38 @@ test_tcp(
 
         $furl = Furl::HTTP->new(timeout => 0.5);
         note 'write_timeout';
-        for (1 .. $n) {
-            my $start_at = time;
-            my ( undef, $code, $msg, $headers, $content ) =
-                $furl->request(
-                    host       => '127.0.0.1',
-                    port       => $port,
-                    method     => 'POST',
-                    path_query => '/foo',
-                    content    => do {
-                        # should be larger than SO_SNDBUF
-                        my $content = content_for_write_timeout();
-                        open my $fh, '<', \$content or die "oops";
-                        $fh;
-                    },
-                );
-            my $elapsed = time - $start_at;
+        my $CONTENT_SIZE_MB_MAX = 256;
+        WRITE_TIMEOUT_TEST: for (1 .. $n) {
+            my $content_size_mb = 1;
+            my ($elapsed, $code, $msg, $headers, $content);
+            while(1) {
+                note "Try sending $content_size_mb MiB content.";
+                my $start_at = time;
+                ( undef, $code, $msg, $headers, $content ) =
+                    $furl->request(
+                        host       => '127.0.0.1',
+                        port       => $port,
+                        method     => 'POST',
+                        path_query => '/foo',
+                        content    => do {
+                            # should be larger than SO_SNDBUF + SO_RCVBUF + TCP_window_size
+                            my $content = "0123456789abcdef" x 64 x 1024 x $content_size_mb;
+                            open my $fh, '<', \$content or die "oops";
+                            $fh;
+                        },
+                    );
+                $elapsed = time - $start_at;
+                if($msg !~ qr/Internal Response: Cannot read response header: timeout/) {
+                    ## It's not read timeout. It seems OK.
+                    last;
+                }
+                if($content_size_mb >= $CONTENT_SIZE_MB_MAX) {
+                    fail "send $content_size_mb MiB but still write timeout did not occur.";
+                    next WRITE_TIMEOUT_TEST;
+                }
+                note "Read timeout. Retry with more POST content";
+                $content_size_mb *= 2;
+            }
             is $code, 500, "request()/$_";
             like $msg, qr/Internal Response: Failed to send content: timeout/;
             is ref($headers), "ARRAY";
