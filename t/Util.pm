@@ -26,7 +26,7 @@ my @RELIABLE_HTTP = (
     # The regex are case-sensitive to at least
     # deal with the "couldn't get site.com case".
     'http://google.com/' => sub { /About Google/      },
-    'http://yahoo.com/'  => sub { /Yahoo!/            },
+    'http://yahoo.com/'  => sub { $_ =~ /Yahoo!/      },
     'http://amazon.com/' => sub { /Amazon/ and /Cart/ },
     'http://cnn.com/'    => sub { /CNN/               },
 );

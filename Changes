@@ -2,6 +2,15 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.03 2014-07-09T23:33:51Z
+
+    commit 8da0f43f2a6b3f04806288ce63a7bdc4df7f9a46
+    Author: Toshio Ito <debug.ito@gmail.com>
+    Date:   Sat Jun 7 10:34:13 2014 +0900
+
+        t/100_low/07_timeout.t: iteratively increase content size instead of guessing the size of the se
+        c.f: gh #71, gh #56
+
 3.02 2014-03-18T20:52:07Z
 
     - Added new experimental cookie_jar support.
