@@ -434,7 +434,7 @@ You should set C<SSL_verify_mode> explicitly with Furl's C<ssl_opts>.
         ssl_opts => {
             SSL_verify_mode => SSL_VERIFY_PEER(),
         },
-    });
+    );
 
 See L<IO::Socket::SSL> for details.
 
