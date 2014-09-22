@@ -251,7 +251,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
             ssl_opts => {
                 SSL_verify_mode => SSL_VERIFY_PEER(),
             },
-        });
+        );
 
     See [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) for details.
 

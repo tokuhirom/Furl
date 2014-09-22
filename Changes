@@ -2,6 +2,11 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.04 2014-09-22T10:08:04Z
+
+    - remove trailing whitespace of Authorization header
+      (kazeburo++)
+
 3.03 2014-07-09T23:33:51Z
 
     commit 8da0f43f2a6b3f04806288ce63a7bdc4df7f9a46
