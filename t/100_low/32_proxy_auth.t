@@ -65,14 +65,12 @@ test_tcp(
     server => sub { # proxy server
         my $proxy_port = shift;
         my $proxy = Test::HTTP::Proxy->new(port => $proxy_port, via => $via);
-        my $token = "Basic " . encode_base64( "dankogai:kogaidan" );
+        my $token = "Basic " . encode_base64( "dankogai:kogaidan", "" );
         $proxy->push_filter(
             request => HTTP::Proxy::HeaderFilter::simple->new(
                 sub {
                     my ( $self, $headers, $request ) = @_;
                     my $auth = $self->proxy->hop_headers->header('Proxy-Authorization') || '';
-                    $auth =~ s/\s*$//;
-                    $token =~ s/\s*$//;
 
                     # check the credentials
                     if ( $auth ne $token ) {
