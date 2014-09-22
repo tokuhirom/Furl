@@ -28,7 +28,7 @@ test_tcp(
         my $port = shift;
         t::HTTPServer->new(port => $port)->run(sub {;
             my $env = shift;
-            is($env->{HTTP_AUTHORIZATION}, 'Basic ZGFua29nYWk6a29nYWlkYW4= ');
+            is($env->{HTTP_AUTHORIZATION}, 'Basic ZGFua29nYWk6a29nYWlkYW4=');
             return [ 200,
                 [ 'Content-Length' => length($env->{REQUEST_URI}) ],
                 [$env->{REQUEST_URI}]

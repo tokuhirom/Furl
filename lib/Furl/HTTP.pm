@@ -276,7 +276,7 @@ sub request {
             if (defined $proxy_user) {
                 _requires('MIME/Base64.pm',
                     'Basic auth');
-                $proxy_authorization = 'Basic ' . MIME::Base64::encode_base64("$proxy_user:$proxy_pass");
+                $proxy_authorization = 'Basic ' . MIME::Base64::encode_base64("$proxy_user:$proxy_pass","");
             }
             if ($scheme eq 'http') {
                 ($sock, $err_reason)
@@ -327,7 +327,7 @@ sub request {
         }
         if (defined $username) {
             _requires('MIME/Base64.pm', 'Basic auth');
-            push @headers, 'Authorization', 'Basic ' . MIME::Base64::encode_base64("${username}:${password}");
+            push @headers, 'Authorization', 'Basic ' . MIME::Base64::encode_base64("${username}:${password}","");
         }
 
         my $content       = $args{content};
