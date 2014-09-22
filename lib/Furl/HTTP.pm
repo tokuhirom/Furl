@@ -493,6 +493,9 @@ sub request {
 
     my $chunked        = ($special_headers->{'transfer-encoding'} eq 'chunked');
     my $content_length =  $special_headers->{'content-length'};
+    if (defined($content_length) && $content_length !~ /\A[0-9]+\z/) {
+        return $self->_r500("Bad Content-Length: ${content_length}");
+    }
 
     unless ($method eq 'HEAD'
             || ($res_status < 200 && $res_status >= 100)
