@@ -2,6 +2,12 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.05 2014-09-24T03:47:02Z
+
+    - Validate content-length before processing.
+      (Implemented by tokuhirom)
+      (Reviewed by kazuho++)
+
 3.04 2014-09-22T10:08:04Z
 
     - remove trailing whitespace of Authorization header
