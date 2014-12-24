@@ -681,7 +681,7 @@ sub connect_ssl_over_proxy {
         return (undef, "Cannot read proxy response: " . _strerror_or_timeout());
     } elsif ( $read == 0 ) {    # eof
         return (undef, "Unexpected EOF while reading proxy response");
-    } elsif ( $buf !~ /^HTTP\/1.[01] 200 Connection established\015\012/ ) {
+    } elsif ( $buf !~ /^HTTP\/1.[01] 200 .+\015\012/ ) {
         return (undef, "Invalid HTTP Response via proxy");
     }
 
