@@ -523,7 +523,7 @@ sub request {
     }
 
     # manage connection cache (i.e. keep-alive)
-    if ($connection_header eq 'keep-alive') {
+    if (lc($connection_header) eq 'keep-alive') {
         my $connection = lc $special_headers->{'connection'};
         if (($res_minor_version == 0
              ? $connection eq 'keep-alive' # HTTP/1.0 needs explicit keep-alive
