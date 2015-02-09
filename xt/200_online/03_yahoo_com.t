@@ -15,7 +15,7 @@ for(1 .. 2) {
     note "getting";
     my $res = $furl->get($url);
     note "done";
-    ok $res->is_success or $res->status_line;
+    ok $res->is_success or die $res->status_line;
 }
 
 done_testing;
