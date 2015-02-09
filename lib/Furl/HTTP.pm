@@ -523,7 +523,7 @@ sub request {
     }
 
     # manage connection cache (i.e. keep-alive)
-    if ($connection_header eq 'keep-alive') {
+    if (lc($connection_header) eq 'keep-alive') {
         my $connection = lc $special_headers->{'connection'};
         if (($res_minor_version == 0
              ? $connection eq 'keep-alive' # HTTP/1.0 needs explicit keep-alive
@@ -681,7 +681,7 @@ sub connect_ssl_over_proxy {
         return (undef, "Cannot read proxy response: " . _strerror_or_timeout());
     } elsif ( $read == 0 ) {    # eof
         return (undef, "Unexpected EOF while reading proxy response");
-    } elsif ( $buf !~ /^HTTP\/1.[01] 200 .+\015\012/ ) {
+    } elsif ( $buf !~ /^HTTP\/1\.[0-9] 200 .+\015\012/ ) {
         return (undef, "Invalid HTTP Response via proxy");
     }
 
