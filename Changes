@@ -2,6 +2,37 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.06 2015-02-09T23:05:09Z
+
+    commit 8a7786905c101eeab9db1d7baa8c4ec2076f9514
+    Author: Jari Salmela <bissei@users.noreply.github.com>
+    Date:   Fri Feb 6 08:36:55 2015 +0200
+
+        Update HTTP.pm
+
+        fix for keep-alive as zmmail proposed.
+        "In line 526 of Furl/HTTP.pm, FURL checks the HTTP response headers it gets from the server. It will read the C
+    onnection from the response header there, and compare the header value with the string keep-alive. The problem is t
+    hat this does not take into account a different case of the response header. Some HTTP server returns a header valu
+    e of Keep-Alive (mind the caps), so FURL does not recognize it properly.
+
+        I think the following change to Furl/HTTP.pm is more robust.
+
+        if ($connection_header eq 'keep-alive') {
+        if (lc($connection_header) eq 'keep-alive') {"
+
+    commit 91ebdf86693c5bfbda497df167977813e2ad75aa
+    Author: Kazuho Oku <kazuhooku@gmail.com>
+    Date:   Wed Dec 24 16:26:07 2014 +0900
+
+        fix incorrect regex used for testing the response line (amends #80)
+
+    commit 65d0bc170a6344ebd24e0726a44260f3771fda0b
+    Author: HIROSE Masaaki <hirose31@gmail.com>
+    Date:   Wed Dec 24 13:49:43 2014 +0900
+
+        Check only status code when connect SSL over proxy
+
 3.05 2014-09-24T03:47:02Z
 
     - Validate content-length before processing.
