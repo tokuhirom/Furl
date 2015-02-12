@@ -5,6 +5,8 @@ use t::Util;
 use Test::More;
 use Furl;
 
+plan skip_all => 'SSL cert error' if $ENV{TRAVIS};
+
 skip_if_offline();
 
 my $url = 'http://www.yahoo.com/';
