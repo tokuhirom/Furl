@@ -364,9 +364,10 @@ sub request {
         }
 
         # finally, set Host header
-        push @headers, 'Host' => (($port == $default_port) ? $host : "$host:$port");
+        my $request_target = ($port == $default_port) ? $host : "$host:$port";
+        push @headers, 'Host' => $request_target;
 
-        my $request_uri = $proxy ? "$scheme://$host:$port$path_query" : $path_query;
+        my $request_uri = $proxy ? "$scheme://$request_target$path_query" : $path_query;
 
         my $p = "$method $request_uri HTTP/1.1\015\012";
         for (my $i = 0; $i < @headers; $i += 2) {
