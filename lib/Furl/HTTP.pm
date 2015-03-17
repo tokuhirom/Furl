@@ -1162,17 +1162,6 @@ content as it is received from the server.
 
 It's like a C<:content_cb> in L<LWP::UserAgent>.
 
-=back
-
-The C<request()> method assumes the first argument to be an instance
-of C<HTTP::Request> if the arguments are an odd number:
-
-    my $req = HTTP::Request->new(...);
-    my @res = $furl->request($req); # allowed
-
-You must encode all the queries or this method will die, saying
-C<Wide character in ...>.
-
 =head3 C<< $furl->get($url :Str, $headers :ArrayRef[Str] ) >>
 
 This is an easy-to-use alias to C<request()>, sending the C<GET> method.
