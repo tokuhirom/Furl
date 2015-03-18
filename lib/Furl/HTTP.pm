@@ -699,8 +699,7 @@ sub connect_ssl_over_proxy {
         PeerPort => $port,
         Timeout  => $timeout,
         %$ssl_opts
-    ) or return (
-          undef, "Cannot start SSL connection: " . _strerror_or_timeout());
+    ) or return (undef, "Cannot start SSL connection: " . IO::Socket::SSL::errstr());
     _set_sockopts($sock); # just in case (20101118 kazuho)
     $sock;
 }
