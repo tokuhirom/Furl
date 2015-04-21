@@ -88,7 +88,7 @@
             "File::Temp" : "0",
             "Test::More" : "0.96",
             "Test::Requires" : "0",
-            "Test::TCP" : "1.06"
+            "Test::TCP" : "2.11"
          },
          "suggests" : {
             "HTTP::CookieJar" : "0",
@@ -118,7 +118,7 @@
          "web" : "https://github.com/tokuhirom/Furl"
       }
    },
-   "version" : "3.06",
+   "version" : "3.07",
    "x_contributors" : [
       "Keiji, Yoshimi <walf443@gmail.com>",
       "Fuji, Goro <gfuji@cpan.org>",
@@ -137,6 +137,7 @@
       "Masahiro Nagano <kazeburo@gmail.com>",
       "HIROSE Masaaki <hirose31@gmail.com>",
       "Kazuho Oku <kazuhooku@gmail.com>",
-      "Jari Salmela <bissei@users.noreply.github.com>"
+      "Jari Salmela <bissei@users.noreply.github.com>",
+      "tarao <tarao.gnn@gmail.com>"
    ]
 }

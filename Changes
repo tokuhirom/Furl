@@ -2,6 +2,11 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.07 2015-04-21T03:42:39Z
+
+    - Depends on latest Test::TCP
+      https://github.com/tokuhirom/Test-TCP/issues/31#issuecomment-94378132
+
 3.06 2015-02-09T23:05:09Z
 
     commit 8a7786905c101eeab9db1d7baa8c4ec2076f9514
