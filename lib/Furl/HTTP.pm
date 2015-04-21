@@ -693,9 +693,13 @@ sub connect_ssl_over_proxy {
     unless (exists $ssl_opts->{SSL_verifycn_name}) {
         $ssl_opts->{SSL_verifycn_name} = $host;
     }
-    IO::Socket::SSL->start_SSL( $sock, Timeout => $timeout, %$ssl_opts )
-      or return (
-          undef, "Cannot start SSL connection: " . _strerror_or_timeout());
+    IO::Socket::SSL->start_SSL(
+        $sock,
+        PeerHost => $host,
+        PeerPort => $port,
+        Timeout  => $timeout,
+        %$ssl_opts
+    ) or return (undef, "Cannot start SSL connection: " . IO::Socket::SSL::errstr());
     _set_sockopts($sock); # just in case (20101118 kazuho)
     $sock;
 }

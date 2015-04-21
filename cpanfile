@@ -20,7 +20,7 @@ recommends 'HTTP::CookieJar';
 
 on test => sub {
     requires 'Test::More' => 0.96;    # done_testing, subtest
-    requires 'Test::TCP'  => 1.06;
+    requires 'Test::TCP'  => '2.11';
     requires 'Test::Requires';
     requires 'File::Temp';
     suggests 'Test::Fake::HTTPD';
