@@ -6,4 +6,4 @@ perl:
   - "5.16"
   - "5.18"
 before_install:
-  - "cpanm --installdeps --with-develop --with-recommends --with-suggests ."
+  - "cpanm -n --installdeps --with-develop --with-recommends --with-suggests ."
