@@ -100,25 +100,6 @@ sub request {
         $args{headers} = $headers;
     }
 
-    my $cookie_jar = ${$self}->{cookie_jar};
-
-    if ($cookie_jar) {
-        my $url;
-        if ($args{url}) {
-            $url = $args{url};
-        } else {
-            $url = join(
-                '',
-                $args{scheme},
-                '://',
-                $args{host},
-                (exists($args{port}) ? ":$args{port}" : ()),
-                exists($args{path_query}) ? $args{path_query} : '/',
-            );
-        }
-        push @{$args{headers}}, 'Cookie' => $cookie_jar->cookie_header($url);
-    }
-
     my (
         $res_minor_version,
         $res_status,
@@ -134,21 +115,6 @@ sub request {
 
     my $res = Furl::Response->new($res_minor_version, $res_status, $res_msg, $res_headers, $res_content);
     $res->set_request_info(\%args, $captured_req_headers, $captured_req_content);
-
-    if ($cookie_jar) {
-        my ($scheme, $username, $password, $host, $port, $path_query) = @$request_info;
-        my $req_url = join(
-            '',
-            $scheme,
-            '://',
-            (defined($username) && defined($password) ? "${username}:${password}@" : ()),
-            "$host:${port}${path_query}",
-        );
-        for my $cookie ($res->header('Set-Cookie')) {
-            # Do not use $args{url} as a url. Because the server may redirected.
-            $cookie_jar->add($req_url, $cookie);
-        }
-    }
 
     return $res;
 }

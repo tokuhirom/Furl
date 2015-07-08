@@ -77,6 +77,73 @@ subtest '->request(host => ...) style simple interface', sub {
     );
 };
 
+subtest 'With redirect', sub {
+    test_tcp(
+        client => sub {
+            my $port = shift;
+            my $furl = Furl->new(
+                cookie_jar => HTTP::CookieJar->new()
+            );
+            my $url = "http://127.0.0.1:$port";
+
+            subtest 'first time access', sub {
+                my $res = $furl->get("${url}/login");
+
+                note "Then, response should be 200 OK";
+                is $res->status, 200;
+                note "And, content should be 'ok'";
+                is $res->content, 'ok';
+            };
+
+            subtest 'Second time access', sub {
+                my $res = $furl->get("${url}/user_name");
+
+                note "Then, response should be 200 OK";
+                is $res->status, 200;
+                note "And, content should be 'Nick'";
+                is $res->content, 'Nick';
+            };
+        },
+        server => sub {
+            my $port = shift;
+            my %SESSION_STORE;
+            Plack::Loader->auto( port => $port )->run(builder {
+                enable 'ContentLength';
+                enable 'StackTrace';
+
+                sub {
+                    my $env     = shift;
+                    my $req = Plack::Request->new($env);
+                    my $path_info = $env->{PATH_INFO};
+                    $path_info =~ s!^//!/!;
+                    if ($path_info eq '/login') {
+                        my $res = Plack::Response->new(
+                            302, ['Location' => $req->uri_for('/login_done')], []
+                        );
+                        $res->cookies->{'user_name'} = 'Nick';
+                        return $res->finalize;
+                    } elsif ($path_info eq '/login_done') {
+                        my $res = Plack::Response->new(
+                            200, [], ['ok']
+                        );
+                        return $res->finalize;
+                    } elsif ($path_info eq '/user_name') {
+                        my $res = Plack::Response->new(
+                            200, [], [$req->cookies->{'user_name'}]
+                        );
+                        return $res->finalize;
+                    } else {
+                        my $res = Plack::Response->new(
+                            404, [], ['not found:' . $env->{PATH_INFO}]
+                        );
+                        return $res->finalize;
+                    }
+                };
+            });
+        }
+    );
+};
+
 done_testing;
 
 sub session_server {
@@ -98,4 +165,12 @@ sub session_server {
             return $res->finalize;
         };
     });
+}
+
+sub Plack::Request::uri_for {
+    my($self, $path, $args) = @_;
+    my $uri = $self->base;
+    $uri->path($uri->path . $path);
+    $uri->query_form(@$args) if $args;
+    $uri;
 }
