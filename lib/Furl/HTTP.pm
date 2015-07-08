@@ -307,6 +307,7 @@ sub request {
     # write request
     my $method = $args{method} || 'GET';
     my $connection_header = $self->{connection_header};
+    my $cookie_jar = $self->{cookie_jar};
     {
         my @headers = @{$self->{headers}};
         $connection_header = 'close'
@@ -328,6 +329,24 @@ sub request {
         if (defined $username) {
             _requires('MIME/Base64.pm', 'Basic auth');
             push @headers, 'Authorization', 'Basic ' . MIME::Base64::encode_base64("${username}:${password}","");
+        }
+
+        # set Cookie header
+        if (defined $cookie_jar) {
+            my $url;
+            if ($args{url}) {
+                $url = $args{url};
+            } else {
+                $url = join(
+                    '',
+                    $args{scheme},
+                    '://',
+                    $args{host},
+                    (exists($args{port}) ? ":$args{port}" : ()),
+                    exists($args{path_query}) ? $args{path_query} : '/',
+                );
+            }
+            push @headers, 'Cookie' => $cookie_jar->cookie_header($url);
         }
 
         my $content       = $args{content};
@@ -536,6 +555,22 @@ sub request {
     # explicitly close here, just after returning the socket to the pool,
     # since it might be reused in the upcoming recursive call
     undef $sock;
+
+    # process 'Set-Cookie' header.
+    if (defined $cookie_jar) {
+        my $req_url = join(
+            '',
+            $scheme,
+            '://',
+            (defined($username) && defined($password) ? "${username}:${password}@" : ()),
+            "$host:${port}${path_query}",
+        );
+        my $cookies = $res_headers->{'set-cookie'};
+        $cookies = [$cookies] if !ref$cookies;
+        for my $cookie (@$cookies) {
+            $cookie_jar->add($req_url, $cookie);
+        }
+    }
 
     if ($do_redirect) {
         my $location = $special_headers->{location};
