@@ -2,6 +2,13 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.08 2015-08-06T09:32:19Z
+
+    - Handle cookies while redirection.
+      (tokuhirom)
+    - delete method accept message body
+      (kimoto)
+
 3.07 2015-04-21T03:42:39Z
 
     - Depends on latest Test::TCP
