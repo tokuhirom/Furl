@@ -56,11 +56,12 @@ sub put {
 }
 
 sub delete {
-    my ( $self, $url, $headers ) = @_;
+    my ( $self, $url, $headers, $content ) = @_;
     $self->request(
         method  => 'DELETE',
         url     => $url,
-        headers => $headers
+        headers => $headers,
+        content => $content
     );
 }
 
