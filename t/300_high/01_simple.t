@@ -43,6 +43,7 @@ my @data = (
 
     ['delete', [], sub {  }],
     ['delete', [['X-Foo' => 'bar']], sub { is $_->header('X-Foo'), 'bar'; }],
+    ['delete', [undef, 'doya'], sub { is $_->content_length, 4; is $_->content, 'doya'; }],
 );
 
 test_tcp(
