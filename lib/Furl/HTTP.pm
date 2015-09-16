@@ -1083,7 +1083,7 @@ I<%args> might be:
 
 =item timeout :Int = 10
 
-Seconds until the call to $furl->request returns a timeout error (as an internally generated 500 error). The timeout might not be accurate since some underlying modules / built-ins function may block longer than the specified timeout. See the FAQ for how to support timeout during name resolution.
+Seconds until the call to $furl->request returns a timeout error (as an internally generated 500 error). The timeout might not be accurate since some underlying modules / built-ins function may block longer than the specified timeout. See the L</"FAQ"> for how to support timeout during name resolution.
 
 =item inactivity_timeout :Int = 600
 
@@ -1317,7 +1317,7 @@ which might confuse C<Keep-Alive> processes, so Furl closes connection in
 such cases.
 
 Anyway, the HEAD method is not so useful nowadays. The GET method and
-C<If-Modified-Sinse> are more suitable to cache HTTP contents.
+C<If-Modified-Since> are more suitable to cache HTTP contents.
 
 =item Why does Furl take longer than specified until it returns a timeout error?
 
@@ -1376,8 +1376,8 @@ This feature requires Compress::Raw::Zlib.
 
 To setup your environment:
 
-    $ git clone http://github.com/tokuhirom/p5-Furl.git
-    $ cd p5-Furl
+    $ git clone http://github.com/tokuhirom/Furl.git
+    $ cd Furl
 
 To get picohttpparser:
 
@@ -1390,7 +1390,7 @@ To get picohttpparser:
 
 =head2 HOW TO CONTRIBUTE
 
-Please send the pull request via L<http://github.com/tokuhirom/p5-Furl/>.
+Please send the pull request via L<http://github.com/tokuhirom/Furl/>.
 
 =head1 SEE ALSO
 

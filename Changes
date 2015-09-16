@@ -427,7 +427,7 @@ Revision history for Perl module Furl
 0.07 2010-11-01
 
     - Do not use reference_from, it makes installing issue(reported by y).
-      http://github.com/tokuhirom/p5-Furl/issues#issue/4
+      http://github.com/tokuhirom/Furl/issues#issue/4
 
 0.06 2010-10-31
 
