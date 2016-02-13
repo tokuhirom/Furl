@@ -482,6 +482,10 @@ sub request {
             }
             else {
                 # succeeded
+                if ($res_status == 100) { # Continue
+                    $buf = '';
+                    next LOOP;
+                }
                 $rest_header = substr( $buf, $ret );
                 last LOOP;
             }

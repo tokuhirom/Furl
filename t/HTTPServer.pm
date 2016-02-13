@@ -151,7 +151,9 @@ sub handle_connection {
                 last PARSE_HTTP_REQUEST;
             }
         }
+        $self->call_trigger( "BEFORE_CALL_APP", $csock );
         my $res = $app->( \%env );
+        $self->call_trigger( "AFTER_CALL_APP", $csock );
         my $res_header =
           $self->make_header( $res->[0], $res->[1] ) . "\015\012";
         $self->write_all( $csock, $res_header );
