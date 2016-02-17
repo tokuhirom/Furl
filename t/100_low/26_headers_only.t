@@ -14,7 +14,7 @@ test_tcp(
             bufsize => 10,
             timeout => 3,
         );
-        for my $req_code (qw(100 199 204 304)) {
+        for my $req_code (qw(199 204 304)) {
             for (1 .. $n) {
                 my (undef, $code, $msg, $headers, $content) = $furl->request(
                     port       => $port,
