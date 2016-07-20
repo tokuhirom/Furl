@@ -208,7 +208,10 @@ sub make_x_www_form_urlencoded {
 
 sub env_proxy {
     my $self = shift;
-    $self->{proxy} = $ENV{HTTP_PROXY} || '';
+    # Under CGI, bypass HTTP_PROXY as request sets it from Proxy header
+    # Note: This doesn't work on windows correctly.
+    local $ENV{HTTP_PROXY} if $ENV{REQUEST_METHOD};
+    $self->{proxy} = $ENV{http_proxy} || $ENV{HTTP_PROXY} || $self->{proxy};
     $self->{no_proxy} = $ENV{NO_PROXY} || '';
     $self;
 }
