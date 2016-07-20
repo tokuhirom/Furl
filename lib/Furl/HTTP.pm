@@ -486,7 +486,7 @@ sub request {
             else {
                 # succeeded
                 if ($res_status == 100) { # Continue
-                    $buf = '';
+                    $buf =~ s/^.*?\015\012\015\012//;
                     next LOOP;
                 }
                 $rest_header = substr( $buf, $ret );
