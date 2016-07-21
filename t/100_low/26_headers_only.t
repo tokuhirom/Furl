@@ -21,8 +21,13 @@ test_tcp(
                     path_query => "/$req_code",
                     host       => '127.0.0.1',
                 );
-                is $code, $req_code, "$msg";
-                is $content, '';
+                if ($req_code ne 199) {
+                    is $code, $req_code, "$msg";
+                    is $content, '';
+                } else {
+                    is $code, 200, "$msg";
+                    is $content, 'you will see this message!';
+                }
             }
         }
     },
@@ -66,13 +71,24 @@ test_tcp(
                 }
             }
             my $code = $env{PATH_INFO} =~ m{^/([0-9]+)$} ? $1 : 200;
-            print $sock '', << "EOT";
+            if ((int $code / 100) ne 1) {
+                print $sock '', << "EOT";
 HTTP/1.0 $code love\r
 Connection: close\r
 Content-Length: 100\r
 \r
 you shall never see this message!
 EOT
+            } else {
+                print $sock '', << "EOT";
+HTTP/1.0 $code love\r
+\r
+HTTP/1.0 200 OK\r
+Content-Length: 26\r
+\r
+you will see this message!
+EOT
+            }
             close $sock;
         }
     },

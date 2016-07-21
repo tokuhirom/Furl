@@ -486,7 +486,10 @@ sub request {
             else {
                 # succeeded
                 if ((int $res_status / 100) eq 1) { # Continue
-                    $buf =~ s/^.*?\015\012\015\012//;
+                    # The origin server must not wait for the request body
+                    # before sending the 100 (Continue) response.
+                    # see http://greenbytes.de/tech/webdav/rfc2616.html#status.100
+                    $buf =~ s!.*?\015\012\015\012!!s;
                     next LOOP;
                 }
                 $rest_header = substr( $buf, $ret );
