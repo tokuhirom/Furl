@@ -2,6 +2,12 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.09 2016-07-21T14:10:52Z
+
+    - Support 1xx status
+    - Fix test on Windows issue
+    - Fix httpoxy
+
 3.08 2015-08-06T09:32:19Z
 
     - Handle cookies while redirection.
