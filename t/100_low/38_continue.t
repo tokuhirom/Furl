@@ -40,7 +40,8 @@ test_tcp(
             my ($self, $csock, $env) = @_;
             my $code = $env->{PATH_INFO} || '100';
             $code =~ s!/!!g;
-            $self->write_all($csock, "HTTP/1.1 $code Continue\015\012\015\012");
+            my $status = $t::HTTPServer::STATUS_CODE{$code};
+            $self->write_all($csock, "HTTP/1.1 $code $status\015\012\015\012");
         });
         $server->run(sub {
             my $env = shift;
