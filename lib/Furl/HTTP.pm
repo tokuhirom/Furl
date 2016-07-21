@@ -485,7 +485,7 @@ sub request {
             }
             else {
                 # succeeded
-                if ($res_status == 100) { # Continue
+                if ((int $res_status / 100) eq 1) { # Continue
                     $buf =~ s/^.*?\015\012\015\012//;
                     next LOOP;
                 }
