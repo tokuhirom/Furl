@@ -405,6 +405,22 @@ You should set C<SSL_verify_mode> explicitly with Furl's C<ssl_opts>.
 
 See L<IO::Socket::SSL> for details.
 
+=item Why do many requests fail with Connection reset by peer?
+
+Furl's HTTP keep-alive implementation differs to other common Perl HTTP
+libraries in the way it handles HTTP keep-alive connections that have
+been closed by the remote server in the time since the last request.
+
+As a result, you are likely to see Furl throw "500 Internal Response"
+errors (with further detail of Connection reset by peer) if a Furl
+object is held onto for any significant length of time.
+
+Software using the Furl library should decide whether to retry
+these requests. Idempotent (eg. GET) requests will usually be
+safe, but take care around requests that cause side-effects, as
+there is a small chance such connection-reset errors occurred
+after a request was already handled by the server.
+
 =back
 
 =head1 AUTHOR
