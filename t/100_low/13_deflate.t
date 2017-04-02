@@ -10,6 +10,7 @@ use Test::More;
 use Plack::Request;
 use File::Temp;
 
+use lib ".";
 use t::Slowloris;
 
 my $n = 10;

@@ -4,6 +4,7 @@ use Furl;
 use Test::TCP;
 use Test::More;
 use Test::Requires qw(Plack::Request HTTP::Body), 'HTTP::Request';
+use lib ".";
 use t::HTTPServer;
 
 test_tcp(

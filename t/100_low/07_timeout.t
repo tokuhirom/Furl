@@ -7,6 +7,7 @@ use Time::HiRes qw(time);
 
 use Test::Requires qw(Plack::Util Plack::Request HTTP::Body), 'Plack::Request', 'Plack::Loader';
 
+use lib ".";
 use t::Slowloris;
 
 my $n = shift(@ARGV) || 2;

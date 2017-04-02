@@ -6,6 +6,7 @@ use Test::TCP;
 use Test::Requires qw(HTTP::Server::PSGI);
 
 use Furl::HTTP;
+use lib ".";
 use t::Slowloris;
 
 test_tcp(

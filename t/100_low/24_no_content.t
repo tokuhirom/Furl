@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Furl::HTTP;
 use Test::TCP;
+use lib ".";
 use t::HTTPServer;
 
 my $n = shift(@ARGV) || 3;

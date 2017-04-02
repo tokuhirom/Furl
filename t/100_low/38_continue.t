@@ -4,6 +4,7 @@ use utf8;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
+use lib ".";
 use t::HTTPServer;
 
 test_tcp(

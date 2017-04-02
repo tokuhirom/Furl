@@ -2,6 +2,7 @@ use strict;
 use warnings;
 
 use Furl::HTTP;
+use lib ".";
 use t::HTTPServer;
 use Test::TCP;
 use Test::More;
