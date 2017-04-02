@@ -3,6 +3,7 @@ use warnings;
 use Test::TCP;
 use Test::More;
 use Furl::HTTP;
+use lib ".";
 use t::HTTPServer;
 
 my $s = q{The quick brown fox jumps over the lazy dog.\n};

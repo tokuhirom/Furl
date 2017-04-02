@@ -4,6 +4,7 @@ use Furl::HTTP;
 use Furl::Request;
 use Test::TCP;
 use Test::More;
+use lib ".";
 use t::HTTPServer;
 
 test_tcp(
