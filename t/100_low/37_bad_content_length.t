@@ -31,7 +31,11 @@ test_tcp(
                 host       => '127.0.0.1',
                 headers    => [ "X-Foo" => "ppp" ]
             );
-        is $code, 500, "request()/$_";
+        {
+            no warnings 'uninitialized';
+            is $code, 500, "request()/$_";
+            use warnings;
+        }
         like $msg, qr/Internal Response/;
         like $content, qr/Bad Content-Length: 5963,5963/
             or do{ require Devel::Peek; Devel::Peek::Dump($content) };
