@@ -3,6 +3,8 @@ use warnings;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::HTTPServer;
 
 my ($stealed, $pushed) = (0, 0);

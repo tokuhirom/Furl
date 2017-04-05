@@ -5,6 +5,8 @@ use Test::More;
 use Test::TCP;
 
 use Furl::HTTP;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::HTTPServer;
 
 test_tcp(
