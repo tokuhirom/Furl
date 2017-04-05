@@ -3,6 +3,8 @@ use warnings;
 use Test::More;
 use Furl::HTTP;
 use Test::TCP;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::HTTPServer;
 
 my $n = shift(@ARGV) || 3;

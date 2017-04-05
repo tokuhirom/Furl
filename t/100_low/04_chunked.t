@@ -3,6 +3,8 @@ use warnings;
 use Test::TCP;
 use Test::More;
 use Furl::HTTP;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::HTTPServer;
 
 my $s = q{The quick brown fox jumps over the lazy dog.\n};

@@ -4,6 +4,8 @@ use utf8;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::HTTPServer;
 
 # Scenario: The server returns bad content-length.

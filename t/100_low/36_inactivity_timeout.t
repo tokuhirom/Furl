@@ -6,6 +6,8 @@ use Test::TCP;
 use Test::Requires qw(HTTP::Server::PSGI);
 
 use Furl::HTTP;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::Slowloris;
 
 test_tcp(

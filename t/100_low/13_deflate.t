@@ -10,6 +10,8 @@ use Test::More;
 use Plack::Request;
 use File::Temp;
 
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::Slowloris;
 
 my $n = 10;

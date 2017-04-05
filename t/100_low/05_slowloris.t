@@ -7,6 +7,8 @@ use Test::Requires qw(Plack::Request HTTP::Body), 'Plack';
 
 use Plack::Request;
 
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::Slowloris;
 
 my $n = shift(@ARGV) || 3;
