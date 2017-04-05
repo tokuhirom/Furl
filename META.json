@@ -4,7 +4,7 @@
       "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.0.2, CPAN::Meta::Converter version 2.150001",
+   "generated_by" : "Minilla/v3.0.10, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
@@ -118,7 +118,7 @@
          "web" : "https://github.com/tokuhirom/Furl"
       }
    },
-   "version" : "3.09",
+   "version" : "3.10",
    "x_contributors" : [
       "Keiji, Yoshimi <walf443@gmail.com>",
       "Fuji, Goro <gfuji@cpan.org>",
@@ -142,5 +142,6 @@
       "Jiro Nishiguchi <jiro@cpan.org>",
       "Yasuhiro Matsumoto <mattn.jp@gmail.com>",
       "Syohei YOSHIDA <syohex@gmail.com>"
-   ]
+   ],
+   "x_serialization_backend" : "JSON::PP version 2.27400"
 }
