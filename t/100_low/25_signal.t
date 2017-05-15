@@ -4,6 +4,8 @@ use warnings;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::HTTPServer;
 
 plan skip_all => "Win32 is not supported" if Furl::HTTP::WIN32;

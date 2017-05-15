@@ -2,6 +2,8 @@ use strict;
 use warnings;
 
 use Furl::HTTP;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::HTTPServer;
 use Test::TCP;
 use Test::More;

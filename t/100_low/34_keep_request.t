@@ -4,6 +4,8 @@ use Furl::HTTP;
 use Furl::Request;
 use Test::TCP;
 use Test::More;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::HTTPServer;
 
 test_tcp(

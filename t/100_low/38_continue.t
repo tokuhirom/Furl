@@ -4,6 +4,8 @@ use utf8;
 use Furl::HTTP;
 use Test::TCP;
 use Test::More;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::HTTPServer;
 
 test_tcp(
@@ -13,7 +15,18 @@ test_tcp(
         my ( undef, $code, $msg, $headers, $content ) =
             $furl->request(
                 port       => $port,
-                path_query => '/foo',
+                path_query => '/100',
+                host       => '127.0.0.1',
+                headers    => []
+            );
+        is $code, 200;
+        is $msg, 'OK';
+        is $content, 'OK';
+
+        ( undef, $code, $msg, $headers, $content ) =
+            $furl->request(
+                port       => $port,
+                path_query => '/101',
                 host       => '127.0.0.1',
                 headers    => []
             );
@@ -27,7 +40,10 @@ test_tcp(
         my $server = t::HTTPServer->new(port => $port);
         $server->add_trigger(BEFORE_CALL_APP => sub {
             my ($self, $csock, $env) = @_;
-            $self->write_all($csock, "HTTP/1.1 100 Continue\015\012\015\012");
+            my $code = $env->{PATH_INFO} || '100';
+            $code =~ s!/!!g;
+            my $status = $t::HTTPServer::STATUS_CODE{$code};
+            $self->write_all($csock, "HTTP/1.1 $code $status\015\012\015\012");
         });
         $server->run(sub {
             my $env = shift;
