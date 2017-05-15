@@ -220,8 +220,6 @@ sub request {
     my $self = shift;
     my %args = @_;
 
-    my $timeout_at = time + $self->{timeout};
-
     my ($scheme, $username, $password, $host, $port, $path_query);
     if (defined(my $url = $args{url})) {
         ($scheme, $username, $password, $host, $port, $path_query) = $self->_parse_url($url);
@@ -267,6 +265,12 @@ sub request {
             undef $proxy;
         }
     }
+
+    if ($scheme eq 'https') {
+        _requires('IO/Socket/SSL.pm', 'SSL');
+    }
+
+    my $timeout_at = time + $self->{timeout};
 
     local $SIG{PIPE} = 'IGNORE';
     my $sock         = $self->{connection_pool}->steal($host, $port);
@@ -685,7 +689,6 @@ sub _ssl_opts {
 # @return file handle like object
 sub connect_ssl {
     my ($self, $host, $port, $timeout_at) = @_;
-    _requires('IO/Socket/SSL.pm', 'SSL');
 
     my ($sock, $err_reason) = $self->connect($host, $port, $timeout_at);
     return (undef, $err_reason)
@@ -709,7 +712,6 @@ sub connect_ssl {
 
 sub connect_ssl_over_proxy {
     my ($self, $proxy_host, $proxy_port, $host, $port, $timeout_at, $proxy_authorization) = @_;
-    _requires('IO/Socket/SSL.pm', 'SSL');
 
     my $sock = $self->connect($proxy_host, $proxy_port, $timeout_at);
 
