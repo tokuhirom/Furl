@@ -2,6 +2,10 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.11 2017-05-16T23:54:24Z
+
+    - added docs
+
 3.10 2017-04-05T16:52:32Z
     - Fix tests for newer Perl @INC issue
 

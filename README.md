@@ -147,6 +147,15 @@ This is an easy-to-use alias to `request()`, sending the `DELETE` method.
 
 Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
+# TIPS
+
+- [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) preloading
+
+    Loading [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) spends 〜0.1sec.
+    At first time, Furl counts module loading time as a timeout seconds.
+
+    For example, you set 0.3 sec as a timeout seconds, at first time, [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) loading spends about 0.1sec, as a result, Furl can use 0.2sec for network communication.
+
 # FAQ
 
 - Does Furl depends on XS modules?
