@@ -295,6 +295,19 @@ This is an easy-to-use alias to C<request()>, sending the C<DELETE> method.
 
 Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
 
+=head1 TIPS
+
+=over 4
+
+=item L<IO::Socket::SSL> preloading
+
+Loading L<IO::Socket::SSL> spends 〜0.1sec.
+At first time, Furl counts module loading time as a timeout seconds.
+
+For example, you set 0.3 sec as a timeout seconds, at first time, L<IO::Socket::SSL> loading spends about 0.1sec, as a result, Furl can use 0.2sec for network communication.
+
+=back
+
 =head1 FAQ
 
 =over 4
