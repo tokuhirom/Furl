@@ -24,13 +24,30 @@ test_tcp(
             is $content, '/foo'
                 or do{ require Devel::Peek; Devel::Peek::Dump($content) };
         }
+        for ($n + 1 .. $n + $n) {
+            my ( undef, $code, $msg, $headers, $content ) =
+                $furl->request(
+                    url => "http://dan%40kogai:kogai%2Fdan\@127.0.0.1:${port}/escape",
+                );
+            is $code, 200, "request()/$_";
+            is $msg, "OK";
+            is Furl::HTTP::_header_get($headers, 'Content-Length'), 7, 'header'
+                or diag(explain($headers));
+            is $content, '/escape'
+                or do{ require Devel::Peek; Devel::Peek::Dump($content) };
+        }
+
         done_testing;
     },
     server => sub {
         my $port = shift;
+        my $basic = 'ZGFua29nYWk6a29nYWlkYW4=';
         t::HTTPServer->new(port => $port)->run(sub {;
             my $env = shift;
-            is($env->{HTTP_AUTHORIZATION}, 'Basic ZGFua29nYWk6a29nYWlkYW4=');
+            if ($env->{REQUEST_URI} eq '/escape') {
+                $basic = 'ZGFuQGtvZ2FpOmtvZ2FpL2Rhbg==';
+            }
+            is($env->{HTTP_AUTHORIZATION}, 'Basic ' . $basic);
             return [ 200,
                 [ 'Content-Length' => length($env->{REQUEST_URI}) ],
                 [$env->{REQUEST_URI}]
