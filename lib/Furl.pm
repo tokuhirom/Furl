@@ -301,10 +301,11 @@ Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
 
 =item L<IO::Socket::SSL> preloading
 
-Loading L<IO::Socket::SSL> spends 〜0.1sec.
-At first time, Furl counts module loading time as a timeout seconds.
+Furl interprets the C<timoeut> argument as the maximum time the module is permitted to spend before returning an error.
 
-For example, you set 0.3 sec as a timeout seconds, at first time, L<IO::Socket::SSL> loading spends about 0.1sec, as a result, Furl can use 0.2sec for network communication.
+The module also lazy-loads L<IO::Socket::SSL> when an HTTPS request is being issued for the first time. Loading the module usually takes ~0.1 seconds.
+
+The time spent for loading the SSL module may become an issue in case you want to impose a very small timeout value for connection establishment. In such case, users are advised to preload the SSL module explicitly.
 
 =back
 
