@@ -278,9 +278,13 @@ sub request {
                 = $self->_parse_url($proxy);
             my $proxy_authorization;
             if (defined $proxy_user) {
+                _requires('URI/Escape.pm',
+                    'Basic auth');
+                my($unescape_proxy_user) = URI::Escape::uri_unescape($proxy_user);
+                my($unescape_proxy_pass) = URI::Escape::uri_unescape($proxy_pass);
                 _requires('MIME/Base64.pm',
                     'Basic auth');
-                $proxy_authorization = 'Basic ' . MIME::Base64::encode_base64("$proxy_user:$proxy_pass","");
+                $proxy_authorization = 'Basic ' . MIME::Base64::encode_base64("$unescape_proxy_user:$unescape_proxy_pass","");
             }
             if ($scheme eq 'http') {
                 ($sock, $err_reason)
@@ -331,8 +335,11 @@ sub request {
             push @headers, 'Proxy-Authorization', $self->{proxy_authorization};
         }
         if (defined $username) {
+            _requires('URI/Escape.pm', 'Basic auth');
+            my($unescape_username) = URI::Escape::uri_unescape($username);
+            my($unescape_password) = URI::Escape::uri_unescape($password);
             _requires('MIME/Base64.pm', 'Basic auth');
-            push @headers, 'Authorization', 'Basic ' . MIME::Base64::encode_base64("${username}:${password}","");
+            push @headers, 'Authorization', 'Basic ' . MIME::Base64::encode_base64("${unescape_username}:${unescape_password}","");
         }
 
         # set Cookie header
