@@ -270,7 +270,15 @@ sub request {
 
     local $SIG{PIPE} = 'IGNORE';
     my $sock         = $self->{connection_pool}->steal($host, $port);
-    my $in_keepalive = defined $sock;
+    my $in_keepalive;
+    if (defined $sock) {
+        if ($self->_do_select(0, $sock, 0)) {
+            close $sock;
+            undef $sock;
+        } else {
+            $in_keepalive = 1;
+        }
+    }
     if(!$in_keepalive) {
         my $err_reason;
         if ($proxy) {
@@ -874,20 +882,26 @@ sub do_select {
             $! = 0;
             return 0;
         }
-        my($rfd, $wfd);
-        my $efd = '';
-        vec($efd, fileno($sock), 1) = 1;
-        if ($is_write) {
-            $wfd = $efd;
-        } else {
-            $rfd = $efd;
-        }
-        my $nfound   = select($rfd, $wfd, $efd, $timeout);
+        my $nfound = $self->_do_select($is_write, $sock, $timeout);
         return 1 if $nfound > 0;
         return 0 if $nfound == -1 && $! == EINTR && $self->{stop_if}->();
         $now = time;
     }
     die 'not reached';
+}
+
+sub _do_select {
+    my($self, $is_write, $sock, $timeout) = @_;
+    my($rfd, $wfd);
+    my $efd = '';
+    vec($efd, fileno($sock), 1) = 1;
+    if ($is_write) {
+        $wfd = $efd;
+    } else {
+        $rfd = $efd;
+    }
+    my $nfound = select($rfd, $wfd, $efd, $timeout);
+    return $nfound;
 }
 
 # returns (positive) number of bytes read, or undef if the socket is to be closed
