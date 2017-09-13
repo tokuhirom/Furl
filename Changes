@@ -2,6 +2,20 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.12 2017-09-13T06:58:15Z
+
+    commit 88cd747c78d80675c1aa4953083af16f70085252
+    Author: Shoichi Kaji <skaji@cpan.org>
+    Date:   Mon Aug 14 00:50:55 2017 +0900
+
+        check whether sockets are readable or not before reusing them
+
+    commit 90f3e48ce20845e0f11be40bb975f9c23c86ad8a
+    Author: ktat <ktat.is@gmail.com>
+    Date:   Mon May 29 14:26:55 2017 +0900
+
+        uri_unescape user & password for Basic auth
+
 3.11 2017-05-16T23:54:24Z
 
     - added docs
