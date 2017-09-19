@@ -2,11 +2,10 @@ use strict;
 use warnings;
 use Furl::HTTP;
 use Test::TCP;
-use Test::Requires qw(Plack::Request HTTP::Body), 'Plack', 'MIME::Base64';
+use Test::Requires qw(Plack::Request HTTP::Body MIME::Base64 HTTP::Proxy::HeaderFilter::simple HTTP::Proxy URI::Escape);
 use Plack::Loader;
 use Test::More;
 use Plack::Request;
-use Test::Requires qw(Plack::Request HTTP::Proxy::HeaderFilter::simple HTTP::Body), 'HTTP::Proxy';
 use MIME::Base64 qw/encode_base64/;
 
 plan tests => 7*6;
