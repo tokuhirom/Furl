@@ -118,7 +118,7 @@
          "web" : "https://github.com/tokuhirom/Furl"
       }
    },
-   "version" : "3.12",
+   "version" : "3.13",
    "x_contributors" : [
       "Keiji, Yoshimi <walf443@gmail.com>",
       "Fuji, Goro <gfuji@cpan.org>",

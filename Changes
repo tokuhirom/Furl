@@ -2,6 +2,10 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.13 2017-09-19T06:31:34Z
+
+    - Fixed test code(skaji++)
+
 3.12 2017-09-13T06:58:15Z
 
     commit 88cd747c78d80675c1aa4953083af16f70085252
