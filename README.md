@@ -151,7 +151,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 - [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) preloading
 
-    Furl interprets the `timoeut` argument as the maximum time the module is permitted to spend before returning an error.
+    Furl interprets the `timeout` argument as the maximum time the module is permitted to spend before returning an error.
 
     The module also lazy-loads [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) when an HTTPS request is being issued for the first time. Loading the module usually takes ~0.1 seconds.
 
