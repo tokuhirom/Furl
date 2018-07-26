@@ -301,7 +301,7 @@ Loads proxy settings from C<< $ENV{HTTP_PROXY} >> and C<< $ENV{NO_PROXY} >>.
 
 =item L<IO::Socket::SSL> preloading
 
-Furl interprets the C<timoeut> argument as the maximum time the module is permitted to spend before returning an error.
+Furl interprets the C<timeout> argument as the maximum time the module is permitted to spend before returning an error.
 
 The module also lazy-loads L<IO::Socket::SSL> when an HTTPS request is being issued for the first time. Loading the module usually takes ~0.1 seconds.
 
