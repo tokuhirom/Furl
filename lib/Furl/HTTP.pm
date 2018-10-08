@@ -513,6 +513,11 @@ sub request {
         }
     }
 
+    ### EXTREMELY DUMMY PATH ###
+    $special_headers->{'content-length'} = undef
+        unless $special_headers->{'content-length'} =~ /^\d+$/;
+    ### EXTREMELY DUMMY PATH ###
+
     my $max_redirects = 0;
     my $do_redirect = undef;
     if ($special_headers->{location}) {
