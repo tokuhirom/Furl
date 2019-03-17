@@ -4,12 +4,18 @@ use warnings;
 use Test::More;
 use Furl;
 use IO::Socket::SSL;
+use t::Util;
 
-my $res = Furl->new(
+skip_if_offline();
+
+my $furl = Furl->new(
     ssl_opts => {
         SSL_verify_mode => SSL_VERIFY_PEER(),
     },
-)->get('https://foursquare.com/login');
+);
+$furl->env_proxy();
+
+my $res = $furl->get('https://foursquare.com/login');
 ok $res->is_success, 'SSL get';
 done_testing;
 

@@ -42,6 +42,7 @@ sub online () {
     }
 
     my $furl = Furl::HTTP->new(timeout => 5);
+    $furl->env_proxy();
     my $good = 0;
     my $bad  = 0;
     note 'checking if online';
