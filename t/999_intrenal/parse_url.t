@@ -163,4 +163,17 @@ test_parse_url(
     qr/Passed malformed URL:/,
 );
 
+test_parse_url(
+    'http://[::1]:5000/hoge/fuga?foo=bar',
+    [
+        'http',
+        undef,
+        undef,
+        '::1',
+        5000,
+        '/hoge/fuga?foo=bar',
+    ],
+    'popular IPv6 url',
+);
+
 done_testing;
