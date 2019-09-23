@@ -176,4 +176,35 @@ test_parse_url(
     'popular IPv6 url',
 );
 
+test_parse_url(
+    'http://[::1]/hoge/fuga?foo=bar',
+    [
+        'http',
+        undef,
+        undef,
+        '::1',
+        undef,
+        '/hoge/fuga?foo=bar',
+    ],
+    'popular IPv6 url with default port',
+);
+
+test_parse_url(
+    'http://[2001:0db8:0000:08d3:0000:8a2e:0070:7344]:5000/hoge/fuga?foo=bar',
+    [
+        'http',
+        undef,
+        undef,
+        '2001:0db8:0000:08d3:0000:8a2e:0070:7344',
+        5000,
+        '/hoge/fuga?foo=bar',
+    ],
+    'Wikipedia IPv6 url with hexadecimal digits',
+);
+
+test_parse_url(
+    'http://[2001a:0db8:0000:08d3:0000:8a2e:0070:7344]:5000/hoge/fuga?foo=bar',
+    qr/Passed malformed URL:/,
+);
+
 done_testing;
