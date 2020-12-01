@@ -119,7 +119,7 @@ test_tcp(
     },
     server => sub { # proxy server
         my $proxy_port = shift;
-        my $proxy = Test::HTTP::Proxy->new(port => $proxy_port, via => $via);
+        my $proxy = Test::HTTP::Proxy->new(host => '127.0.0.1', port => $proxy_port, via => $via);
         $proxy->agent(test_agent);
         $proxy->start();
     },
@@ -139,7 +139,7 @@ test_tcp(
     },
     server => sub { # proxy server
         my $proxy_port = shift;
-        my $proxy = Test::HTTP::Proxy->new(port => $proxy_port, via => $via);
+        my $proxy = Test::HTTP::Proxy->new(host => '127.0.0.1', port => $proxy_port, via => $via);
         $proxy->agent(test_agent);
         $proxy->agent->real_httpd_port($httpd->port);
         $proxy->start();
@@ -182,7 +182,7 @@ test_tcp(
     },
     server => sub { # proxy server
         my $proxy_port = shift;
-        my $proxy = Test::HTTP::Proxy->new(port => $proxy_port, via => $via);
+        my $proxy = Test::HTTP::Proxy->new(host => '127.0.0.1', port => $proxy_port, via => $via);
         $proxy->start();
     },
 );

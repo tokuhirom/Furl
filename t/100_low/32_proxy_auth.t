@@ -78,7 +78,7 @@ test_tcp(
     },
     server => sub { # proxy server
         my $proxy_port = shift;
-        my $proxy = Test::HTTP::Proxy->new(port => $proxy_port, via => $via);
+        my $proxy = Test::HTTP::Proxy->new(host => '127.0.0.1', port => $proxy_port, via => $via);
         my $token_simple = "Basic " . encode_base64( "dankogai:kogaidan", "" );
         my $token_escape = "Basic " . encode_base64( 'dan@kogai:kogai/dan', "" );
         $proxy->push_filter(
