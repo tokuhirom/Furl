@@ -182,11 +182,14 @@ sub _parse_url {
             ([^/:@?]+) # password
             @
         )?
-        ([^/:?]+)                   # host
+        (?:
+            \[((?:[\da-fA-F]{0,4})(?::[\da-fA-F]{0,4}){0,7})\]      # IPv6 address
+           |([^/:?]+)               # IPv4 host or hostname
+        )                           # host
         (?: : (\d+) )?              # port
         (?: ( /? \? .* | / .*)  )?  # path_query
     \z}xms or Carp::croak("Passed malformed URL: $url");
-    return( $1, $2, $3, $4, $5, $6 );
+    return( $1, $2, $3, $4 || $5, $6, $7 );
 }
 
 sub make_x_www_form_urlencoded {
