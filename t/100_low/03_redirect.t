@@ -66,6 +66,10 @@ test_tcp(
             ( undef, undef, undef, undef, $content ) =
             $furl->post("http://127.0.0.1:$port/307", [], "");
             is $content, 'POST', 'POST into 307 results in a POST';
+
+            ( undef, undef, undef, undef, $content ) =
+            $furl->post("http://127.0.0.1:$port/308", [], "");
+            is $content, 'POST', 'POST into 308 results in a POST';
         };
 
         done_testing;

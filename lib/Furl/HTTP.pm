@@ -517,7 +517,7 @@ sub request {
     my $do_redirect = undef;
     if ($special_headers->{location}) {
         $max_redirects = defined($args{max_redirects}) ? $args{max_redirects} : $self->{max_redirects};
-        $do_redirect = $max_redirects && $res_status =~ /^30[1237]$/;
+        $do_redirect = $max_redirects && $res_status =~ /^30[12378]$/;
     }
 
     my $res_content = '';
@@ -612,10 +612,11 @@ sub request {
         # response, performing a GET on the Location field-value regardless
         # of the original request method. The status codes 303 and 307 have
         # been added for servers that wish to make unambiguously clear which
-        # kind of reaction is expected of the client.
+        # kind of reaction is expected of the client. Also, 308 was introduced
+        # to avoid the ambiguity of 301.
         return $self->request(
             @_,
-            method        => ($res_status eq '301' or $res_status eq '307') ? $method : 'GET',
+            method        => $res_status =~ /^30[178]$/ ? $method : 'GET',
             url           => $location,
             max_redirects => $max_redirects - 1,
         );
