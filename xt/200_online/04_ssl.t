@@ -5,6 +5,8 @@ use Test::More;
 use Test::Requires qw(Plack::Request HTTP::Body), qw(IO::Socket::SSL);
 use Furl;
 use IO::Socket::SSL;
+use FindBin;
+use lib "$FindBin::Bin/../..";
 use t::Util;
 
 # this test moved to xt/ since mixi's ssl sucks.
