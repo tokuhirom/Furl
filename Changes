@@ -2,6 +2,9 @@ Revision history for Perl module Furl
 
 {{$NEXT}}
 
+3.14 2021-05-13T05:30:22Z
+    - Support 308 HTTP status code
+
 3.13 2017-09-19T06:31:34Z
 
     - Fixed test code(skaji++)

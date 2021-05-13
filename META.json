@@ -4,13 +4,13 @@
       "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.0.9, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.12, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : "2"
+      "version" : 2
    },
    "name" : "Furl",
    "no_index" : {
@@ -35,7 +35,7 @@
          "requires" : {
             "Test::CPAN::Meta" : "0",
             "Test::MinimumVersion::Fast" : "0.04",
-            "Test::PAUSE::Permissions" : "0.04",
+            "Test::PAUSE::Permissions" : "0.07",
             "Test::Pod" : "1.41",
             "Test::Spellunker" : "v0.2.7"
          },
@@ -118,32 +118,36 @@
          "web" : "https://github.com/tokuhirom/Furl"
       }
    },
-   "version" : "3.13",
+   "version" : "3.14",
    "x_contributors" : [
-      "Keiji, Yoshimi <walf443@gmail.com>",
-      "Fuji, Goro <gfuji@cpan.org>",
-      "lestrrat <lestrrat+github@gmail.com>",
       "Audrey Tang <audreyt@audreyt.org>",
+      "Breno G. de Oliveira <garu@cpan.org>",
+      "Debabrata Deka <60925700+ddeka2910@users.noreply.github.com>",
       "Fuji Goro <fuji.goro@dena.jp>",
       "Fuji, Goro <g.psy.va@gmail.com>",
-      "s-aska <s.aska.org@gmail.com>",
-      "ikasam_a <masaki.nakagawa@gmail.com>",
-      "xaicron <xaicron@gmail.com>",
-      "Neil Bowers <neil@bowers.com>",
-      "Toshio Ito <debug.ito@gmail.com>",
-      "bayashi <bayashi@cpan.org>",
-      "Masahiro Nagano <kazeburo@gmail.com>",
+      "Fuji, Goro <gfuji@cpan.org>",
+      "Graham Ollis <plicease@cpan.org>",
       "HIROSE Masaaki <hirose31@gmail.com>",
-      "Kazuho Oku <kazuhooku@gmail.com>",
       "Jari Salmela <bissei@users.noreply.github.com>",
-      "tarao <tarao.gnn@gmail.com>",
-      "kimoto <peerler@gmail.com>",
-      "Breno G. de Oliveira <garu@cpan.org>",
       "Jiro Nishiguchi <jiro@cpan.org>",
+      "Kazuho Oku <kazuhooku@gmail.com>",
+      "Keiji, Yoshimi <walf443@gmail.com>",
+      "Masahiro Nagano <kazeburo@gmail.com>",
+      "Neil Bowers <neil@bowers.com>",
+      "Shohei YOSHIDA <syohex@gmail.com>",
+      "Shoichi Kaji <skaji@cpan.org>",
+      "Toshio Ito <debug.ito@gmail.com>",
       "Yasuhiro Matsumoto <mattn.jp@gmail.com>",
-      "Syohei YOSHIDA <syohex@gmail.com>",
+      "bayashi <bayashi@cpan.org>",
+      "ikasam_a <masaki.nakagawa@gmail.com>",
+      "itchyny <itchyny@hatena.ne.jp>",
+      "kimoto <peerler@gmail.com>",
       "ktat <ktat.is@gmail.com>",
-      "Shoichi Kaji <skaji@cpan.org>"
+      "lestrrat <lestrrat+github@gmail.com>",
+      "s-aska <s.aska.org@gmail.com>",
+      "tarao <tarao.gnn@gmail.com>",
+      "xaicron <xaicron@gmail.com>"
    ],
-   "x_serialization_backend" : "JSON::PP version 2.27400"
+   "x_serialization_backend" : "JSON::PP version 4.06",
+   "x_static_install" : 1
 }

@@ -48,7 +48,7 @@ _%args_ might be:
 - max\_redirects :Int = 7
 - capture\_request :Bool = false
 
-    If this parameter is true, [Furl::HTTP](https://metacpan.org/pod/Furl::HTTP) captures raw request string.
+    If this parameter is true, [Furl::HTTP](https://metacpan.org/pod/Furl%3A%3AHTTP) captures raw request string.
     You can get it by `$res->captured_req_headers` and `$res->captured_req_content`.
 
 - proxy :Str
@@ -64,7 +64,7 @@ _%args_ might be:
 
 ### `$furl->request([$request,] %args) :Furl::Response`
 
-Sends an HTTP request to a specified URL and returns a instance of [Furl::Response](https://metacpan.org/pod/Furl::Response).
+Sends an HTTP request to a specified URL and returns a instance of [Furl::Response](https://metacpan.org/pod/Furl%3A%3AResponse).
 
 _%args_ might be:
 
@@ -149,11 +149,11 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 # TIPS
 
-- [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) preloading
+- [IO::Socket::SSL](https://metacpan.org/pod/IO%3A%3ASocket%3A%3ASSL) preloading
 
     Furl interprets the `timeout` argument as the maximum time the module is permitted to spend before returning an error.
 
-    The module also lazy-loads [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) when an HTTPS request is being issued for the first time. Loading the module usually takes ~0.1 seconds.
+    The module also lazy-loads [IO::Socket::SSL](https://metacpan.org/pod/IO%3A%3ASocket%3A%3ASSL) when an HTTPS request is being issued for the first time. Loading the module usually takes ~0.1 seconds.
 
     The time spent for loading the SSL module may become an issue in case you want to impose a very small timeout value for connection establishment. In such case, users are advised to preload the SSL module explicitly.
 
@@ -169,12 +169,12 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
 
 - I need more speed.
 
-    See [Furl::HTTP](https://metacpan.org/pod/Furl::HTTP), which provides the low level interface of [Furl](https://metacpan.org/pod/Furl).
-    It is faster than `Furl.pm` since [Furl::HTTP](https://metacpan.org/pod/Furl::HTTP) does not create response objects.
+    See [Furl::HTTP](https://metacpan.org/pod/Furl%3A%3AHTTP), which provides the low level interface of [Furl](https://metacpan.org/pod/Furl).
+    It is faster than `Furl.pm` since [Furl::HTTP](https://metacpan.org/pod/Furl%3A%3AHTTP) does not create response objects.
 
 - How do you use cookie\_jar?
 
-    Furl does not directly support the cookie\_jar option available in LWP. You can use [HTTP::Cookies](https://metacpan.org/pod/HTTP::Cookies), [HTTP::Request](https://metacpan.org/pod/HTTP::Request), [HTTP::Response](https://metacpan.org/pod/HTTP::Response) like following.
+    Furl does not directly support the cookie\_jar option available in LWP. You can use [HTTP::Cookies](https://metacpan.org/pod/HTTP%3A%3ACookies), [HTTP::Request](https://metacpan.org/pod/HTTP%3A%3ARequest), [HTTP::Response](https://metacpan.org/pod/HTTP%3A%3AResponse) like following.
 
         my $f = Furl->new();
         my $cookies = HTTP::Cookies->new();
@@ -263,7 +263,7 @@ Loads proxy settings from `$ENV{HTTP_PROXY}` and `$ENV{NO_PROXY}`.
             },
         );
 
-    See [IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL) for details.
+    See [IO::Socket::SSL](https://metacpan.org/pod/IO%3A%3ASocket%3A%3ASSL) for details.
 
 # AUTHOR
 
@@ -291,11 +291,11 @@ audreyt
 
 [LWP](https://metacpan.org/pod/LWP)
 
-[IO::Socket::SSL](https://metacpan.org/pod/IO::Socket::SSL)
+[IO::Socket::SSL](https://metacpan.org/pod/IO%3A%3ASocket%3A%3ASSL)
 
-[Furl::HTTP](https://metacpan.org/pod/Furl::HTTP)
+[Furl::HTTP](https://metacpan.org/pod/Furl%3A%3AHTTP)
 
-[Furl::Response](https://metacpan.org/pod/Furl::Response)
+[Furl::Response](https://metacpan.org/pod/Furl%3A%3AResponse)
 
 # LICENSE
 
