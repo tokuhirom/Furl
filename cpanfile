@@ -35,6 +35,7 @@ on test => sub {
     suggests 'Plack';
     suggests 'Test::Valgrind';
     suggests 'HTTP::CookieJar';
+    suggests 'HTTP::Body';
 };
 
 on develop => sub {
