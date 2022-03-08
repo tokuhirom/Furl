@@ -4,7 +4,7 @@
       "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.12, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.15, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
@@ -91,6 +91,7 @@
             "Test::TCP" : "2.11"
          },
          "suggests" : {
+            "HTTP::Body" : "0",
             "HTTP::CookieJar" : "0",
             "HTTP::Proxy" : "0",
             "HTTP::Server::PSGI" : "0",
@@ -114,7 +115,7 @@
       "homepage" : "https://github.com/tokuhirom/Furl",
       "repository" : {
          "type" : "git",
-         "url" : "git://github.com/tokuhirom/Furl.git",
+         "url" : "https://github.com/tokuhirom/Furl.git",
          "web" : "https://github.com/tokuhirom/Furl"
       }
    },
@@ -148,6 +149,6 @@
       "tarao <tarao.gnn@gmail.com>",
       "xaicron <xaicron@gmail.com>"
    ],
-   "x_serialization_backend" : "JSON::PP version 4.06",
+   "x_serialization_backend" : "JSON::PP version 4.07",
    "x_static_install" : 1
 }
