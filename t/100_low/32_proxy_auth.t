@@ -7,6 +7,7 @@ use Plack::Loader;
 use Test::More;
 use Plack::Request;
 use MIME::Base64 qw/encode_base64/;
+use Socket qw(AF_INET);
 
 plan tests => 7*6;
 
@@ -14,6 +15,21 @@ my $verbose = 1;
 {
     package Test::HTTP::Proxy;
     use parent qw(HTTP::Proxy);
+    use HTTP::Daemon;
+
+    sub new {
+        my $self = shift;
+        my %args = @_;
+        my %daemon_args = (
+            LocalAddr => '127.0.0.1',
+            LocalPort => $args{port},
+            ReuseAddr => 1,
+            Family => Socket::AF_INET,
+        );
+        my $daemon = HTTP::Daemon->new(%daemon_args);
+        $self->SUPER::new(@_, daemon => $daemon);
+    }
+
     sub log {
         my($self, $level, $prefix, $msg) = @_;
         ::note "$prefix: $msg" if $verbose;
