@@ -13,12 +13,12 @@ use Errno ();
     eval {
         $furl->request();
     };
-    like $@, qr/missing host name/i, 'missuse';
+    like $@, qr/missing host name/i, 'misuse';
 
     eval {
         $furl->request(url => 'ftp://ftp.example.com/', method => 'GET');
     };
-    like $@, qr/unsupported scheme/i, 'missuse';
+    like $@, qr/unsupported scheme/i, 'misuse';
 
     foreach my $bad_url(qw(
         hogehoge
@@ -36,7 +36,7 @@ my $n = shift(@ARGV) || 3;
 
 my $fail_on_syswrite = 1;
 {
-    package Errorneous::Socket;
+    package Erroneous::Socket;
     use parent qw(IO::Socket::INET);
     sub syswrite {
         my($sock, $buff, $len, $off) = @_;
@@ -48,13 +48,13 @@ my $fail_on_syswrite = 1;
         }
         return $sock->SUPER::syswrite($buff, $len, $off);
     }
-    package Errorneous::Server;
+    package Erroneous::Server;
     use parent qw(HTTP::Server::PSGI);
     sub setup_listener {
         my $self = shift;
         $self->SUPER::setup_listener(@_);
-        bless $self->{listen_sock}, 'Errorneous::Socket';
-        ::note 'Errorneous::Server listening';
+        bless $self->{listen_sock}, 'Erroneous::Socket';
+        ::note 'Erroneous::Server listening';
     }
 }
 
@@ -79,7 +79,7 @@ test_tcp(
     },
     server => sub {
         my $port = shift;
-        Errorneous::Server->new(port => $port)->run(sub {
+        Erroneous::Server->new(port => $port)->run(sub {
             my $env = shift;
             #note explain $env;
             my $req = Plack::Request->new($env);
