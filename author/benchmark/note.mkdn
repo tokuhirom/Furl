@@ -76,7 +76,7 @@ fixed bug.
     furl      6575/s      722%      528%        --      -25%
     curl      8727/s      991%      734%       33%        --
 
-##### same revsion, but access to real server
+##### same revision, but access to real server
 
             9cf2a06ee9aed52232effdeb432f5a6668f42636
             Perl/5.12.1 on x86_64-linux

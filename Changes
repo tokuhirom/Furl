@@ -59,7 +59,7 @@ Revision history for Perl module Furl
         fix for keep-alive as zmmail proposed.
         "In line 526 of Furl/HTTP.pm, FURL checks the HTTP response headers it gets from the server. It will read the C
     onnection from the response header there, and compare the header value with the string keep-alive. The problem is t
-    hat this does not take into account a different case of the response header. Some HTTP server returns a header valu
+    hat this does not take into account a different case of the response header. Some HTTP server returns a header value
     e of Keep-Alive (mind the caps), so FURL does not recognize it properly.
 
         I think the following change to Furl/HTTP.pm is more robust.
@@ -200,7 +200,7 @@ Revision history for Perl module Furl
 2.05 2013-02-12T15:00:31
 
     [EXPERIMENTAL FEATURE]
-    - Add "X-Internal-Respponse: 1" header for
+    - Add "X-Internal-Response: 1" header for
       Internal response. It's compatible with LWP.
       (tokuhirom)
     - Reverted Client-Warning header introduced in 2.04
@@ -313,7 +313,7 @@ Revision history for Perl module Furl
 
 0.34 2011-07-15
 
-    - accept the domain using '_' charcter(xaicron)
+    - accept the domain using '_' character(xaicron)
 
 0.33 2011-07-13
 
@@ -387,7 +387,7 @@ Revision history for Perl module Furl
 0.19 2010-12-20
 
     - fixed documentation bug(tokuhirom)
-    - errorneously returned 500 error when closing of the socket was used
+    - erroneously returned 500 error when closing of the socket was used
       to indicate eof (i.e. no Content-Encoding or Content-Length)
       (Kazuho Oku)
 

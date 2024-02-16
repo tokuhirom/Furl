@@ -24,7 +24,7 @@ test_tcp(
                     port => $port,
                     path => '/',
                     host => '127.0.0.1',
-                    headers => ['X-Packet-Size', $i, 'X-Chunck-End' => $chunk_end],
+                    headers => ['X-Packet-Size', $i, 'X-Chunk-End' => $chunk_end],
                 );
                 is $code, 200, 'status';
                 is $content, $s x $i, 'content';
@@ -39,7 +39,7 @@ test_tcp(
             sub {
                 my $env = shift;
                 my $size = $env->{HTTP_X_PACKET_SIZE} or die '???';
-                my $end_mark = $env->{HTTP_X_CHUNCK_END};
+                my $end_mark = $env->{HTTP_X_CHUNK_END};
                 return [
                     200,
                     [ 'Transfer-Encoding' => 'chunked' ],
