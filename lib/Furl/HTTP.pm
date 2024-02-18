@@ -403,7 +403,8 @@ sub request {
 
         # finally, set Host header
         my $request_target = ($port == $default_port) ? $host : "$host:$port";
-        push @headers, 'Host' => $request_target;
+        push @headers, 'Host' => $request_target
+            if !defined _header_get(\@headers, 'Host');
 
         my $request_uri = $proxy && $scheme eq 'http' ? "$scheme://$request_target$path_query" : $path_query;
 

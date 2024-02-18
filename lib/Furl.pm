@@ -87,7 +87,6 @@ sub request {
         my $req = shift;
         %args = @_;
         my $req_headers= $req->headers;
-        $req_headers->remove_header('Host'); # suppress duplicate Host header
         my $headers = +[
             map {
                 my $k = $_;
