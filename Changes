@@ -1,6 +1,7 @@
 Revision history for Perl module Furl
 
 {{$NEXT}}
+    - Add support for IPv6 URLs like https://[::1]/
 
 3.14 2021-05-13T05:30:22Z
     - Support 308 HTTP status code
