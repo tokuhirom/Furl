@@ -835,13 +835,12 @@ sub _read_body_normal {
     while (!defined($res_content_length) || $res_content_length != $nread) {
         my $n = $self->read_timeout( $sock,
             \my $buf, $self->{bufsize}, 0, $timeout_at );
-        if (!$n) {
+        if (!defined($n)) {
+            return $self->_r500("Cannot read content body: " . _strerror_or_timeout());
+        } elsif (!$n) {
+            # EOF without Content-Length - allow normal completion
             last if ! defined($res_content_length);
-            return $self->_r500(
-                !defined($n)
-                    ? "Cannot read content body: " . _strerror_or_timeout()
-                    : "Unexpected EOF while reading content body"
-            );
+            return $self->_r500("Unexpected EOF while reading content body");
         }
         $$res_content .= $buf;
         $nread        += $n;
