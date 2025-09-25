@@ -4,7 +4,7 @@
       "Tokuhiro Matsuno <tokuhirom@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.15, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.28, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
@@ -119,7 +119,7 @@
          "web" : "https://github.com/tokuhirom/Furl"
       }
    },
-   "version" : "3.14",
+   "version" : "3.15",
    "x_contributors" : [
       "Audrey Tang <audreyt@audreyt.org>",
       "Breno G. de Oliveira <garu@cpan.org>",
@@ -137,6 +137,7 @@
       "Neil Bowers <neil@bowers.com>",
       "Shohei YOSHIDA <syohex@gmail.com>",
       "Shoichi Kaji <skaji@cpan.org>",
+      "Slaven Rezic <slaven@rezic.de>",
       "Toshio Ito <debug.ito@gmail.com>",
       "Yasuhiro Matsumoto <mattn.jp@gmail.com>",
       "bayashi <bayashi@cpan.org>",
@@ -147,8 +148,10 @@
       "lestrrat <lestrrat+github@gmail.com>",
       "s-aska <s.aska.org@gmail.com>",
       "tarao <tarao.gnn@gmail.com>",
-      "xaicron <xaicron@gmail.com>"
+      "xaicron <xaicron@gmail.com>",
+      "yoshikazusawa <883514+yoshikazusawa@users.noreply.github.com>",
+      "yuji-hatakeyama <htkymyj0512@gmail.com>"
    ],
-   "x_serialization_backend" : "JSON::PP version 4.07",
+   "x_serialization_backend" : "JSON::PP version 4.16",
    "x_static_install" : 1
 }
