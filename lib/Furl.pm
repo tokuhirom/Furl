@@ -313,7 +313,7 @@ The time spent for loading the SSL module may become an issue in case you want t
 
 =over 4
 
-=item Does Furl depends on XS modules?
+=item Does Furl depend on XS modules?
 
 No. Although some optional features require XS modules, basic features are
 available without XS modules.
