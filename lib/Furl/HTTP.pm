@@ -696,6 +696,14 @@ sub _ssl_opts {
     $ssl_opts;
 }
 
+sub _sslerr_requires_write {
+    if ($IO::Socket::SSL::VERSION > 0.98) {
+        return $IO::Socket::SSL::SSL_ERROR==IO::Socket::SSL::SSL_WANT_WRITE()
+    } else {
+        return IO::Socket::SSL::errstr() =~ /write/
+    }
+}
+
 # connect SSL socket.
 # You can override this method in your child class, if you want to use Crypt::SSLeay or some other library.
 # @return file handle like object
@@ -707,18 +715,30 @@ sub connect_ssl {
     return (undef, $err_reason)
         unless $sock;
 
-    my $timeout = $timeout_at - time;
-    return (undef, "Cannot create SSL connection: timeout")
-        if $timeout <= 0;
-
     my $ssl_opts = $self->_ssl_opts;
-    IO::Socket::SSL->start_SSL(
-        $sock,
-        PeerHost => $host,
-        PeerPort => $port,
-        Timeout  => $timeout,
-        %$ssl_opts,
-    ) or return (undef, "Cannot create SSL connection: " . IO::Socket::SSL::errstr());
+
+    while (1) {
+        my $timeout = $timeout_at - time;
+        return (undef, "Cannot create SSL connection: timeout")
+            if $timeout <= 0;
+
+        my $upgraded = IO::Socket::SSL->start_SSL(
+            $sock,
+            PeerHost => $host,
+            PeerPort => $port,
+            Timeout  => $timeout,
+            %$ssl_opts,
+        );
+        if ($upgraded) {
+            last;
+        } elsif ($! == EWOULDBLOCK) {
+            $self->do_select(_sslerr_requires_write(), $sock, $timeout_at)
+                or return (undef, "Cannot create SSL connection: timeout");
+        } else {
+            return (undef, "Cannot create SSL connection: " . IO::Socket::SSL::errstr());
+        }
+    }
+
     _set_sockopts($sock);
     $sock;
 }
@@ -748,21 +768,31 @@ sub connect_ssl_over_proxy {
         return (undef, "Invalid HTTP Response via proxy");
     }
 
-    my $timeout = $timeout_at - time;
-    return (undef, "Cannot start SSL connection: timeout")
-        if $timeout_at <= 0;
-
     my $ssl_opts = $self->_ssl_opts;
     unless (exists $ssl_opts->{SSL_verifycn_name}) {
         $ssl_opts->{SSL_verifycn_name} = $host;
     }
-    IO::Socket::SSL->start_SSL(
-        $sock,
-        PeerHost => $host,
-        PeerPort => $port,
-        Timeout  => $timeout,
-        %$ssl_opts
-    ) or return (undef, "Cannot start SSL connection: " . IO::Socket::SSL::errstr());
+    while (1) {
+        my $timeout = $timeout_at - time;
+        return (undef, "Cannot start SSL connection: timeout")
+            if $timeout_at <= 0;
+
+        my $upgraded = IO::Socket::SSL->start_SSL(
+            $sock,
+            PeerHost => $host,
+            PeerPort => $port,
+            Timeout  => $timeout,
+            %$ssl_opts
+        );
+        if ($upgraded) {
+            last;
+        } elsif ($! == EWOULDBLOCK) {
+            $self->do_select(_sslerr_requires_write(), $sock, $timeout_at)
+                or return (undef, "Cannot create SSL connection: timeout");
+        } else {
+            return (undef, "Cannot start SSL connection: " . IO::Socket::SSL::errstr());
+        }
+    }
     _set_sockopts($sock); # just in case (20101118 kazuho)
     $sock;
 }
