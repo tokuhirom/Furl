@@ -70,6 +70,7 @@ sub new {
         ssl_opts           => {},
         capture_request    => $args{capture_request} || 0,
         inactivity_timeout => 600,
+        max_decompressed_size => 100 * 1024 * 1024,
         %args
     }, $class;
 }
@@ -534,7 +535,9 @@ sub request {
     if (exists $COMPRESSED{ $special_headers->{'content-encoding'} }) {
         _requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib');
 
-        $res_content = Furl::ZlibStream->new($res_content);
+        my $max_decompressed_size = defined($args{max_decompressed_size})
+            ? $args{max_decompressed_size} : $self->{max_decompressed_size};
+        $res_content = Furl::ZlibStream->new($res_content, $max_decompressed_size);
     }
 
     my $chunked        = ($special_headers->{'transfer-encoding'} eq 'chunked');
@@ -1121,6 +1124,10 @@ An inactivity timer for TCP read/write (in seconds). $furl->request returns a ti
 
 =item max_redirects :Int = 7
 
+=item max_decompressed_size :Int = 104857600 (100 MiB)
+
+Maximum size, in bytes, of a response body after B<Content-Encoding> (gzip, deflate) decoding. A compressed response that inflates past this limit makes C<< $furl->request >> die, so a small response from a malicious or compromised server cannot expand without bound in memory (a "decompression bomb"). The limit also applies with C<write_file> and C<write_code>. Set it to C<0> to disable the limit, e.g. for large compressed downloads streamed to a file.
+
 =item proxy :Str
 
 =item no_proxy :Str
@@ -1232,6 +1239,10 @@ then this function will be called for each chunk of the response
 content as it is received from the server.
 
 It's like a C<:content_cb> in L<LWP::UserAgent>.
+
+=item max_decompressed_size :Int
+
+Overrides the instance-wide C<max_decompressed_size> given to C<new> for this request.
 
 =back
 
