@@ -8,7 +8,8 @@ use Test::TCP;
 use Test::More;
 
 # A small gzip/deflate response must not inflate without bound in memory.
-# Furl dies once the decoded body passes max_decompressed_size.
+# Once the decoded body passes max_decompressed_size, Furl stops reading and
+# returns an internal 500 response.
 
 use Compress::Raw::Zlib qw(WANT_GZIP MAX_WBITS Z_OK Z_FINISH);
 
@@ -40,8 +41,10 @@ my %body = (
     },
     '/big'         => compress_zeros(2 * $MiB, WANT_GZIP),
     '/big-deflate' => compress_zeros(2 * $MiB, MAX_WBITS),
-    '/over-default' => compress_zeros(101 * $MiB, WANT_GZIP),
+    '/big-stream'  => compress_zeros(101 * $MiB, WANT_GZIP),
 );
+# Inflating 100 MiB in memory is too heavy for every smoker.
+$body{'/over-default'} = $body{'/big-stream'} if $ENV{AUTHOR_TESTING};
 # Text that compresses to many KB, so it is inflated in many pieces.
 my $TEXT = join '', map { "line $_ of the response body\n" } 1 .. 30000;
 $body{'/text'} = do {
@@ -73,21 +76,32 @@ test_tcp(
         }
 
         for my $path (qw(/big /big-deflate /big-chunked)) {
-            my $ok = eval { $furl->request(url => "$base$path"); 1 };
-            ok !$ok, "$path: 2 MiB decoded body over a 1 MiB limit dies";
-            like $@, qr/max_decompressed_size/, '... with the limit error';
+            my (undef, $code, $msg, $headers, $content)
+                = $furl->request(url => "$base$path");
+            is $code, 500, "$path: 2 MiB decoded body over a 1 MiB limit is a 500";
+            like $msg, qr/max_decompressed_size/, '... with the limit error';
+            is {@$headers}->{'X-Internal-Response'}, 1, '... as an internal response';
         }
 
         my $streamed = 0;
+        (undef, $code, my $msg) = $furl->request(
+            url        => "$base/big",
+            write_code => sub { $streamed += length $_[3] },
+        );
+        is $code, 500, 'an explicit limit applies with write_code';
+        like $msg, qr/max_decompressed_size/, '... with the limit error';
+        cmp_ok $streamed, '<=', $MiB, '... and stops before the limit';
+
+        # Other exceptions still propagate.
         my $ok = eval {
             $furl->request(
-                url        => "$base/big",
-                write_code => sub { $streamed += length $_[3] },
+                url        => "$base/small",
+                write_code => sub { die "callback died\n" },
             );
             1;
         };
-        ok !$ok, 'limit applies with write_code';
-        cmp_ok $streamed, '<=', $MiB, '... and stops before the limit';
+        ok !$ok, 'an exception from write_code still propagates';
+        is $@, "callback died\n", '... unchanged';
 
         (undef, $code, undef, undef, $content) = $furl->request(
             url                   => "$base/big",
@@ -100,9 +114,22 @@ test_tcp(
         is $res->code, 200, 'default limit allows an ordinary 2 MiB body';
         is length($res->content), 2 * $MiB, '... full body decoded';
 
-        $ok = eval { Furl->new->get("$base/over-default"); 1 };
-        ok !$ok, 'default limit (100 MiB) stops a 101 MiB decoded body';
-        like $@, qr/max_decompressed_size/, '... with the limit error';
+        # No default limit when streaming: the body does not grow in memory.
+        $streamed = 0;
+        $res = Furl->new->request(
+            url        => "$base/big-stream",
+            write_code => sub { $streamed += length $_[3] },
+        );
+        is $res->code, 200, 'default limit does not apply with write_code';
+        is $streamed, 101 * $MiB, '... full body streamed';
+
+        SKIP: {
+            skip 'set AUTHOR_TESTING to inflate 100 MiB in memory', 2
+                unless $ENV{AUTHOR_TESTING};
+            $res = Furl->new->get("$base/over-default");
+            is $res->code, 500, 'default limit (100 MiB) stops a 101 MiB decoded body';
+            like $res->message, qr/max_decompressed_size/, '... with the limit error';
+        }
 
         done_testing;
     },
@@ -117,6 +144,7 @@ test_tcp(
         ) or die "listen: $!";
         while (my $c = $sock->accept) {
             my $req = <$c>;
+            next unless defined $req; # Test::TCP probing the port
             while (defined(my $line = <$c>)) { last if $line eq "\015\012" }
             my ($path) = $req =~ m{^\S+ (\S+)};
             my $payload = $body{$path};

@@ -36,6 +36,9 @@ my %COMPRESSED = map { $_ => undef } qw(gzip x-gzip deflate);
 my $HTTP_TOKEN         = '[^\x00-\x31\x7F]+';
 my $HTTP_QUOTED_STRING = q{"([^"]+|\\.)*"};
 
+# Default for max_decompressed_size when the body is held in memory.
+our $DEFAULT_MAX_DECOMPRESSED_SIZE = 100 * 1024 * 1024;
+
 sub new {
     my $class = shift;
     my %args = @_ == 1 ? %{$_[0]} : @_;
@@ -70,7 +73,6 @@ sub new {
         ssl_opts           => {},
         capture_request    => $args{capture_request} || 0,
         inactivity_timeout => 600,
-        max_decompressed_size => 100 * 1024 * 1024,
         %args
     }, $class;
 }
@@ -535,8 +537,15 @@ sub request {
     if (exists $COMPRESSED{ $special_headers->{'content-encoding'} }) {
         _requires('Furl/ZlibStream.pm', 'Content-Encoding', 'Compress::Raw::Zlib');
 
-        my $max_decompressed_size = defined($args{max_decompressed_size})
-            ? $args{max_decompressed_size} : $self->{max_decompressed_size};
+        # An explicit limit (per request, or given to new) always applies.
+        # Otherwise the default limit applies only when the body is held in
+        # memory; a body streamed with write_file/write_code does not grow
+        # in memory, so it is left unlimited as before.
+        my $max_decompressed_size
+            = defined($args{max_decompressed_size})  ? $args{max_decompressed_size}
+            : defined($self->{max_decompressed_size}) ? $self->{max_decompressed_size}
+            : ref($res_content)                       ? 0
+            :                                           $DEFAULT_MAX_DECOMPRESSED_SIZE;
         $res_content = Furl::ZlibStream->new($res_content, $max_decompressed_size);
     }
 
@@ -551,20 +560,31 @@ sub request {
             || $res_status == 204
             || $res_status == 304) {
         my @err;
-        if ( $chunked ) {
-            @err = $self->_read_body_chunked($sock,
-                \$res_content, $rest_header, $timeout_at);
-        } else {
-            $res_content .= $rest_header;
-            if (ref $res_content || !defined($content_length)) {
-                @err = $self->_read_body_normal($sock,
-                    \$res_content, length($rest_header),
-                    $content_length, $timeout_at);
+        my $ok = eval {
+            if ( $chunked ) {
+                @err = $self->_read_body_chunked($sock,
+                    \$res_content, $rest_header, $timeout_at);
             } else {
-                @err = $self->_read_body_normal_to_string_buffer($sock,
-                    \$res_content, length($rest_header),
-                    $content_length, $timeout_at);
+                $res_content .= $rest_header;
+                if (ref $res_content || !defined($content_length)) {
+                    @err = $self->_read_body_normal($sock,
+                        \$res_content, length($rest_header),
+                        $content_length, $timeout_at);
+                } else {
+                    @err = $self->_read_body_normal_to_string_buffer($sock,
+                        \$res_content, length($rest_header),
+                        $content_length, $timeout_at);
+                }
             }
+            1;
+        };
+        unless ($ok) {
+            my $e = $@;
+            # The rest of the body is left unread, so the connection is
+            # dropped rather than returned to the pool.
+            return $self->_r500("$e")
+                if ref($e) && ref($e) eq 'Furl::ZlibStream::LimitExceeded';
+            die $e;
         }
         if(@err) {
             return @err;
@@ -1124,9 +1144,11 @@ An inactivity timer for TCP read/write (in seconds). $furl->request returns a ti
 
 =item max_redirects :Int = 7
 
-=item max_decompressed_size :Int = 104857600 (100 MiB)
+=item max_decompressed_size :Int
 
-Maximum size, in bytes, of a response body after B<Content-Encoding> (gzip, deflate) decoding. A compressed response that inflates past this limit makes C<< $furl->request >> die, so a small response from a malicious or compromised server cannot expand without bound in memory (a "decompression bomb"). The limit also applies with C<write_file> and C<write_code>. Set it to C<0> to disable the limit, e.g. for large compressed downloads streamed to a file.
+Maximum size, in bytes, of a response body after B<Content-Encoding> (gzip, deflate) decoding, so that a small response from a malicious or compromised server cannot expand without bound in memory (a "decompression bomb"). When a body inflates past this limit, reading stops, the connection is closed and C<< $furl->request >> returns an internal C<500> response (with the C<X-Internal-Response> header) whose message mentions C<max_decompressed_size>. Set it to C<0> to disable the limit.
+
+If you do not set it, a limit of 104857600 bytes (100 MiB) applies to responses held in memory, and no limit applies to responses streamed with C<write_file> or C<write_code>, as their bodies do not grow in memory. If you set it, the limit applies to both.
 
 =item proxy :Str
 

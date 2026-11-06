@@ -40,8 +40,10 @@ sub append {
 
         $self->{size} += length $deflated;
         if ( $self->{max_size} && $self->{size} > $self->{max_size} ) {
-            Carp::croak( "Decompressed response body exceeds "
-                    . "max_decompressed_size ($self->{max_size} bytes)" );
+            # Thrown as an object so that Furl::HTTP can tell it apart from
+            # other exceptions (e.g. one thrown by a write_code callback)
+            # and turn it into an internal 500 response.
+            die Furl::ZlibStream::LimitExceeded->new( $self->{max_size} );
         }
         $self->{buffer} .= $deflated;
 
@@ -52,5 +54,20 @@ sub append {
 }
 
 sub get_response_string { ref $_[0]->{buffer} ? undef : $_[0]->{buffer} }
+
+package # hide from PAUSE
+    Furl::ZlibStream::LimitExceeded;
+use overload '""' => 'message', fallback => 1;
+
+sub new {
+    my ( $class, $max_size ) = @_;
+    bless { max_size => $max_size }, $class;
+}
+
+sub message {
+    my $self = shift;
+    "Decompressed response body exceeds max_decompressed_size"
+        . " ($self->{max_size} bytes)";
+}
 
 1;

@@ -1,6 +1,10 @@
 Revision history for Perl module Furl
 
 {{$NEXT}}
+    - Limit the size of a gzip/deflate-decoded response body (CVE-2026-65059).
+      New option max_decompressed_size (default 100 MiB for responses held in
+      memory; no default limit for write_file/write_code). Going over the limit
+      returns an internal 500 response.
 
 3.15 2025-09-25T00:24:03Z
     - Fix the issue that when timeout happens, then request method returns success when
