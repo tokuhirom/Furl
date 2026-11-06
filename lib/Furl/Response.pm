@@ -32,7 +32,7 @@ sub set_request_info {
 sub captured_req_headers {
     my $self = shift;
     unless (exists $self->{captured_req_headers}) {
-        Carp::croak("You can't call cpatured_req_headers method without 'capture_request' options for Furl#new");
+        Carp::croak("You can't call captured_req_headers method without 'capture_request' options for Furl#new");
     }
     return $self->{captured_req_headers};
 }
@@ -40,7 +40,7 @@ sub captured_req_headers {
 sub captured_req_content {
     my $self = shift;
     unless (exists $self->{captured_req_content}) {
-        Carp::croak("You can't call cpatured_req_content method without 'capture_request' options for Furl#new");
+        Carp::croak("You can't call captured_req_content method without 'capture_request' options for Furl#new");
     }
     return $self->{captured_req_content};
 }
