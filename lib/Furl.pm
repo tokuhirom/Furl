@@ -178,9 +178,9 @@ I<%args> might be:
 
 =item max_redirects :Int = 7
 
-=item max_decompressed_size :Int = 104857600 (100 MiB)
+=item max_decompressed_size :Int
 
-Maximum size of a gzip/deflate-decoded response body; C<0> disables the limit. See L<Furl::HTTP/new>.
+Maximum size of a gzip/deflate-decoded response body; C<0> disables the limit. Defaults to 100 MiB for responses held in memory, and to no limit for responses streamed with C<write_file> or C<write_code>. See L<Furl::HTTP/new>.
 
 =item capture_request :Bool = false
 
